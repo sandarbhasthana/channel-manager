@@ -1,0 +1,113 @@
+// Mapping service — bi-directional mappings between canonical Channel Manager
+// entities (room types, rate plans) and channel-side identifiers. AI-assisted
+// suggestions land here as proposals before a human approves them.
+syntax = "proto3";
+
+package mapping.v1;
+
+import "common/v1/types.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/channel-manager/channel-manager/gen/go/mapping/v1;mappingv1";
+
+enum MappingEntity {
+  MAPPING_ENTITY_UNSPECIFIED = 0;
+  MAPPING_ENTITY_ROOM_TYPE = 1;
+  MAPPING_ENTITY_RATE_PLAN = 2;
+}
+
+enum MappingStatus {
+  MAPPING_STATUS_UNSPECIFIED = 0;
+  // Suggested by AI / heuristics, awaiting human review.
+  MAPPING_STATUS_SUGGESTED = 1;
+  MAPPING_STATUS_APPROVED = 2;
+  MAPPING_STATUS_REJECTED = 3;
+}
+
+// Mapping is a single canonical ↔ channel-side correspondence.
+message Mapping {
+  string id = 1;
+  string channel_id = 2;
+  MappingEntity entity = 3;
+  // Internal Channel Manager id (room_type_id or rate_plan_id).
+  string internal_id = 4;
+  // OTA-side identifier (string, since OTAs use heterogeneous formats).
+  string external_id = 5;
+  MappingStatus status = 6;
+  // Confidence score for AI-suggested mappings. 0.0 if human-authored.
+  float confidence = 7;
+  // Free-form rationale for AI suggestions.
+  string rationale = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+service MappingService {
+  rpc ListMappings(ListMappingsRequest) returns (ListMappingsResponse);
+  rpc CreateMapping(CreateMappingRequest) returns (CreateMappingResponse);
+  rpc ApproveMapping(ApproveMappingRequest) returns (ApproveMappingResponse);
+  rpc RejectMapping(RejectMappingRequest) returns (RejectMappingResponse);
+  rpc DeleteMapping(DeleteMappingRequest) returns (DeleteMappingResponse);
+
+  // SuggestMappings asks the AI assistant to propose mappings for a channel
+  // by reading remote listings and matching against canonical room/rate data.
+  rpc SuggestMappings(SuggestMappingsRequest) returns (SuggestMappingsResponse);
+}
+
+message ListMappingsRequest {
+  string channel_id = 1;
+  MappingEntity entity = 2;
+  MappingStatus status = 3;
+  common.v1.PageRequest page = 4;
+}
+
+message ListMappingsResponse {
+  repeated Mapping mappings = 1;
+  common.v1.PageResponse page = 2;
+}
+
+message CreateMappingRequest {
+  string channel_id = 1;
+  MappingEntity entity = 2;
+  string internal_id = 3;
+  string external_id = 4;
+  common.v1.AuditMetadata audit = 5;
+}
+
+message CreateMappingResponse {
+  Mapping mapping = 1;
+}
+
+message ApproveMappingRequest {
+  string id = 1;
+  common.v1.AuditMetadata audit = 2;
+}
+
+message ApproveMappingResponse {
+  Mapping mapping = 1;
+}
+
+message RejectMappingRequest {
+  string id = 1;
+  common.v1.AuditMetadata audit = 2;
+}
+
+message RejectMappingResponse {
+  Mapping mapping = 1;
+}
+
+message DeleteMappingRequest {
+  string id = 1;
+  common.v1.AuditMetadata audit = 2;
+}
+
+message DeleteMappingResponse {}
+
+message SuggestMappingsRequest {
+  string channel_id = 1;
+  MappingEntity entity = 2;
+}
+
+message SuggestMappingsResponse {
+  repeated Mapping suggestions = 1;
+}

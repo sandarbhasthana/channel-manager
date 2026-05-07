@@ -1,0 +1,61 @@
+// Audit service — read-only query surface over the immutable audit log.
+// Writes happen implicitly via the audit hook on every domain mutation;
+// there is no public WriteAudit RPC.
+syntax = "proto3";
+
+package audit.v1;
+
+import "common/v1/types.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/channel-manager/channel-manager/gen/go/audit/v1;auditv1";
+
+// AuditEvent is a single recorded mutation. Once written, it is immutable.
+message AuditEvent {
+  string id = 1;
+  string org_id = 2;
+  // Subject: who performed the action. Typically a user id; system jobs use
+  // a synthetic "system:<job-name>" identifier.
+  string actor = 3;
+  // Action verb (e.g. "inventory.bulk_upsert", "channel.connect").
+  string action = 4;
+  // Resource kind (e.g. "inventory_day", "channel").
+  string resource_kind = 5;
+  // Resource identifier (composite IDs encoded as a single string).
+  string resource_id = 6;
+  // Free-form structured diff/payload. Bounded by the writer to keep size sane.
+  google.protobuf.Struct payload = 7;
+  // Caller-provided correlation id for tracing across systems.
+  string correlation_id = 8;
+  google.protobuf.Timestamp occurred_at = 9;
+}
+
+service AuditService {
+  rpc ListEvents(ListEventsRequest) returns (ListEventsResponse);
+  rpc GetEvent(GetEventRequest) returns (GetEventResponse);
+}
+
+message ListEventsRequest {
+  // Optional filters; empty fields are ignored.
+  string actor = 1;
+  string action = 2;
+  string resource_kind = 3;
+  string resource_id = 4;
+  google.protobuf.Timestamp since = 5;
+  google.protobuf.Timestamp until = 6;
+  common.v1.PageRequest page = 7;
+}
+
+message ListEventsResponse {
+  repeated AuditEvent events = 1;
+  common.v1.PageResponse page = 2;
+}
+
+message GetEventRequest {
+  string id = 1;
+}
+
+message GetEventResponse {
+  AuditEvent event = 1;
+}

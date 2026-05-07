@@ -1,0 +1,71 @@
+// Pricing service — owns rate plans and per-(date,room_type,rate_plan)
+// rate points. Tenancy is implicit via auth context.
+syntax = "proto3";
+
+package pricing.v1;
+
+import "common/v1/types.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/channel-manager/channel-manager/gen/go/pricing/v1;pricingv1";
+
+// RatePlan is a sellable rate definition (e.g. "BAR", "Non-Refundable").
+message RatePlan {
+  string id = 1;
+  string property_id = 2;
+  string code = 3;
+  string name = 4;
+  // Currency for all rate points under this plan.
+  string currency = 5;
+  bool active = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+// RatePoint is the price for one room_type/rate_plan/date.
+message RatePoint {
+  string property_id = 1;
+  string room_type_id = 2;
+  string rate_plan_id = 3;
+  common.v1.CalendarDate date = 4;
+  common.v1.Money amount = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+service PricingService {
+  rpc ListRatePlans(ListRatePlansRequest) returns (ListRatePlansResponse);
+  rpc GetRates(GetRatesRequest) returns (GetRatesResponse);
+  rpc BulkUpsertRates(BulkUpsertRatesRequest) returns (BulkUpsertRatesResponse);
+}
+
+message ListRatePlansRequest {
+  string property_id = 1;
+  common.v1.PageRequest page = 2;
+}
+
+message ListRatePlansResponse {
+  repeated RatePlan plans = 1;
+  common.v1.PageResponse page = 2;
+}
+
+message GetRatesRequest {
+  string property_id = 1;
+  string room_type_id = 2;
+  string rate_plan_id = 3;
+  common.v1.DateRange range = 4;
+}
+
+message GetRatesResponse {
+  repeated RatePoint points = 1;
+}
+
+message BulkUpsertRatesRequest {
+  repeated RatePoint points = 1;
+  common.v1.IdempotencyKey idempotency_key = 2;
+  common.v1.AuditMetadata audit = 3;
+}
+
+message BulkUpsertRatesResponse {
+  int32 rows_affected = 1;
+  string event_id = 2;
+}

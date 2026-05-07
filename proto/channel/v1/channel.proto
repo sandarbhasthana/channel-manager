@@ -1,0 +1,133 @@
+// Channel service — registry of OTA channel connections per property and the
+// sync envelope domain events that drive outbound updates.
+syntax = "proto3";
+
+package channel.v1;
+
+import "common/v1/types.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/channel-manager/channel-manager/gen/go/channel/v1;channelv1";
+
+// ChannelKind enumerates the OTAs/distribution partners we support. Add new
+// values at the end; never renumber.
+enum ChannelKind {
+  CHANNEL_KIND_UNSPECIFIED = 0;
+  CHANNEL_KIND_BOOKING_COM = 1;
+  CHANNEL_KIND_AIRBNB = 2;
+  CHANNEL_KIND_EXPEDIA = 3;
+  CHANNEL_KIND_AGODA = 4;
+  CHANNEL_KIND_DIRECT = 5;
+}
+
+enum ChannelStatus {
+  CHANNEL_STATUS_UNSPECIFIED = 0;
+  CHANNEL_STATUS_ACTIVE = 1;
+  CHANNEL_STATUS_PAUSED = 2;
+  CHANNEL_STATUS_DISCONNECTED = 3;
+  CHANNEL_STATUS_ERROR = 4;
+}
+
+// Channel is a configured connection between one property and one OTA.
+// Credentials are NOT carried on this message; they live in Secrets Manager
+// keyed by channel id.
+message Channel {
+  string id = 1;
+  string property_id = 2;
+  ChannelKind kind = 3;
+  ChannelStatus status = 4;
+  // OTA-side identifier of the property/listing.
+  string external_property_id = 5;
+  // Last successful round-trip with the OTA.
+  google.protobuf.Timestamp last_sync_at = 6;
+  // Last error message observed (truncated, for ops display only).
+  string last_error = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+// SyncJob describes an outbound work unit dispatched to an OTA adapter.
+// Persisted via the outbox so retries are exactly-once at the consumer.
+message SyncJob {
+  string id = 1;
+  string channel_id = 2;
+  // Logical resource being synced (e.g. "inventory", "rates").
+  string resource = 3;
+  // Opaque payload reference (e.g. outbox event id) — not the payload itself.
+  string event_id = 4;
+  int32 attempts = 5;
+  google.protobuf.Timestamp scheduled_at = 6;
+  google.protobuf.Timestamp completed_at = 7;
+}
+
+service ChannelService {
+  rpc ListChannels(ListChannelsRequest) returns (ListChannelsResponse);
+  rpc GetChannel(GetChannelRequest) returns (GetChannelResponse);
+  rpc ConnectChannel(ConnectChannelRequest) returns (ConnectChannelResponse);
+  rpc PauseChannel(PauseChannelRequest) returns (PauseChannelResponse);
+  rpc ResumeChannel(ResumeChannelRequest) returns (ResumeChannelResponse);
+  rpc DisconnectChannel(DisconnectChannelRequest) returns (DisconnectChannelResponse);
+}
+
+message ListChannelsRequest {
+  string property_id = 1;
+  common.v1.PageRequest page = 2;
+}
+
+message ListChannelsResponse {
+  repeated Channel channels = 1;
+  common.v1.PageResponse page = 2;
+}
+
+message GetChannelRequest {
+  string id = 1;
+}
+
+message GetChannelResponse {
+  Channel channel = 1;
+}
+
+// ConnectChannel registers a new OTA connection. Credentials are passed in a
+// transient envelope and forwarded to Secrets Manager — they are not echoed
+// back in the response or persisted in any DB column.
+message ConnectChannelRequest {
+  string property_id = 1;
+  ChannelKind kind = 2;
+  string external_property_id = 3;
+  // Channel-specific credentials (api_key, oauth_token, etc.).
+  map<string, string> credentials = 4;
+  common.v1.IdempotencyKey idempotency_key = 5;
+  common.v1.AuditMetadata audit = 6;
+}
+
+message ConnectChannelResponse {
+  Channel channel = 1;
+  string event_id = 2;
+}
+
+message PauseChannelRequest {
+  string id = 1;
+  common.v1.AuditMetadata audit = 2;
+}
+
+message PauseChannelResponse {
+  Channel channel = 1;
+}
+
+message ResumeChannelRequest {
+  string id = 1;
+  common.v1.AuditMetadata audit = 2;
+}
+
+message ResumeChannelResponse {
+  Channel channel = 1;
+}
+
+message DisconnectChannelRequest {
+  string id = 1;
+  common.v1.AuditMetadata audit = 2;
+}
+
+message DisconnectChannelResponse {
+  Channel channel = 1;
+}

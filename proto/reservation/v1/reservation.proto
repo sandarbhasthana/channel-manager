@@ -1,0 +1,111 @@
+// Reservation service — canonical bookings ingested from PMS or fetched
+// from channels and reconciled against inventory.
+syntax = "proto3";
+
+package reservation.v1;
+
+import "common/v1/types.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/channel-manager/channel-manager/gen/go/reservation/v1;reservationv1";
+
+enum ReservationStatus {
+  RESERVATION_STATUS_UNSPECIFIED = 0;
+  RESERVATION_STATUS_CONFIRMED = 1;
+  RESERVATION_STATUS_CANCELLED = 2;
+  RESERVATION_STATUS_NO_SHOW = 3;
+  RESERVATION_STATUS_CHECKED_IN = 4;
+  RESERVATION_STATUS_CHECKED_OUT = 5;
+}
+
+enum ReservationSource {
+  RESERVATION_SOURCE_UNSPECIFIED = 0;
+  RESERVATION_SOURCE_PMS = 1;
+  RESERVATION_SOURCE_CHANNEL = 2;
+  RESERVATION_SOURCE_DIRECT = 3;
+}
+
+message Guest {
+  string first_name = 1;
+  string last_name = 2;
+  string email = 3;
+  string phone = 4;
+}
+
+message Reservation {
+  // Internal ID assigned by Channel Manager.
+  string id = 1;
+  string property_id = 2;
+  string room_type_id = 3;
+  string rate_plan_id = 4;
+
+  // External identifiers from upstream systems.
+  string channel_id = 5;
+  string channel_confirmation_id = 6;
+  string pms_id = 7;
+  string pms_reservation_id = 8;
+
+  Guest guest = 9;
+  common.v1.CalendarDate check_in = 10;
+  common.v1.CalendarDate check_out = 11;
+  int32 num_guests = 12;
+  ReservationStatus status = 13;
+  ReservationSource source = 14;
+  common.v1.Money total = 15;
+
+  google.protobuf.Timestamp created_at = 16;
+  google.protobuf.Timestamp updated_at = 17;
+}
+
+service ReservationService {
+  rpc GetReservation(GetReservationRequest) returns (GetReservationResponse);
+  rpc ListReservations(ListReservationsRequest) returns (ListReservationsResponse);
+  rpc IngestReservation(IngestReservationRequest) returns (IngestReservationResponse);
+  rpc CancelReservation(CancelReservationRequest) returns (CancelReservationResponse);
+}
+
+message GetReservationRequest {
+  string id = 1;
+}
+
+message GetReservationResponse {
+  Reservation reservation = 1;
+}
+
+message ListReservationsRequest {
+  string property_id = 1;
+  // Filters by check-in date.
+  common.v1.DateRange range = 2;
+  ReservationStatus status = 3;
+  common.v1.PageRequest page = 4;
+}
+
+message ListReservationsResponse {
+  repeated Reservation reservations = 1;
+  common.v1.PageResponse page = 2;
+}
+
+// IngestReservation is called by sync workers translating from PMS or channel
+// payloads into the canonical model.
+message IngestReservationRequest {
+  Reservation reservation = 1;
+  common.v1.IdempotencyKey idempotency_key = 2;
+  common.v1.AuditMetadata audit = 3;
+}
+
+message IngestReservationResponse {
+  string id = 1;
+  bool created = 2;
+  string event_id = 3;
+}
+
+message CancelReservationRequest {
+  string id = 1;
+  common.v1.IdempotencyKey idempotency_key = 2;
+  common.v1.AuditMetadata audit = 3;
+}
+
+message CancelReservationResponse {
+  Reservation reservation = 1;
+  string event_id = 2;
+}

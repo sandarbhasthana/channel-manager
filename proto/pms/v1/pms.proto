@@ -1,0 +1,134 @@
+// PMS service — registry of Property Management System connections and the
+// canonical view of properties and room types learned from those PMSes.
+syntax = "proto3";
+
+package pms.v1;
+
+import "common/v1/types.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/channel-manager/channel-manager/gen/go/pms/v1;pmsv1";
+
+enum PmsKind {
+  PMS_KIND_UNSPECIFIED = 0;
+  PMS_KIND_CLOUDBEDS = 1;
+  PMS_KIND_MEWS = 2;
+  PMS_KIND_OPERA = 3;
+  PMS_KIND_CUSTOM = 4;
+}
+
+enum PmsStatus {
+  PMS_STATUS_UNSPECIFIED = 0;
+  PMS_STATUS_ACTIVE = 1;
+  PMS_STATUS_PAUSED = 2;
+  PMS_STATUS_DISCONNECTED = 3;
+  PMS_STATUS_ERROR = 4;
+}
+
+// PmsConnection is one tenant's link to a PMS account.
+message PmsConnection {
+  string id = 1;
+  PmsKind kind = 2;
+  PmsStatus status = 3;
+  // Display label for the connection (e.g. "Cloudbeds — Mountain Group").
+  string label = 4;
+  google.protobuf.Timestamp last_sync_at = 5;
+  string last_error = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+// Property is the canonical hotel/listing as known to Channel Manager.
+message Property {
+  string id = 1;
+  string pms_id = 2;
+  string external_property_id = 3;
+  string name = 4;
+  string timezone = 5;
+  string default_currency = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+// RoomType is a sellable unit category within a property.
+message RoomType {
+  string id = 1;
+  string property_id = 2;
+  string code = 3;
+  string name = 4;
+  int32 max_occupancy = 5;
+  int32 base_occupancy = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+service PmsService {
+  rpc ListConnections(ListConnectionsRequest) returns (ListConnectionsResponse);
+  rpc ConnectPms(ConnectPmsRequest) returns (ConnectPmsResponse);
+  rpc DisconnectPms(DisconnectPmsRequest) returns (DisconnectPmsResponse);
+
+  rpc ListProperties(ListPropertiesRequest) returns (ListPropertiesResponse);
+  rpc GetProperty(GetPropertyRequest) returns (GetPropertyResponse);
+  rpc ListRoomTypes(ListRoomTypesRequest) returns (ListRoomTypesResponse);
+}
+
+message ListConnectionsRequest {
+  common.v1.PageRequest page = 1;
+}
+
+message ListConnectionsResponse {
+  repeated PmsConnection connections = 1;
+  common.v1.PageResponse page = 2;
+}
+
+message ConnectPmsRequest {
+  PmsKind kind = 1;
+  string label = 2;
+  // Credentials are forwarded to Secrets Manager, never persisted in DB.
+  map<string, string> credentials = 3;
+  common.v1.IdempotencyKey idempotency_key = 4;
+  common.v1.AuditMetadata audit = 5;
+}
+
+message ConnectPmsResponse {
+  PmsConnection connection = 1;
+  string event_id = 2;
+}
+
+message DisconnectPmsRequest {
+  string id = 1;
+  common.v1.AuditMetadata audit = 2;
+}
+
+message DisconnectPmsResponse {
+  PmsConnection connection = 1;
+}
+
+message ListPropertiesRequest {
+  string pms_id = 1;
+  common.v1.PageRequest page = 2;
+}
+
+message ListPropertiesResponse {
+  repeated Property properties = 1;
+  common.v1.PageResponse page = 2;
+}
+
+message GetPropertyRequest {
+  string id = 1;
+}
+
+message GetPropertyResponse {
+  Property property = 1;
+  repeated RoomType room_types = 2;
+}
+
+message ListRoomTypesRequest {
+  string property_id = 1;
+  common.v1.PageRequest page = 2;
+}
+
+message ListRoomTypesResponse {
+  repeated RoomType room_types = 1;
+  common.v1.PageResponse page = 2;
+}

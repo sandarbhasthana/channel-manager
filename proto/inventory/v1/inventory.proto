@@ -1,0 +1,70 @@
+// Inventory service — owns availability and stay restrictions per
+// (property, room_type, date). Tenancy is implicit: the server resolves
+// org_id from the authenticated context and applies Postgres RLS.
+syntax = "proto3";
+
+package inventory.v1;
+
+import "common/v1/types.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/channel-manager/channel-manager/gen/go/inventory/v1;inventoryv1";
+
+// InventoryDay represents availability + restrictions for one room type on
+// one calendar date.
+message InventoryDay {
+  string property_id = 1;
+  string room_type_id = 2;
+  common.v1.CalendarDate date = 3;
+  // Available units for sale. Must be >= 0.
+  int32 available = 4;
+  // If true, all channels must stop selling this date regardless of available.
+  bool stop_sell = 5;
+  // Minimum length of stay in nights. 0 means no restriction.
+  int32 min_stay = 6;
+  // Maximum length of stay in nights. 0 means no restriction.
+  int32 max_stay = 7;
+  // If true, no new arrivals (closed to arrival).
+  bool cta = 8;
+  // If true, no new departures (closed to departure).
+  bool ctd = 9;
+  // Server-managed timestamps.
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+// InventoryService is the public Connect-RPC surface for the inventory aggregate.
+service InventoryService {
+  // GetInventory returns inventory for a property and room type within a
+  // half-open date range. Read-only.
+  rpc GetInventory(GetInventoryRequest) returns (GetInventoryResponse);
+
+  // BulkUpsertInventory atomically writes inventory for many days. The
+  // operation is idempotent on idempotency_key. A successful response means
+  // (a) the rows are committed, and (b) a domain event has been enqueued in
+  // the outbox for downstream channel sync.
+  rpc BulkUpsertInventory(BulkUpsertInventoryRequest) returns (BulkUpsertInventoryResponse);
+}
+
+message GetInventoryRequest {
+  string property_id = 1;
+  string room_type_id = 2;
+  common.v1.DateRange range = 3;
+}
+
+message GetInventoryResponse {
+  repeated InventoryDay days = 1;
+}
+
+message BulkUpsertInventoryRequest {
+  // Days must all belong to the same property. Server rejects mixed property_id.
+  repeated InventoryDay days = 1;
+  common.v1.IdempotencyKey idempotency_key = 2;
+  common.v1.AuditMetadata audit = 3;
+}
+
+message BulkUpsertInventoryResponse {
+  // Number of rows inserted or updated.
+  int32 rows_affected = 1;
+  // Outbox event ID for traceability.
+  string event_id = 2;
+}

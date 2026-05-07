@@ -1,0 +1,21 @@
+# buf code generation config.
+#
+# Uses local Go plugins to avoid the BSR remote-plugin auth requirement.
+# Install once before running `buf generate`:
+#
+#   go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+#   go install connectrpc.com/connect/cmd/protoc-gen-connect-go@latest
+#
+# TypeScript generation is intentionally deferred to the dashboard phase.
+# When the frontend is wired in, add @bufbuild/protoc-gen-es and
+# @connectrpc/protoc-gen-connect-es plugins (npm-installed) here.
+version: v2
+plugins:
+  - local: protoc-gen-go
+    out: gen/go
+    opt:
+      - paths=source_relative
+  - local: protoc-gen-connect-go
+    out: gen/go
+    opt:
+      - paths=source_relative

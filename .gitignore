@@ -1,0 +1,27 @@
+# ── Environment ──────────────────────────────────────────────────────────────
+.env
+.env.*.local
+.env.local
+
+# ── Go ───────────────────────────────────────────────────────────────────────
+bin/
+*.test
+*.out
+coverage.txt
+coverage.html
+
+# ── Editor / OS ──────────────────────────────────────────────────────────────
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# ── Node / pnpm (frontend phase) ─────────────────────────────────────────────
+node_modules/
+.pnpm-store/
+*.tsbuildinfo
+
+# ── Build / generated artifacts that we DO commit ────────────────────────────
+# gen/go is intentionally committed — it is the protobuf contract surface
+# consumed by all Go modules in the workspace.

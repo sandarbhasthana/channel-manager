@@ -1,0 +1,75 @@
+// Common shared types across all Channel Manager services.
+//
+// This package only contains primitive value objects. Service-specific
+// messages live in their own packages (e.g. inventory/v1, pricing/v1).
+syntax = "proto3";
+
+package common.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/channel-manager/channel-manager/gen/go/common/v1;commonv1";
+
+// Money represents a monetary amount in minor units (e.g. cents) plus a
+// 3-letter ISO 4217 currency code. Storing minor units as int64 avoids
+// floating-point rounding errors. Use a string-based decimal representation
+// only at the edge (UI / external API), never internally.
+message Money {
+  // Amount in minor units. For USD, 1234 == $12.34.
+  int64 amount_minor = 1;
+
+  // ISO 4217 currency code (e.g. "USD", "EUR", "INR").
+  string currency = 2;
+}
+
+// CalendarDate is a calendar date with no time zone (a "wall date" used for
+// hotel arrival/stay calendars). Fields use the same semantics as
+// google.type.Date so the wire format is interoperable.
+message CalendarDate {
+  // Year of the date. Must be from 1 to 9999.
+  int32 year = 1;
+  // Month of the year. Must be from 1 to 12.
+  int32 month = 2;
+  // Day of the month. Must be from 1 to 31 and valid for the year and month.
+  int32 day = 3;
+}
+
+// DateRange is a half-open calendar range [start, end). End-exclusive matches
+// hospitality conventions where check-out date is not a stayed night.
+message DateRange {
+  CalendarDate start = 1;
+  CalendarDate end = 2;
+}
+
+// PageRequest encodes a forward-only cursor pagination request.
+message PageRequest {
+  // Maximum number of items to return. Server may cap this. Default 50.
+  int32 page_size = 1;
+  // Opaque cursor returned by a previous response. Empty for the first page.
+  string page_token = 2;
+}
+
+// PageResponse is the pagination footer for list responses.
+message PageResponse {
+  // Cursor to fetch the next page. Empty when there are no more results.
+  string next_page_token = 1;
+}
+
+// AuditMetadata is attached to write requests so the audit log can record
+// the operator and intent without relying on side-channel headers.
+message AuditMetadata {
+  // Human-readable reason for the change (e.g. "manual override - oversold").
+  string reason = 1;
+  // Free-form correlation ID supplied by the caller (not the auth subject).
+  string correlation_id = 2;
+}
+
+// IdempotencyKey is a caller-provided unique key per logical write. The server
+// guarantees that retries with the same key + payload produce the same effect.
+// Required on every write that hits an external system (OTA / PMS).
+message IdempotencyKey {
+  // UUID v4 or ULID recommended. Server rejects keys longer than 128 chars.
+  string key = 1;
+  // Optional time after which the server may evict the dedupe record.
+  google.protobuf.Timestamp expires_at = 2;
+}

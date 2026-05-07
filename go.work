@@ -1,0 +1,20 @@
+go 1.26.2
+
+use (
+	./apps/api
+	./apps/sync-worker
+	./gen/go
+	./platform/auth
+	./platform/config
+	./platform/db
+	./platform/events
+	./platform/http
+	./platform/observability
+	./services/audit
+	./services/channel
+	./services/inventory
+	./services/mapping
+	./services/pms
+	./services/pricing
+	./services/reservations
+)
