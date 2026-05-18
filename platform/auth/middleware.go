@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/jackc/pgx/v5"
@@ -27,11 +28,16 @@ func NewMiddleware(v *Verifier, s *Store) func(http.Handler) http.Handler {
 			}
 			claims, err := v.Verify(r.Context(), rawToken)
 			if err != nil {
+				slog.Error("auth.middleware: token verification failed", "err", err, "path", r.URL.Path)
 				http.Error(w, "unauthorized", http.StatusUnauthorized)
 				return
 			}
 
+			slog.Info("auth.middleware: token verified",
+				"sub", claims.Subject(), "org_id", claims.OrganizationID, "role", claims.Role, "path", r.URL.Path)
+
 			if claims.OrganizationID == "" {
+				slog.Error("auth.middleware: empty org_id in token", "sub", claims.Subject())
 				http.Error(w, "organization context required", http.StatusUnauthorized)
 				return
 			}
@@ -39,11 +45,11 @@ func NewMiddleware(v *Verifier, s *Store) func(http.Handler) http.Handler {
 			localOrgID, err := s.ResolveOrgID(r.Context(), claims.OrganizationID)
 			if err != nil {
 				if errors.Is(err, pgx.ErrNoRows) {
-					// Org not yet mirrored — deny until the user completes
-					// the OAuth callback or a webhook syncs the org.
+					slog.Error("auth.middleware: org not mirrored", "workos_org_id", claims.OrganizationID)
 					http.Error(w, "organization not registered", http.StatusForbidden)
 					return
 				}
+				slog.Error("auth.middleware: resolve org failed", "err", err)
 				http.Error(w, "internal error", http.StatusInternalServerError)
 				return
 			}

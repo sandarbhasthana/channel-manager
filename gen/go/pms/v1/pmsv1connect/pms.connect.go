@@ -52,6 +52,29 @@ const (
 	// PmsServiceListRoomTypesProcedure is the fully-qualified name of the PmsService's ListRoomTypes
 	// RPC.
 	PmsServiceListRoomTypesProcedure = "/pms.v1.PmsService/ListRoomTypes"
+	// PmsServiceSyncCatalogProcedure is the fully-qualified name of the PmsService's SyncCatalog RPC.
+	PmsServiceSyncCatalogProcedure = "/pms.v1.PmsService/SyncCatalog"
+	// PmsServiceIngestAvailabilityProcedure is the fully-qualified name of the PmsService's
+	// IngestAvailability RPC.
+	PmsServiceIngestAvailabilityProcedure = "/pms.v1.PmsService/IngestAvailability"
+	// PmsServiceOrgHealthProcedure is the fully-qualified name of the PmsService's OrgHealth RPC.
+	PmsServiceOrgHealthProcedure = "/pms.v1.PmsService/OrgHealth"
+	// PmsServicePropertyHealthProcedure is the fully-qualified name of the PmsService's PropertyHealth
+	// RPC.
+	PmsServicePropertyHealthProcedure = "/pms.v1.PmsService/PropertyHealth"
+	// PmsServiceGetQuoteProcedure is the fully-qualified name of the PmsService's GetQuote RPC.
+	PmsServiceGetQuoteProcedure = "/pms.v1.PmsService/GetQuote"
+	// PmsServiceCreateBookingProcedure is the fully-qualified name of the PmsService's CreateBooking
+	// RPC.
+	PmsServiceCreateBookingProcedure = "/pms.v1.PmsService/CreateBooking"
+	// PmsServiceGetBookingProcedure is the fully-qualified name of the PmsService's GetBooking RPC.
+	PmsServiceGetBookingProcedure = "/pms.v1.PmsService/GetBooking"
+	// PmsServiceUpdateBookingProcedure is the fully-qualified name of the PmsService's UpdateBooking
+	// RPC.
+	PmsServiceUpdateBookingProcedure = "/pms.v1.PmsService/UpdateBooking"
+	// PmsServiceCancelBookingProcedure is the fully-qualified name of the PmsService's CancelBooking
+	// RPC.
+	PmsServiceCancelBookingProcedure = "/pms.v1.PmsService/CancelBooking"
 )
 
 // PmsServiceClient is a client for the pms.v1.PmsService service.
@@ -62,6 +85,17 @@ type PmsServiceClient interface {
 	ListProperties(context.Context, *connect.Request[v1.ListPropertiesRequest]) (*connect.Response[v1.ListPropertiesResponse], error)
 	GetProperty(context.Context, *connect.Request[v1.GetPropertyRequest]) (*connect.Response[v1.GetPropertyResponse], error)
 	ListRoomTypes(context.Context, *connect.Request[v1.ListRoomTypesRequest]) (*connect.Response[v1.ListRoomTypesResponse], error)
+	// Pull property + room-type catalog from the PMS webhook API (§1.2, §1.5).
+	SyncCatalog(context.Context, *connect.Request[v1.SyncCatalogRequest]) (*connect.Response[v1.SyncCatalogResponse], error)
+	// Pull availability from the PMS and upsert inventory_days (§1.4).
+	IngestAvailability(context.Context, *connect.Request[v1.IngestAvailabilityRequest]) (*connect.Response[v1.IngestAvailabilityResponse], error)
+	OrgHealth(context.Context, *connect.Request[v1.OrgHealthRequest]) (*connect.Response[v1.OrgHealthResponse], error)
+	PropertyHealth(context.Context, *connect.Request[v1.PropertyHealthRequest]) (*connect.Response[v1.PropertyHealthResponse], error)
+	GetQuote(context.Context, *connect.Request[v1.GetQuoteRequest]) (*connect.Response[v1.GetQuoteResponse], error)
+	CreateBooking(context.Context, *connect.Request[v1.CreateBookingRequest]) (*connect.Response[v1.CreateBookingResponse], error)
+	GetBooking(context.Context, *connect.Request[v1.GetBookingRequest]) (*connect.Response[v1.GetBookingResponse], error)
+	UpdateBooking(context.Context, *connect.Request[v1.UpdateBookingRequest]) (*connect.Response[v1.UpdateBookingResponse], error)
+	CancelBooking(context.Context, *connect.Request[v1.CancelBookingRequest]) (*connect.Response[v1.CancelBookingResponse], error)
 }
 
 // NewPmsServiceClient constructs a client for the pms.v1.PmsService service. By default, it uses
@@ -111,17 +145,80 @@ func NewPmsServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(pmsServiceMethods.ByName("ListRoomTypes")),
 			connect.WithClientOptions(opts...),
 		),
+		syncCatalog: connect.NewClient[v1.SyncCatalogRequest, v1.SyncCatalogResponse](
+			httpClient,
+			baseURL+PmsServiceSyncCatalogProcedure,
+			connect.WithSchema(pmsServiceMethods.ByName("SyncCatalog")),
+			connect.WithClientOptions(opts...),
+		),
+		ingestAvailability: connect.NewClient[v1.IngestAvailabilityRequest, v1.IngestAvailabilityResponse](
+			httpClient,
+			baseURL+PmsServiceIngestAvailabilityProcedure,
+			connect.WithSchema(pmsServiceMethods.ByName("IngestAvailability")),
+			connect.WithClientOptions(opts...),
+		),
+		orgHealth: connect.NewClient[v1.OrgHealthRequest, v1.OrgHealthResponse](
+			httpClient,
+			baseURL+PmsServiceOrgHealthProcedure,
+			connect.WithSchema(pmsServiceMethods.ByName("OrgHealth")),
+			connect.WithClientOptions(opts...),
+		),
+		propertyHealth: connect.NewClient[v1.PropertyHealthRequest, v1.PropertyHealthResponse](
+			httpClient,
+			baseURL+PmsServicePropertyHealthProcedure,
+			connect.WithSchema(pmsServiceMethods.ByName("PropertyHealth")),
+			connect.WithClientOptions(opts...),
+		),
+		getQuote: connect.NewClient[v1.GetQuoteRequest, v1.GetQuoteResponse](
+			httpClient,
+			baseURL+PmsServiceGetQuoteProcedure,
+			connect.WithSchema(pmsServiceMethods.ByName("GetQuote")),
+			connect.WithClientOptions(opts...),
+		),
+		createBooking: connect.NewClient[v1.CreateBookingRequest, v1.CreateBookingResponse](
+			httpClient,
+			baseURL+PmsServiceCreateBookingProcedure,
+			connect.WithSchema(pmsServiceMethods.ByName("CreateBooking")),
+			connect.WithClientOptions(opts...),
+		),
+		getBooking: connect.NewClient[v1.GetBookingRequest, v1.GetBookingResponse](
+			httpClient,
+			baseURL+PmsServiceGetBookingProcedure,
+			connect.WithSchema(pmsServiceMethods.ByName("GetBooking")),
+			connect.WithClientOptions(opts...),
+		),
+		updateBooking: connect.NewClient[v1.UpdateBookingRequest, v1.UpdateBookingResponse](
+			httpClient,
+			baseURL+PmsServiceUpdateBookingProcedure,
+			connect.WithSchema(pmsServiceMethods.ByName("UpdateBooking")),
+			connect.WithClientOptions(opts...),
+		),
+		cancelBooking: connect.NewClient[v1.CancelBookingRequest, v1.CancelBookingResponse](
+			httpClient,
+			baseURL+PmsServiceCancelBookingProcedure,
+			connect.WithSchema(pmsServiceMethods.ByName("CancelBooking")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // pmsServiceClient implements PmsServiceClient.
 type pmsServiceClient struct {
-	listConnections *connect.Client[v1.ListConnectionsRequest, v1.ListConnectionsResponse]
-	connectPms      *connect.Client[v1.ConnectPmsRequest, v1.ConnectPmsResponse]
-	disconnectPms   *connect.Client[v1.DisconnectPmsRequest, v1.DisconnectPmsResponse]
-	listProperties  *connect.Client[v1.ListPropertiesRequest, v1.ListPropertiesResponse]
-	getProperty     *connect.Client[v1.GetPropertyRequest, v1.GetPropertyResponse]
-	listRoomTypes   *connect.Client[v1.ListRoomTypesRequest, v1.ListRoomTypesResponse]
+	listConnections    *connect.Client[v1.ListConnectionsRequest, v1.ListConnectionsResponse]
+	connectPms         *connect.Client[v1.ConnectPmsRequest, v1.ConnectPmsResponse]
+	disconnectPms      *connect.Client[v1.DisconnectPmsRequest, v1.DisconnectPmsResponse]
+	listProperties     *connect.Client[v1.ListPropertiesRequest, v1.ListPropertiesResponse]
+	getProperty        *connect.Client[v1.GetPropertyRequest, v1.GetPropertyResponse]
+	listRoomTypes      *connect.Client[v1.ListRoomTypesRequest, v1.ListRoomTypesResponse]
+	syncCatalog        *connect.Client[v1.SyncCatalogRequest, v1.SyncCatalogResponse]
+	ingestAvailability *connect.Client[v1.IngestAvailabilityRequest, v1.IngestAvailabilityResponse]
+	orgHealth          *connect.Client[v1.OrgHealthRequest, v1.OrgHealthResponse]
+	propertyHealth     *connect.Client[v1.PropertyHealthRequest, v1.PropertyHealthResponse]
+	getQuote           *connect.Client[v1.GetQuoteRequest, v1.GetQuoteResponse]
+	createBooking      *connect.Client[v1.CreateBookingRequest, v1.CreateBookingResponse]
+	getBooking         *connect.Client[v1.GetBookingRequest, v1.GetBookingResponse]
+	updateBooking      *connect.Client[v1.UpdateBookingRequest, v1.UpdateBookingResponse]
+	cancelBooking      *connect.Client[v1.CancelBookingRequest, v1.CancelBookingResponse]
 }
 
 // ListConnections calls pms.v1.PmsService.ListConnections.
@@ -154,6 +251,51 @@ func (c *pmsServiceClient) ListRoomTypes(ctx context.Context, req *connect.Reque
 	return c.listRoomTypes.CallUnary(ctx, req)
 }
 
+// SyncCatalog calls pms.v1.PmsService.SyncCatalog.
+func (c *pmsServiceClient) SyncCatalog(ctx context.Context, req *connect.Request[v1.SyncCatalogRequest]) (*connect.Response[v1.SyncCatalogResponse], error) {
+	return c.syncCatalog.CallUnary(ctx, req)
+}
+
+// IngestAvailability calls pms.v1.PmsService.IngestAvailability.
+func (c *pmsServiceClient) IngestAvailability(ctx context.Context, req *connect.Request[v1.IngestAvailabilityRequest]) (*connect.Response[v1.IngestAvailabilityResponse], error) {
+	return c.ingestAvailability.CallUnary(ctx, req)
+}
+
+// OrgHealth calls pms.v1.PmsService.OrgHealth.
+func (c *pmsServiceClient) OrgHealth(ctx context.Context, req *connect.Request[v1.OrgHealthRequest]) (*connect.Response[v1.OrgHealthResponse], error) {
+	return c.orgHealth.CallUnary(ctx, req)
+}
+
+// PropertyHealth calls pms.v1.PmsService.PropertyHealth.
+func (c *pmsServiceClient) PropertyHealth(ctx context.Context, req *connect.Request[v1.PropertyHealthRequest]) (*connect.Response[v1.PropertyHealthResponse], error) {
+	return c.propertyHealth.CallUnary(ctx, req)
+}
+
+// GetQuote calls pms.v1.PmsService.GetQuote.
+func (c *pmsServiceClient) GetQuote(ctx context.Context, req *connect.Request[v1.GetQuoteRequest]) (*connect.Response[v1.GetQuoteResponse], error) {
+	return c.getQuote.CallUnary(ctx, req)
+}
+
+// CreateBooking calls pms.v1.PmsService.CreateBooking.
+func (c *pmsServiceClient) CreateBooking(ctx context.Context, req *connect.Request[v1.CreateBookingRequest]) (*connect.Response[v1.CreateBookingResponse], error) {
+	return c.createBooking.CallUnary(ctx, req)
+}
+
+// GetBooking calls pms.v1.PmsService.GetBooking.
+func (c *pmsServiceClient) GetBooking(ctx context.Context, req *connect.Request[v1.GetBookingRequest]) (*connect.Response[v1.GetBookingResponse], error) {
+	return c.getBooking.CallUnary(ctx, req)
+}
+
+// UpdateBooking calls pms.v1.PmsService.UpdateBooking.
+func (c *pmsServiceClient) UpdateBooking(ctx context.Context, req *connect.Request[v1.UpdateBookingRequest]) (*connect.Response[v1.UpdateBookingResponse], error) {
+	return c.updateBooking.CallUnary(ctx, req)
+}
+
+// CancelBooking calls pms.v1.PmsService.CancelBooking.
+func (c *pmsServiceClient) CancelBooking(ctx context.Context, req *connect.Request[v1.CancelBookingRequest]) (*connect.Response[v1.CancelBookingResponse], error) {
+	return c.cancelBooking.CallUnary(ctx, req)
+}
+
 // PmsServiceHandler is an implementation of the pms.v1.PmsService service.
 type PmsServiceHandler interface {
 	ListConnections(context.Context, *connect.Request[v1.ListConnectionsRequest]) (*connect.Response[v1.ListConnectionsResponse], error)
@@ -162,6 +304,17 @@ type PmsServiceHandler interface {
 	ListProperties(context.Context, *connect.Request[v1.ListPropertiesRequest]) (*connect.Response[v1.ListPropertiesResponse], error)
 	GetProperty(context.Context, *connect.Request[v1.GetPropertyRequest]) (*connect.Response[v1.GetPropertyResponse], error)
 	ListRoomTypes(context.Context, *connect.Request[v1.ListRoomTypesRequest]) (*connect.Response[v1.ListRoomTypesResponse], error)
+	// Pull property + room-type catalog from the PMS webhook API (§1.2, §1.5).
+	SyncCatalog(context.Context, *connect.Request[v1.SyncCatalogRequest]) (*connect.Response[v1.SyncCatalogResponse], error)
+	// Pull availability from the PMS and upsert inventory_days (§1.4).
+	IngestAvailability(context.Context, *connect.Request[v1.IngestAvailabilityRequest]) (*connect.Response[v1.IngestAvailabilityResponse], error)
+	OrgHealth(context.Context, *connect.Request[v1.OrgHealthRequest]) (*connect.Response[v1.OrgHealthResponse], error)
+	PropertyHealth(context.Context, *connect.Request[v1.PropertyHealthRequest]) (*connect.Response[v1.PropertyHealthResponse], error)
+	GetQuote(context.Context, *connect.Request[v1.GetQuoteRequest]) (*connect.Response[v1.GetQuoteResponse], error)
+	CreateBooking(context.Context, *connect.Request[v1.CreateBookingRequest]) (*connect.Response[v1.CreateBookingResponse], error)
+	GetBooking(context.Context, *connect.Request[v1.GetBookingRequest]) (*connect.Response[v1.GetBookingResponse], error)
+	UpdateBooking(context.Context, *connect.Request[v1.UpdateBookingRequest]) (*connect.Response[v1.UpdateBookingResponse], error)
+	CancelBooking(context.Context, *connect.Request[v1.CancelBookingRequest]) (*connect.Response[v1.CancelBookingResponse], error)
 }
 
 // NewPmsServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -207,6 +360,60 @@ func NewPmsServiceHandler(svc PmsServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(pmsServiceMethods.ByName("ListRoomTypes")),
 		connect.WithHandlerOptions(opts...),
 	)
+	pmsServiceSyncCatalogHandler := connect.NewUnaryHandler(
+		PmsServiceSyncCatalogProcedure,
+		svc.SyncCatalog,
+		connect.WithSchema(pmsServiceMethods.ByName("SyncCatalog")),
+		connect.WithHandlerOptions(opts...),
+	)
+	pmsServiceIngestAvailabilityHandler := connect.NewUnaryHandler(
+		PmsServiceIngestAvailabilityProcedure,
+		svc.IngestAvailability,
+		connect.WithSchema(pmsServiceMethods.ByName("IngestAvailability")),
+		connect.WithHandlerOptions(opts...),
+	)
+	pmsServiceOrgHealthHandler := connect.NewUnaryHandler(
+		PmsServiceOrgHealthProcedure,
+		svc.OrgHealth,
+		connect.WithSchema(pmsServiceMethods.ByName("OrgHealth")),
+		connect.WithHandlerOptions(opts...),
+	)
+	pmsServicePropertyHealthHandler := connect.NewUnaryHandler(
+		PmsServicePropertyHealthProcedure,
+		svc.PropertyHealth,
+		connect.WithSchema(pmsServiceMethods.ByName("PropertyHealth")),
+		connect.WithHandlerOptions(opts...),
+	)
+	pmsServiceGetQuoteHandler := connect.NewUnaryHandler(
+		PmsServiceGetQuoteProcedure,
+		svc.GetQuote,
+		connect.WithSchema(pmsServiceMethods.ByName("GetQuote")),
+		connect.WithHandlerOptions(opts...),
+	)
+	pmsServiceCreateBookingHandler := connect.NewUnaryHandler(
+		PmsServiceCreateBookingProcedure,
+		svc.CreateBooking,
+		connect.WithSchema(pmsServiceMethods.ByName("CreateBooking")),
+		connect.WithHandlerOptions(opts...),
+	)
+	pmsServiceGetBookingHandler := connect.NewUnaryHandler(
+		PmsServiceGetBookingProcedure,
+		svc.GetBooking,
+		connect.WithSchema(pmsServiceMethods.ByName("GetBooking")),
+		connect.WithHandlerOptions(opts...),
+	)
+	pmsServiceUpdateBookingHandler := connect.NewUnaryHandler(
+		PmsServiceUpdateBookingProcedure,
+		svc.UpdateBooking,
+		connect.WithSchema(pmsServiceMethods.ByName("UpdateBooking")),
+		connect.WithHandlerOptions(opts...),
+	)
+	pmsServiceCancelBookingHandler := connect.NewUnaryHandler(
+		PmsServiceCancelBookingProcedure,
+		svc.CancelBooking,
+		connect.WithSchema(pmsServiceMethods.ByName("CancelBooking")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/pms.v1.PmsService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case PmsServiceListConnectionsProcedure:
@@ -221,6 +428,24 @@ func NewPmsServiceHandler(svc PmsServiceHandler, opts ...connect.HandlerOption) 
 			pmsServiceGetPropertyHandler.ServeHTTP(w, r)
 		case PmsServiceListRoomTypesProcedure:
 			pmsServiceListRoomTypesHandler.ServeHTTP(w, r)
+		case PmsServiceSyncCatalogProcedure:
+			pmsServiceSyncCatalogHandler.ServeHTTP(w, r)
+		case PmsServiceIngestAvailabilityProcedure:
+			pmsServiceIngestAvailabilityHandler.ServeHTTP(w, r)
+		case PmsServiceOrgHealthProcedure:
+			pmsServiceOrgHealthHandler.ServeHTTP(w, r)
+		case PmsServicePropertyHealthProcedure:
+			pmsServicePropertyHealthHandler.ServeHTTP(w, r)
+		case PmsServiceGetQuoteProcedure:
+			pmsServiceGetQuoteHandler.ServeHTTP(w, r)
+		case PmsServiceCreateBookingProcedure:
+			pmsServiceCreateBookingHandler.ServeHTTP(w, r)
+		case PmsServiceGetBookingProcedure:
+			pmsServiceGetBookingHandler.ServeHTTP(w, r)
+		case PmsServiceUpdateBookingProcedure:
+			pmsServiceUpdateBookingHandler.ServeHTTP(w, r)
+		case PmsServiceCancelBookingProcedure:
+			pmsServiceCancelBookingHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -252,4 +477,40 @@ func (UnimplementedPmsServiceHandler) GetProperty(context.Context, *connect.Requ
 
 func (UnimplementedPmsServiceHandler) ListRoomTypes(context.Context, *connect.Request[v1.ListRoomTypesRequest]) (*connect.Response[v1.ListRoomTypesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pms.v1.PmsService.ListRoomTypes is not implemented"))
+}
+
+func (UnimplementedPmsServiceHandler) SyncCatalog(context.Context, *connect.Request[v1.SyncCatalogRequest]) (*connect.Response[v1.SyncCatalogResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pms.v1.PmsService.SyncCatalog is not implemented"))
+}
+
+func (UnimplementedPmsServiceHandler) IngestAvailability(context.Context, *connect.Request[v1.IngestAvailabilityRequest]) (*connect.Response[v1.IngestAvailabilityResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pms.v1.PmsService.IngestAvailability is not implemented"))
+}
+
+func (UnimplementedPmsServiceHandler) OrgHealth(context.Context, *connect.Request[v1.OrgHealthRequest]) (*connect.Response[v1.OrgHealthResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pms.v1.PmsService.OrgHealth is not implemented"))
+}
+
+func (UnimplementedPmsServiceHandler) PropertyHealth(context.Context, *connect.Request[v1.PropertyHealthRequest]) (*connect.Response[v1.PropertyHealthResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pms.v1.PmsService.PropertyHealth is not implemented"))
+}
+
+func (UnimplementedPmsServiceHandler) GetQuote(context.Context, *connect.Request[v1.GetQuoteRequest]) (*connect.Response[v1.GetQuoteResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pms.v1.PmsService.GetQuote is not implemented"))
+}
+
+func (UnimplementedPmsServiceHandler) CreateBooking(context.Context, *connect.Request[v1.CreateBookingRequest]) (*connect.Response[v1.CreateBookingResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pms.v1.PmsService.CreateBooking is not implemented"))
+}
+
+func (UnimplementedPmsServiceHandler) GetBooking(context.Context, *connect.Request[v1.GetBookingRequest]) (*connect.Response[v1.GetBookingResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pms.v1.PmsService.GetBooking is not implemented"))
+}
+
+func (UnimplementedPmsServiceHandler) UpdateBooking(context.Context, *connect.Request[v1.UpdateBookingRequest]) (*connect.Response[v1.UpdateBookingResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pms.v1.PmsService.UpdateBooking is not implemented"))
+}
+
+func (UnimplementedPmsServiceHandler) CancelBooking(context.Context, *connect.Request[v1.CancelBookingRequest]) (*connect.Response[v1.CancelBookingResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pms.v1.PmsService.CancelBooking is not implemented"))
 }

@@ -2,17 +2,26 @@ package mypms
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/channel-manager/channel-manager/services/pms/domain"
+	"github.com/channel-manager/channel-manager/services/pms/ports"
 )
 
-// Adapter implements the PMS adapter for MyPMS.
-type Adapter struct{}
+// Adapter implements ports.BookingEngineClient for the MyPMS webhook API.
+type Adapter struct {
+	client *Client
+}
 
-// NewAdapter creates a new MyPMS adapter.
-func NewAdapter() *Adapter {
-	return &Adapter{}
+// NewAdapter creates an adapter backed by the given client.
+func NewAdapter(client *Client) *Adapter {
+	return &Adapter{client: client}
+}
+
+// NewAdapterFromConfig builds a client from base URL and bearer token.
+func NewAdapterFromConfig(baseURL, bearerToken string) *Adapter {
+	return NewAdapter(NewClient(Config{BaseURL: baseURL, Token: bearerToken}))
 }
 
 func (a *Adapter) PmsID() string { return "mypms" }
@@ -22,32 +31,325 @@ func (a *Adapter) Capabilities() []domain.PmsCapability {
 		domain.CapabilityListProperties,
 		domain.CapabilityListRoomTypes,
 		domain.CapabilityGetInventory,
-		domain.CapabilityGetRates,
-		domain.CapabilityGetReservations,
+		domain.CapabilitySearchAvailability,
+		domain.CapabilityGetQuote,
+		domain.CapabilityCreateBooking,
+		domain.CapabilityGetBooking,
+		domain.CapabilityUpdateBooking,
+		domain.CapabilityCancelBooking,
 	}
 }
 
-func (a *Adapter) ListProperties(ctx context.Context) ([]domain.Property, error) {
-	// TODO: implement
-	return nil, nil
+// Ensure Adapter implements BookingEngineClient.
+var _ ports.BookingEngineClient = (*Adapter)(nil)
+
+func (a *Adapter) OrgHealth(ctx context.Context) (*domain.OrgHealth, error) {
+	resp, err := a.client.OrgHealth(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &domain.OrgHealth{
+		Status:           resp.Status,
+		Service:          resp.Service,
+		OrganizationID:   resp.OrganizationID,
+		AvailableActions: resp.AvailableActions,
+	}, nil
 }
 
-func (a *Adapter) ListRoomTypes(ctx context.Context, propertyID string) ([]domain.RoomType, error) {
-	// TODO: implement
-	return nil, nil
+func (a *Adapter) SearchProperties(ctx context.Context, filter domain.PropertySearchFilter) ([]domain.Property, error) {
+	resp, err := a.client.SearchProperties(ctx, filter.City, filter.Country, filter.Name)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]domain.Property, 0, len(resp.Properties))
+	for _, p := range resp.Properties {
+		out = append(out, domain.Property{
+			ExternalID:       p.PropertyID,
+			Name:             p.Name,
+			DefaultCurrency:  p.Currency,
+			City:             p.City,
+			Country:          p.Country,
+		})
+	}
+	return out, nil
 }
 
-func (a *Adapter) GetInventory(ctx context.Context, propertyID, roomTypeID string, from, to time.Time) ([]domain.InventorySnapshot, error) {
-	// TODO: implement
-	return nil, nil
+func (a *Adapter) PropertyHealth(ctx context.Context, externalPropertyID string) (*domain.PropertyHealth, error) {
+	resp, err := a.client.PropertyHealth(ctx, externalPropertyID)
+	if err != nil {
+		return nil, err
+	}
+	return &domain.PropertyHealth{
+		Status:  resp.Status,
+		Service: resp.Service,
+		Property: domain.Property{
+			ExternalID:      resp.Property.PropertyID,
+			Name:            resp.Property.Name,
+			DefaultCurrency: resp.Property.Currency,
+			City:            resp.Property.City,
+			Country:         resp.Property.Country,
+		},
+		AvailableActions: resp.AvailableActions,
+	}, nil
 }
 
-func (a *Adapter) GetRates(ctx context.Context, propertyID, roomTypeID string, from, to time.Time) ([]domain.RateSnapshot, error) {
-	// TODO: implement
-	return nil, nil
+func (a *Adapter) ListRoomTypes(ctx context.Context, externalPropertyID string) ([]domain.RoomType, error) {
+	resp, err := a.client.GetRoomDetails(ctx, externalPropertyID, "", "")
+	if err != nil {
+		return nil, err
+	}
+	return roomTypesFromDetails(externalPropertyID, resp), nil
 }
 
-func (a *Adapter) GetReservations(ctx context.Context, propertyID string, since time.Time) ([]domain.PmsReservation, error) {
-	// TODO: implement
-	return nil, nil
+func roomTypesFromDetails(propertyID string, resp *GetRoomDetailsResponse) []domain.RoomType {
+	details := resp.RoomTypesList()
+	out := make([]domain.RoomType, 0, len(details))
+	for _, rt := range details {
+		extID := rt.RoomTypeID
+		if extID == "" {
+			extID = rt.RoomType
+		}
+		name := rt.Name
+		if name == "" {
+			name = rt.RoomType
+		}
+		maxOcc := rt.MaxOccupancy
+		if maxOcc == 0 {
+			maxOcc = rt.Capacity
+		}
+		baseOcc := rt.BaseOccupancy
+		if baseOcc == 0 {
+			baseOcc = maxOcc
+		}
+		out = append(out, domain.RoomType{
+			ExternalPropertyID: propertyID,
+			ExternalID:         extID,
+			Code:               extID,
+			Name:               name,
+			MaxOccupancy:       maxOcc,
+			BaseOccupancy:      baseOcc,
+		})
+	}
+	return out
+}
+
+func (a *Adapter) SearchAvailability(ctx context.Context, externalPropertyID string, q domain.AvailabilityQuery) ([]domain.AvailabilityOffer, error) {
+	resp, err := a.client.SearchAvailability(ctx, externalPropertyID, SearchAvailabilityRequest{
+		Checkin:  q.Checkin.Format("2006-01-02"),
+		Checkout: q.Checkout.Format("2006-01-02"),
+		Adults:   q.Adults,
+		Children: q.Children,
+		Rooms:    q.Rooms,
+		RoomType: q.RoomTypeName,
+	})
+	if err != nil {
+		return nil, err
+	}
+	rooms := resp.RoomsList()
+	out := make([]domain.AvailabilityOffer, 0, len(rooms))
+	for _, r := range rooms {
+		rtID := r.RoomTypeID
+		if rtID == "" {
+			rtID = r.RoomType
+		}
+		avail := r.AvailableQty
+		if !r.Available && avail == 0 {
+			avail = 0
+		} else if r.Available && avail == 0 {
+			avail = 1
+		}
+		out = append(out, domain.AvailabilityOffer{
+			RoomID:         r.RoomID,
+			RoomTypeID:     rtID,
+			RoomTypeName:   firstNonEmpty(r.RoomTypeName, r.RoomType),
+			AvailableUnits: avail,
+			IsAvailable:    r.Available,
+			PricePerNight:  r.PricePerNight,
+			TotalPrice:     r.TotalPrice,
+			Currency:       r.Currency,
+			Capacity:       r.Capacity,
+		})
+	}
+	return out, nil
+}
+
+func (a *Adapter) GetInventory(ctx context.Context, externalPropertyID, roomTypeID string, from, to time.Time) ([]domain.InventorySnapshot, error) {
+	q := domain.AvailabilityQuery{
+		Checkin:  from,
+		Checkout: to.AddDate(0, 0, 1),
+		Adults:   1,
+		Rooms:    1,
+	}
+	offers, err := a.SearchAvailability(ctx, externalPropertyID, q)
+	if err != nil {
+		return nil, err
+	}
+	// search_availability returns stay-level offers; synthesize per-day snapshots.
+	snapshots := make([]domain.InventorySnapshot, 0)
+	for d := from; !d.After(to); d = d.AddDate(0, 0, 1) {
+		for _, o := range offers {
+			if roomTypeID != "" && o.RoomTypeID != roomTypeID {
+				continue
+			}
+			avail := o.AvailableUnits
+			if !o.IsAvailable {
+				avail = 0
+			}
+			snapshots = append(snapshots, domain.InventorySnapshot{
+				ExternalRoomTypeID: o.RoomTypeID,
+				Date:               d,
+				Available:          avail,
+			})
+		}
+	}
+	return snapshots, nil
+}
+
+func (a *Adapter) GetQuote(ctx context.Context, externalPropertyID string, q domain.QuoteQuery) (*domain.Quote, error) {
+	resp, err := a.client.GetQuote(ctx, externalPropertyID, GetQuoteRequest{
+		RoomID:   q.RoomID,
+		Checkin:  q.Checkin.Format("2006-01-02"),
+		Checkout: q.Checkout.Format("2006-01-02"),
+		Adults:   q.Adults,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return quoteToDomain(resp), nil
+}
+
+func (a *Adapter) CreateBooking(ctx context.Context, externalPropertyID string, in domain.CreateBookingInput) (*domain.PmsBooking, error) {
+	resp, err := a.client.CreateBooking(ctx, externalPropertyID, CreateBookingRequest{
+		RoomID:    in.RoomID,
+		Checkin:   in.Checkin.Format("2006-01-02"),
+		Checkout:  in.Checkout.Format("2006-01-02"),
+		GuestName: in.GuestName,
+		Email:     in.Email,
+		Phone:     in.Phone,
+		Adults:    in.Adults,
+		Children:  in.Children,
+		Notes:     in.Notes,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return bookingToDomain(resp), nil
+}
+
+func (a *Adapter) GetBooking(ctx context.Context, externalPropertyID, bookingID string) (*domain.PmsBooking, error) {
+	resp, err := a.client.GetBooking(ctx, externalPropertyID, bookingID)
+	if err != nil {
+		return nil, err
+	}
+	return bookingToDomain(resp), nil
+}
+
+func (a *Adapter) UpdateBooking(ctx context.Context, externalPropertyID string, in domain.UpdateBookingInput) (*domain.PmsBooking, error) {
+	req := UpdateBookingRequest{BookingID: in.BookingID}
+	if in.Checkin != nil {
+		s := in.Checkin.Format("2006-01-02")
+		req.Checkin = s
+	}
+	if in.Checkout != nil {
+		s := in.Checkout.Format("2006-01-02")
+		req.Checkout = s
+	}
+	req.GuestName = in.GuestName
+	req.Email = in.Email
+	req.Phone = in.Phone
+	req.Adults = in.Adults
+	req.Children = in.Children
+	req.Notes = in.Notes
+	req.RoomID = in.RoomID
+	resp, err := a.client.UpdateBooking(ctx, externalPropertyID, req)
+	if err != nil {
+		return nil, err
+	}
+	return bookingToDomain(resp), nil
+}
+
+func (a *Adapter) CancelBooking(ctx context.Context, externalPropertyID, bookingID, reason string) (*domain.CancelBookingResult, error) {
+	resp, err := a.client.CancelBooking(ctx, externalPropertyID, CancelBookingRequest{
+		BookingID: bookingID,
+		Reason:    reason,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &domain.CancelBookingResult{
+		BookingID: resp.BookingID,
+		Status:    resp.Status,
+		Message:   resp.Message,
+	}, nil
+}
+
+func quoteToDomain(q *Quote) *domain.Quote {
+	if q == nil {
+		return nil
+	}
+	return &domain.Quote{
+		RoomID:        q.RoomID,
+		RoomName:      q.RoomName,
+		RoomType:      q.RoomType,
+		Nights:        q.Nights,
+		Adults:        q.Adults,
+		Capacity:      q.Capacity,
+		PricePerNight: q.PricePerNight,
+		TotalPrice:    q.TotalPrice,
+		Currency:      q.Currency,
+		IsAvailable:   q.IsAvailable,
+	}
+}
+
+func bookingToDomain(b *Booking) *domain.PmsBooking {
+	if b == nil {
+		return nil
+	}
+	return &domain.PmsBooking{
+		BookingID:     b.BookingID,
+		Status:        b.Status,
+		GuestName:     b.GuestName,
+		Email:         b.Email,
+		Phone:         b.Phone,
+		RoomID:        b.RoomID,
+		RoomName:      b.RoomName,
+		RoomType:      b.RoomType,
+		PropertyName:  b.PropertyName,
+		Checkin:       b.Checkin,
+		Checkout:      b.Checkout,
+		Adults:        b.Adults,
+		Children:      b.Children,
+		Notes:         b.Notes,
+		PaymentStatus: b.PaymentStatus,
+		Source:        b.Source,
+		Message:       b.Message,
+	}
+}
+
+func firstNonEmpty(vals ...string) string {
+	for _, v := range vals {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+// CredentialsFromMap extracts base_url and bearer_token from a connection credential map.
+func CredentialsFromMap(creds map[string]string) (baseURL, token string, err error) {
+	baseURL = creds["base_url"]
+	if baseURL == "" {
+		baseURL = creds["baseUrl"]
+	}
+	token = creds["bearer_token"]
+	if token == "" {
+		token = creds["bearerToken"]
+	}
+	if token == "" {
+		token = creds["token"]
+	}
+	if baseURL == "" || token == "" {
+		return "", "", fmt.Errorf("mypms: credentials require base_url and bearer_token")
+	}
+	return baseURL, token, nil
 }

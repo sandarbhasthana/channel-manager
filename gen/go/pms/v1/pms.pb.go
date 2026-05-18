@@ -34,6 +34,7 @@ const (
 	PmsKind_PMS_KIND_MEWS        PmsKind = 2
 	PmsKind_PMS_KIND_OPERA       PmsKind = 3
 	PmsKind_PMS_KIND_CUSTOM      PmsKind = 4
+	PmsKind_PMS_KIND_MYPMS       PmsKind = 5
 )
 
 // Enum value maps for PmsKind.
@@ -44,6 +45,7 @@ var (
 		2: "PMS_KIND_MEWS",
 		3: "PMS_KIND_OPERA",
 		4: "PMS_KIND_CUSTOM",
+		5: "PMS_KIND_MYPMS",
 	}
 	PmsKind_value = map[string]int32{
 		"PMS_KIND_UNSPECIFIED": 0,
@@ -51,6 +53,7 @@ var (
 		"PMS_KIND_MEWS":        2,
 		"PMS_KIND_OPERA":       3,
 		"PMS_KIND_CUSTOM":      4,
+		"PMS_KIND_MYPMS":       5,
 	}
 )
 
@@ -1065,6 +1068,1402 @@ func (x *ListRoomTypesResponse) GetPage() *v1.PageResponse {
 	return nil
 }
 
+type SyncCatalogRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ConnectionId  string                 `protobuf:"bytes,1,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty"`
+	City          string                 `protobuf:"bytes,2,opt,name=city,proto3" json:"city,omitempty"`
+	Country       string                 `protobuf:"bytes,3,opt,name=country,proto3" json:"country,omitempty"`
+	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SyncCatalogRequest) Reset() {
+	*x = SyncCatalogRequest{}
+	mi := &file_pms_v1_pms_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SyncCatalogRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SyncCatalogRequest) ProtoMessage() {}
+
+func (x *SyncCatalogRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SyncCatalogRequest.ProtoReflect.Descriptor instead.
+func (*SyncCatalogRequest) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *SyncCatalogRequest) GetConnectionId() string {
+	if x != nil {
+		return x.ConnectionId
+	}
+	return ""
+}
+
+func (x *SyncCatalogRequest) GetCity() string {
+	if x != nil {
+		return x.City
+	}
+	return ""
+}
+
+func (x *SyncCatalogRequest) GetCountry() string {
+	if x != nil {
+		return x.Country
+	}
+	return ""
+}
+
+func (x *SyncCatalogRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type SyncCatalogResponse struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	PropertiesSynced int32                  `protobuf:"varint,1,opt,name=properties_synced,json=propertiesSynced,proto3" json:"properties_synced,omitempty"`
+	RoomTypesSynced  int32                  `protobuf:"varint,2,opt,name=room_types_synced,json=roomTypesSynced,proto3" json:"room_types_synced,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SyncCatalogResponse) Reset() {
+	*x = SyncCatalogResponse{}
+	mi := &file_pms_v1_pms_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SyncCatalogResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SyncCatalogResponse) ProtoMessage() {}
+
+func (x *SyncCatalogResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SyncCatalogResponse.ProtoReflect.Descriptor instead.
+func (*SyncCatalogResponse) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *SyncCatalogResponse) GetPropertiesSynced() int32 {
+	if x != nil {
+		return x.PropertiesSynced
+	}
+	return 0
+}
+
+func (x *SyncCatalogResponse) GetRoomTypesSynced() int32 {
+	if x != nil {
+		return x.RoomTypesSynced
+	}
+	return 0
+}
+
+type IngestAvailabilityRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PropertyId    string                 `protobuf:"bytes,1,opt,name=property_id,json=propertyId,proto3" json:"property_id,omitempty"`
+	Checkin       *v1.CalendarDate       `protobuf:"bytes,2,opt,name=checkin,proto3" json:"checkin,omitempty"`
+	Checkout      *v1.CalendarDate       `protobuf:"bytes,3,opt,name=checkout,proto3" json:"checkout,omitempty"`
+	Adults        int32                  `protobuf:"varint,4,opt,name=adults,proto3" json:"adults,omitempty"`
+	Children      int32                  `protobuf:"varint,5,opt,name=children,proto3" json:"children,omitempty"`
+	Rooms         int32                  `protobuf:"varint,6,opt,name=rooms,proto3" json:"rooms,omitempty"`
+	RoomTypeName  string                 `protobuf:"bytes,7,opt,name=room_type_name,json=roomTypeName,proto3" json:"room_type_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IngestAvailabilityRequest) Reset() {
+	*x = IngestAvailabilityRequest{}
+	mi := &file_pms_v1_pms_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IngestAvailabilityRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IngestAvailabilityRequest) ProtoMessage() {}
+
+func (x *IngestAvailabilityRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IngestAvailabilityRequest.ProtoReflect.Descriptor instead.
+func (*IngestAvailabilityRequest) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *IngestAvailabilityRequest) GetPropertyId() string {
+	if x != nil {
+		return x.PropertyId
+	}
+	return ""
+}
+
+func (x *IngestAvailabilityRequest) GetCheckin() *v1.CalendarDate {
+	if x != nil {
+		return x.Checkin
+	}
+	return nil
+}
+
+func (x *IngestAvailabilityRequest) GetCheckout() *v1.CalendarDate {
+	if x != nil {
+		return x.Checkout
+	}
+	return nil
+}
+
+func (x *IngestAvailabilityRequest) GetAdults() int32 {
+	if x != nil {
+		return x.Adults
+	}
+	return 0
+}
+
+func (x *IngestAvailabilityRequest) GetChildren() int32 {
+	if x != nil {
+		return x.Children
+	}
+	return 0
+}
+
+func (x *IngestAvailabilityRequest) GetRooms() int32 {
+	if x != nil {
+		return x.Rooms
+	}
+	return 0
+}
+
+func (x *IngestAvailabilityRequest) GetRoomTypeName() string {
+	if x != nil {
+		return x.RoomTypeName
+	}
+	return ""
+}
+
+type IngestAvailabilityResponse struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	InventoryRowsAffected int32                  `protobuf:"varint,1,opt,name=inventory_rows_affected,json=inventoryRowsAffected,proto3" json:"inventory_rows_affected,omitempty"`
+	EventId               string                 `protobuf:"bytes,2,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *IngestAvailabilityResponse) Reset() {
+	*x = IngestAvailabilityResponse{}
+	mi := &file_pms_v1_pms_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IngestAvailabilityResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IngestAvailabilityResponse) ProtoMessage() {}
+
+func (x *IngestAvailabilityResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IngestAvailabilityResponse.ProtoReflect.Descriptor instead.
+func (*IngestAvailabilityResponse) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *IngestAvailabilityResponse) GetInventoryRowsAffected() int32 {
+	if x != nil {
+		return x.InventoryRowsAffected
+	}
+	return 0
+}
+
+func (x *IngestAvailabilityResponse) GetEventId() string {
+	if x != nil {
+		return x.EventId
+	}
+	return ""
+}
+
+type OrgHealthRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ConnectionId  string                 `protobuf:"bytes,1,opt,name=connection_id,json=connectionId,proto3" json:"connection_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OrgHealthRequest) Reset() {
+	*x = OrgHealthRequest{}
+	mi := &file_pms_v1_pms_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OrgHealthRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrgHealthRequest) ProtoMessage() {}
+
+func (x *OrgHealthRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrgHealthRequest.ProtoReflect.Descriptor instead.
+func (*OrgHealthRequest) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *OrgHealthRequest) GetConnectionId() string {
+	if x != nil {
+		return x.ConnectionId
+	}
+	return ""
+}
+
+type OrgHealthResponse struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Status           string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	Service          string                 `protobuf:"bytes,2,opt,name=service,proto3" json:"service,omitempty"`
+	OrganizationId   string                 `protobuf:"bytes,3,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	AvailableActions []string               `protobuf:"bytes,4,rep,name=available_actions,json=availableActions,proto3" json:"available_actions,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *OrgHealthResponse) Reset() {
+	*x = OrgHealthResponse{}
+	mi := &file_pms_v1_pms_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OrgHealthResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrgHealthResponse) ProtoMessage() {}
+
+func (x *OrgHealthResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrgHealthResponse.ProtoReflect.Descriptor instead.
+func (*OrgHealthResponse) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *OrgHealthResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *OrgHealthResponse) GetService() string {
+	if x != nil {
+		return x.Service
+	}
+	return ""
+}
+
+func (x *OrgHealthResponse) GetOrganizationId() string {
+	if x != nil {
+		return x.OrganizationId
+	}
+	return ""
+}
+
+func (x *OrgHealthResponse) GetAvailableActions() []string {
+	if x != nil {
+		return x.AvailableActions
+	}
+	return nil
+}
+
+type PropertyHealthRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PropertyId    string                 `protobuf:"bytes,1,opt,name=property_id,json=propertyId,proto3" json:"property_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PropertyHealthRequest) Reset() {
+	*x = PropertyHealthRequest{}
+	mi := &file_pms_v1_pms_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PropertyHealthRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PropertyHealthRequest) ProtoMessage() {}
+
+func (x *PropertyHealthRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PropertyHealthRequest.ProtoReflect.Descriptor instead.
+func (*PropertyHealthRequest) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *PropertyHealthRequest) GetPropertyId() string {
+	if x != nil {
+		return x.PropertyId
+	}
+	return ""
+}
+
+type PropertyHealthResponse struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Status           string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	Service          string                 `protobuf:"bytes,2,opt,name=service,proto3" json:"service,omitempty"`
+	Property         *Property              `protobuf:"bytes,3,opt,name=property,proto3" json:"property,omitempty"`
+	AvailableActions []string               `protobuf:"bytes,4,rep,name=available_actions,json=availableActions,proto3" json:"available_actions,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *PropertyHealthResponse) Reset() {
+	*x = PropertyHealthResponse{}
+	mi := &file_pms_v1_pms_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PropertyHealthResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PropertyHealthResponse) ProtoMessage() {}
+
+func (x *PropertyHealthResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PropertyHealthResponse.ProtoReflect.Descriptor instead.
+func (*PropertyHealthResponse) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *PropertyHealthResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *PropertyHealthResponse) GetService() string {
+	if x != nil {
+		return x.Service
+	}
+	return ""
+}
+
+func (x *PropertyHealthResponse) GetProperty() *Property {
+	if x != nil {
+		return x.Property
+	}
+	return nil
+}
+
+func (x *PropertyHealthResponse) GetAvailableActions() []string {
+	if x != nil {
+		return x.AvailableActions
+	}
+	return nil
+}
+
+type GetQuoteRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PropertyId    string                 `protobuf:"bytes,1,opt,name=property_id,json=propertyId,proto3" json:"property_id,omitempty"`
+	RoomId        string                 `protobuf:"bytes,2,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	Checkin       *v1.CalendarDate       `protobuf:"bytes,3,opt,name=checkin,proto3" json:"checkin,omitempty"`
+	Checkout      *v1.CalendarDate       `protobuf:"bytes,4,opt,name=checkout,proto3" json:"checkout,omitempty"`
+	Adults        int32                  `protobuf:"varint,5,opt,name=adults,proto3" json:"adults,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetQuoteRequest) Reset() {
+	*x = GetQuoteRequest{}
+	mi := &file_pms_v1_pms_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetQuoteRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetQuoteRequest) ProtoMessage() {}
+
+func (x *GetQuoteRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetQuoteRequest.ProtoReflect.Descriptor instead.
+func (*GetQuoteRequest) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *GetQuoteRequest) GetPropertyId() string {
+	if x != nil {
+		return x.PropertyId
+	}
+	return ""
+}
+
+func (x *GetQuoteRequest) GetRoomId() string {
+	if x != nil {
+		return x.RoomId
+	}
+	return ""
+}
+
+func (x *GetQuoteRequest) GetCheckin() *v1.CalendarDate {
+	if x != nil {
+		return x.Checkin
+	}
+	return nil
+}
+
+func (x *GetQuoteRequest) GetCheckout() *v1.CalendarDate {
+	if x != nil {
+		return x.Checkout
+	}
+	return nil
+}
+
+func (x *GetQuoteRequest) GetAdults() int32 {
+	if x != nil {
+		return x.Adults
+	}
+	return 0
+}
+
+type GetQuoteResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoomId        string                 `protobuf:"bytes,1,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	RoomName      string                 `protobuf:"bytes,2,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
+	RoomType      string                 `protobuf:"bytes,3,opt,name=room_type,json=roomType,proto3" json:"room_type,omitempty"`
+	Nights        int32                  `protobuf:"varint,4,opt,name=nights,proto3" json:"nights,omitempty"`
+	Adults        int32                  `protobuf:"varint,5,opt,name=adults,proto3" json:"adults,omitempty"`
+	Capacity      int32                  `protobuf:"varint,6,opt,name=capacity,proto3" json:"capacity,omitempty"`
+	PricePerNight float64                `protobuf:"fixed64,7,opt,name=price_per_night,json=pricePerNight,proto3" json:"price_per_night,omitempty"`
+	TotalPrice    float64                `protobuf:"fixed64,8,opt,name=total_price,json=totalPrice,proto3" json:"total_price,omitempty"`
+	Currency      string                 `protobuf:"bytes,9,opt,name=currency,proto3" json:"currency,omitempty"`
+	IsAvailable   bool                   `protobuf:"varint,10,opt,name=is_available,json=isAvailable,proto3" json:"is_available,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetQuoteResponse) Reset() {
+	*x = GetQuoteResponse{}
+	mi := &file_pms_v1_pms_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetQuoteResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetQuoteResponse) ProtoMessage() {}
+
+func (x *GetQuoteResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetQuoteResponse.ProtoReflect.Descriptor instead.
+func (*GetQuoteResponse) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *GetQuoteResponse) GetRoomId() string {
+	if x != nil {
+		return x.RoomId
+	}
+	return ""
+}
+
+func (x *GetQuoteResponse) GetRoomName() string {
+	if x != nil {
+		return x.RoomName
+	}
+	return ""
+}
+
+func (x *GetQuoteResponse) GetRoomType() string {
+	if x != nil {
+		return x.RoomType
+	}
+	return ""
+}
+
+func (x *GetQuoteResponse) GetNights() int32 {
+	if x != nil {
+		return x.Nights
+	}
+	return 0
+}
+
+func (x *GetQuoteResponse) GetAdults() int32 {
+	if x != nil {
+		return x.Adults
+	}
+	return 0
+}
+
+func (x *GetQuoteResponse) GetCapacity() int32 {
+	if x != nil {
+		return x.Capacity
+	}
+	return 0
+}
+
+func (x *GetQuoteResponse) GetPricePerNight() float64 {
+	if x != nil {
+		return x.PricePerNight
+	}
+	return 0
+}
+
+func (x *GetQuoteResponse) GetTotalPrice() float64 {
+	if x != nil {
+		return x.TotalPrice
+	}
+	return 0
+}
+
+func (x *GetQuoteResponse) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *GetQuoteResponse) GetIsAvailable() bool {
+	if x != nil {
+		return x.IsAvailable
+	}
+	return false
+}
+
+type CreateBookingRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PropertyId    string                 `protobuf:"bytes,1,opt,name=property_id,json=propertyId,proto3" json:"property_id,omitempty"`
+	RoomId        string                 `protobuf:"bytes,2,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	Checkin       *v1.CalendarDate       `protobuf:"bytes,3,opt,name=checkin,proto3" json:"checkin,omitempty"`
+	Checkout      *v1.CalendarDate       `protobuf:"bytes,4,opt,name=checkout,proto3" json:"checkout,omitempty"`
+	GuestName     string                 `protobuf:"bytes,5,opt,name=guest_name,json=guestName,proto3" json:"guest_name,omitempty"`
+	Email         string                 `protobuf:"bytes,6,opt,name=email,proto3" json:"email,omitempty"`
+	Phone         string                 `protobuf:"bytes,7,opt,name=phone,proto3" json:"phone,omitempty"`
+	Adults        int32                  `protobuf:"varint,8,opt,name=adults,proto3" json:"adults,omitempty"`
+	Children      int32                  `protobuf:"varint,9,opt,name=children,proto3" json:"children,omitempty"`
+	Notes         string                 `protobuf:"bytes,10,opt,name=notes,proto3" json:"notes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateBookingRequest) Reset() {
+	*x = CreateBookingRequest{}
+	mi := &file_pms_v1_pms_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateBookingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateBookingRequest) ProtoMessage() {}
+
+func (x *CreateBookingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateBookingRequest.ProtoReflect.Descriptor instead.
+func (*CreateBookingRequest) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *CreateBookingRequest) GetPropertyId() string {
+	if x != nil {
+		return x.PropertyId
+	}
+	return ""
+}
+
+func (x *CreateBookingRequest) GetRoomId() string {
+	if x != nil {
+		return x.RoomId
+	}
+	return ""
+}
+
+func (x *CreateBookingRequest) GetCheckin() *v1.CalendarDate {
+	if x != nil {
+		return x.Checkin
+	}
+	return nil
+}
+
+func (x *CreateBookingRequest) GetCheckout() *v1.CalendarDate {
+	if x != nil {
+		return x.Checkout
+	}
+	return nil
+}
+
+func (x *CreateBookingRequest) GetGuestName() string {
+	if x != nil {
+		return x.GuestName
+	}
+	return ""
+}
+
+func (x *CreateBookingRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *CreateBookingRequest) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
+func (x *CreateBookingRequest) GetAdults() int32 {
+	if x != nil {
+		return x.Adults
+	}
+	return 0
+}
+
+func (x *CreateBookingRequest) GetChildren() int32 {
+	if x != nil {
+		return x.Children
+	}
+	return 0
+}
+
+func (x *CreateBookingRequest) GetNotes() string {
+	if x != nil {
+		return x.Notes
+	}
+	return ""
+}
+
+type PmsBooking struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BookingId     string                 `protobuf:"bytes,1,opt,name=booking_id,json=bookingId,proto3" json:"booking_id,omitempty"`
+	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	GuestName     string                 `protobuf:"bytes,3,opt,name=guest_name,json=guestName,proto3" json:"guest_name,omitempty"`
+	Email         string                 `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
+	Phone         string                 `protobuf:"bytes,5,opt,name=phone,proto3" json:"phone,omitempty"`
+	RoomId        string                 `protobuf:"bytes,6,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	RoomName      string                 `protobuf:"bytes,7,opt,name=room_name,json=roomName,proto3" json:"room_name,omitempty"`
+	RoomType      string                 `protobuf:"bytes,8,opt,name=room_type,json=roomType,proto3" json:"room_type,omitempty"`
+	PropertyName  string                 `protobuf:"bytes,9,opt,name=property_name,json=propertyName,proto3" json:"property_name,omitempty"`
+	Checkin       string                 `protobuf:"bytes,10,opt,name=checkin,proto3" json:"checkin,omitempty"`
+	Checkout      string                 `protobuf:"bytes,11,opt,name=checkout,proto3" json:"checkout,omitempty"`
+	Adults        int32                  `protobuf:"varint,12,opt,name=adults,proto3" json:"adults,omitempty"`
+	Children      int32                  `protobuf:"varint,13,opt,name=children,proto3" json:"children,omitempty"`
+	Notes         string                 `protobuf:"bytes,14,opt,name=notes,proto3" json:"notes,omitempty"`
+	PaymentStatus string                 `protobuf:"bytes,15,opt,name=payment_status,json=paymentStatus,proto3" json:"payment_status,omitempty"`
+	Source        string                 `protobuf:"bytes,16,opt,name=source,proto3" json:"source,omitempty"`
+	Message       string                 `protobuf:"bytes,17,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PmsBooking) Reset() {
+	*x = PmsBooking{}
+	mi := &file_pms_v1_pms_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PmsBooking) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PmsBooking) ProtoMessage() {}
+
+func (x *PmsBooking) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PmsBooking.ProtoReflect.Descriptor instead.
+func (*PmsBooking) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *PmsBooking) GetBookingId() string {
+	if x != nil {
+		return x.BookingId
+	}
+	return ""
+}
+
+func (x *PmsBooking) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *PmsBooking) GetGuestName() string {
+	if x != nil {
+		return x.GuestName
+	}
+	return ""
+}
+
+func (x *PmsBooking) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *PmsBooking) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
+func (x *PmsBooking) GetRoomId() string {
+	if x != nil {
+		return x.RoomId
+	}
+	return ""
+}
+
+func (x *PmsBooking) GetRoomName() string {
+	if x != nil {
+		return x.RoomName
+	}
+	return ""
+}
+
+func (x *PmsBooking) GetRoomType() string {
+	if x != nil {
+		return x.RoomType
+	}
+	return ""
+}
+
+func (x *PmsBooking) GetPropertyName() string {
+	if x != nil {
+		return x.PropertyName
+	}
+	return ""
+}
+
+func (x *PmsBooking) GetCheckin() string {
+	if x != nil {
+		return x.Checkin
+	}
+	return ""
+}
+
+func (x *PmsBooking) GetCheckout() string {
+	if x != nil {
+		return x.Checkout
+	}
+	return ""
+}
+
+func (x *PmsBooking) GetAdults() int32 {
+	if x != nil {
+		return x.Adults
+	}
+	return 0
+}
+
+func (x *PmsBooking) GetChildren() int32 {
+	if x != nil {
+		return x.Children
+	}
+	return 0
+}
+
+func (x *PmsBooking) GetNotes() string {
+	if x != nil {
+		return x.Notes
+	}
+	return ""
+}
+
+func (x *PmsBooking) GetPaymentStatus() string {
+	if x != nil {
+		return x.PaymentStatus
+	}
+	return ""
+}
+
+func (x *PmsBooking) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *PmsBooking) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type CreateBookingResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Booking       *PmsBooking            `protobuf:"bytes,1,opt,name=booking,proto3" json:"booking,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateBookingResponse) Reset() {
+	*x = CreateBookingResponse{}
+	mi := &file_pms_v1_pms_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateBookingResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateBookingResponse) ProtoMessage() {}
+
+func (x *CreateBookingResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateBookingResponse.ProtoReflect.Descriptor instead.
+func (*CreateBookingResponse) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *CreateBookingResponse) GetBooking() *PmsBooking {
+	if x != nil {
+		return x.Booking
+	}
+	return nil
+}
+
+type GetBookingRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PropertyId    string                 `protobuf:"bytes,1,opt,name=property_id,json=propertyId,proto3" json:"property_id,omitempty"`
+	BookingId     string                 `protobuf:"bytes,2,opt,name=booking_id,json=bookingId,proto3" json:"booking_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetBookingRequest) Reset() {
+	*x = GetBookingRequest{}
+	mi := &file_pms_v1_pms_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBookingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBookingRequest) ProtoMessage() {}
+
+func (x *GetBookingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBookingRequest.ProtoReflect.Descriptor instead.
+func (*GetBookingRequest) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *GetBookingRequest) GetPropertyId() string {
+	if x != nil {
+		return x.PropertyId
+	}
+	return ""
+}
+
+func (x *GetBookingRequest) GetBookingId() string {
+	if x != nil {
+		return x.BookingId
+	}
+	return ""
+}
+
+type GetBookingResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Booking       *PmsBooking            `protobuf:"bytes,1,opt,name=booking,proto3" json:"booking,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetBookingResponse) Reset() {
+	*x = GetBookingResponse{}
+	mi := &file_pms_v1_pms_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetBookingResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetBookingResponse) ProtoMessage() {}
+
+func (x *GetBookingResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetBookingResponse.ProtoReflect.Descriptor instead.
+func (*GetBookingResponse) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *GetBookingResponse) GetBooking() *PmsBooking {
+	if x != nil {
+		return x.Booking
+	}
+	return nil
+}
+
+type UpdateBookingRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PropertyId    string                 `protobuf:"bytes,1,opt,name=property_id,json=propertyId,proto3" json:"property_id,omitempty"`
+	BookingId     string                 `protobuf:"bytes,2,opt,name=booking_id,json=bookingId,proto3" json:"booking_id,omitempty"`
+	Checkin       *v1.CalendarDate       `protobuf:"bytes,3,opt,name=checkin,proto3" json:"checkin,omitempty"`
+	Checkout      *v1.CalendarDate       `protobuf:"bytes,4,opt,name=checkout,proto3" json:"checkout,omitempty"`
+	GuestName     string                 `protobuf:"bytes,5,opt,name=guest_name,json=guestName,proto3" json:"guest_name,omitempty"`
+	Email         string                 `protobuf:"bytes,6,opt,name=email,proto3" json:"email,omitempty"`
+	Phone         string                 `protobuf:"bytes,7,opt,name=phone,proto3" json:"phone,omitempty"`
+	Adults        *int32                 `protobuf:"varint,8,opt,name=adults,proto3,oneof" json:"adults,omitempty"`
+	Children      *int32                 `protobuf:"varint,9,opt,name=children,proto3,oneof" json:"children,omitempty"`
+	Notes         string                 `protobuf:"bytes,10,opt,name=notes,proto3" json:"notes,omitempty"`
+	RoomId        string                 `protobuf:"bytes,11,opt,name=room_id,json=roomId,proto3" json:"room_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateBookingRequest) Reset() {
+	*x = UpdateBookingRequest{}
+	mi := &file_pms_v1_pms_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateBookingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateBookingRequest) ProtoMessage() {}
+
+func (x *UpdateBookingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateBookingRequest.ProtoReflect.Descriptor instead.
+func (*UpdateBookingRequest) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *UpdateBookingRequest) GetPropertyId() string {
+	if x != nil {
+		return x.PropertyId
+	}
+	return ""
+}
+
+func (x *UpdateBookingRequest) GetBookingId() string {
+	if x != nil {
+		return x.BookingId
+	}
+	return ""
+}
+
+func (x *UpdateBookingRequest) GetCheckin() *v1.CalendarDate {
+	if x != nil {
+		return x.Checkin
+	}
+	return nil
+}
+
+func (x *UpdateBookingRequest) GetCheckout() *v1.CalendarDate {
+	if x != nil {
+		return x.Checkout
+	}
+	return nil
+}
+
+func (x *UpdateBookingRequest) GetGuestName() string {
+	if x != nil {
+		return x.GuestName
+	}
+	return ""
+}
+
+func (x *UpdateBookingRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *UpdateBookingRequest) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
+func (x *UpdateBookingRequest) GetAdults() int32 {
+	if x != nil && x.Adults != nil {
+		return *x.Adults
+	}
+	return 0
+}
+
+func (x *UpdateBookingRequest) GetChildren() int32 {
+	if x != nil && x.Children != nil {
+		return *x.Children
+	}
+	return 0
+}
+
+func (x *UpdateBookingRequest) GetNotes() string {
+	if x != nil {
+		return x.Notes
+	}
+	return ""
+}
+
+func (x *UpdateBookingRequest) GetRoomId() string {
+	if x != nil {
+		return x.RoomId
+	}
+	return ""
+}
+
+type UpdateBookingResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Booking       *PmsBooking            `protobuf:"bytes,1,opt,name=booking,proto3" json:"booking,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateBookingResponse) Reset() {
+	*x = UpdateBookingResponse{}
+	mi := &file_pms_v1_pms_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateBookingResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateBookingResponse) ProtoMessage() {}
+
+func (x *UpdateBookingResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateBookingResponse.ProtoReflect.Descriptor instead.
+func (*UpdateBookingResponse) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *UpdateBookingResponse) GetBooking() *PmsBooking {
+	if x != nil {
+		return x.Booking
+	}
+	return nil
+}
+
+type CancelBookingRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PropertyId    string                 `protobuf:"bytes,1,opt,name=property_id,json=propertyId,proto3" json:"property_id,omitempty"`
+	BookingId     string                 `protobuf:"bytes,2,opt,name=booking_id,json=bookingId,proto3" json:"booking_id,omitempty"`
+	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelBookingRequest) Reset() {
+	*x = CancelBookingRequest{}
+	mi := &file_pms_v1_pms_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelBookingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelBookingRequest) ProtoMessage() {}
+
+func (x *CancelBookingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelBookingRequest.ProtoReflect.Descriptor instead.
+func (*CancelBookingRequest) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *CancelBookingRequest) GetPropertyId() string {
+	if x != nil {
+		return x.PropertyId
+	}
+	return ""
+}
+
+func (x *CancelBookingRequest) GetBookingId() string {
+	if x != nil {
+		return x.BookingId
+	}
+	return ""
+}
+
+func (x *CancelBookingRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type CancelBookingResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BookingId     string                 `protobuf:"bytes,1,opt,name=booking_id,json=bookingId,proto3" json:"booking_id,omitempty"`
+	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelBookingResponse) Reset() {
+	*x = CancelBookingResponse{}
+	mi := &file_pms_v1_pms_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelBookingResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelBookingResponse) ProtoMessage() {}
+
+func (x *CancelBookingResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelBookingResponse.ProtoReflect.Descriptor instead.
+func (*CancelBookingResponse) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *CancelBookingResponse) GetBookingId() string {
+	if x != nil {
+		return x.BookingId
+	}
+	return ""
+}
+
+func (x *CancelBookingResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *CancelBookingResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 var File_pms_v1_pms_proto protoreflect.FileDescriptor
 
 const file_pms_v1_pms_proto_rawDesc = "" +
@@ -1153,19 +2552,151 @@ const file_pms_v1_pms_proto_rawDesc = "" +
 	"\x15ListRoomTypesResponse\x12/\n" +
 	"\n" +
 	"room_types\x18\x01 \x03(\v2\x10.pms.v1.RoomTypeR\troomTypes\x12+\n" +
-	"\x04page\x18\x02 \x01(\v2\x17.common.v1.PageResponseR\x04page*w\n" +
+	"\x04page\x18\x02 \x01(\v2\x17.common.v1.PageResponseR\x04page\"{\n" +
+	"\x12SyncCatalogRequest\x12#\n" +
+	"\rconnection_id\x18\x01 \x01(\tR\fconnectionId\x12\x12\n" +
+	"\x04city\x18\x02 \x01(\tR\x04city\x12\x18\n" +
+	"\acountry\x18\x03 \x01(\tR\acountry\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\"n\n" +
+	"\x13SyncCatalogResponse\x12+\n" +
+	"\x11properties_synced\x18\x01 \x01(\x05R\x10propertiesSynced\x12*\n" +
+	"\x11room_types_synced\x18\x02 \x01(\x05R\x0froomTypesSynced\"\x94\x02\n" +
+	"\x19IngestAvailabilityRequest\x12\x1f\n" +
+	"\vproperty_id\x18\x01 \x01(\tR\n" +
+	"propertyId\x121\n" +
+	"\acheckin\x18\x02 \x01(\v2\x17.common.v1.CalendarDateR\acheckin\x123\n" +
+	"\bcheckout\x18\x03 \x01(\v2\x17.common.v1.CalendarDateR\bcheckout\x12\x16\n" +
+	"\x06adults\x18\x04 \x01(\x05R\x06adults\x12\x1a\n" +
+	"\bchildren\x18\x05 \x01(\x05R\bchildren\x12\x14\n" +
+	"\x05rooms\x18\x06 \x01(\x05R\x05rooms\x12$\n" +
+	"\x0eroom_type_name\x18\a \x01(\tR\froomTypeName\"o\n" +
+	"\x1aIngestAvailabilityResponse\x126\n" +
+	"\x17inventory_rows_affected\x18\x01 \x01(\x05R\x15inventoryRowsAffected\x12\x19\n" +
+	"\bevent_id\x18\x02 \x01(\tR\aeventId\"7\n" +
+	"\x10OrgHealthRequest\x12#\n" +
+	"\rconnection_id\x18\x01 \x01(\tR\fconnectionId\"\x9b\x01\n" +
+	"\x11OrgHealthResponse\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\tR\x06status\x12\x18\n" +
+	"\aservice\x18\x02 \x01(\tR\aservice\x12'\n" +
+	"\x0forganization_id\x18\x03 \x01(\tR\x0eorganizationId\x12+\n" +
+	"\x11available_actions\x18\x04 \x03(\tR\x10availableActions\"8\n" +
+	"\x15PropertyHealthRequest\x12\x1f\n" +
+	"\vproperty_id\x18\x01 \x01(\tR\n" +
+	"propertyId\"\xa5\x01\n" +
+	"\x16PropertyHealthResponse\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\tR\x06status\x12\x18\n" +
+	"\aservice\x18\x02 \x01(\tR\aservice\x12,\n" +
+	"\bproperty\x18\x03 \x01(\v2\x10.pms.v1.PropertyR\bproperty\x12+\n" +
+	"\x11available_actions\x18\x04 \x03(\tR\x10availableActions\"\xcb\x01\n" +
+	"\x0fGetQuoteRequest\x12\x1f\n" +
+	"\vproperty_id\x18\x01 \x01(\tR\n" +
+	"propertyId\x12\x17\n" +
+	"\aroom_id\x18\x02 \x01(\tR\x06roomId\x121\n" +
+	"\acheckin\x18\x03 \x01(\v2\x17.common.v1.CalendarDateR\acheckin\x123\n" +
+	"\bcheckout\x18\x04 \x01(\v2\x17.common.v1.CalendarDateR\bcheckout\x12\x16\n" +
+	"\x06adults\x18\x05 \x01(\x05R\x06adults\"\xb9\x02\n" +
+	"\x10GetQuoteResponse\x12\x17\n" +
+	"\aroom_id\x18\x01 \x01(\tR\x06roomId\x12\x1b\n" +
+	"\troom_name\x18\x02 \x01(\tR\broomName\x12\x1b\n" +
+	"\troom_type\x18\x03 \x01(\tR\broomType\x12\x16\n" +
+	"\x06nights\x18\x04 \x01(\x05R\x06nights\x12\x16\n" +
+	"\x06adults\x18\x05 \x01(\x05R\x06adults\x12\x1a\n" +
+	"\bcapacity\x18\x06 \x01(\x05R\bcapacity\x12&\n" +
+	"\x0fprice_per_night\x18\a \x01(\x01R\rpricePerNight\x12\x1f\n" +
+	"\vtotal_price\x18\b \x01(\x01R\n" +
+	"totalPrice\x12\x1a\n" +
+	"\bcurrency\x18\t \x01(\tR\bcurrency\x12!\n" +
+	"\fis_available\x18\n" +
+	" \x01(\bR\visAvailable\"\xcd\x02\n" +
+	"\x14CreateBookingRequest\x12\x1f\n" +
+	"\vproperty_id\x18\x01 \x01(\tR\n" +
+	"propertyId\x12\x17\n" +
+	"\aroom_id\x18\x02 \x01(\tR\x06roomId\x121\n" +
+	"\acheckin\x18\x03 \x01(\v2\x17.common.v1.CalendarDateR\acheckin\x123\n" +
+	"\bcheckout\x18\x04 \x01(\v2\x17.common.v1.CalendarDateR\bcheckout\x12\x1d\n" +
+	"\n" +
+	"guest_name\x18\x05 \x01(\tR\tguestName\x12\x14\n" +
+	"\x05email\x18\x06 \x01(\tR\x05email\x12\x14\n" +
+	"\x05phone\x18\a \x01(\tR\x05phone\x12\x16\n" +
+	"\x06adults\x18\b \x01(\x05R\x06adults\x12\x1a\n" +
+	"\bchildren\x18\t \x01(\x05R\bchildren\x12\x14\n" +
+	"\x05notes\x18\n" +
+	" \x01(\tR\x05notes\"\xdf\x03\n" +
+	"\n" +
+	"PmsBooking\x12\x1d\n" +
+	"\n" +
+	"booking_id\x18\x01 \x01(\tR\tbookingId\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"guest_name\x18\x03 \x01(\tR\tguestName\x12\x14\n" +
+	"\x05email\x18\x04 \x01(\tR\x05email\x12\x14\n" +
+	"\x05phone\x18\x05 \x01(\tR\x05phone\x12\x17\n" +
+	"\aroom_id\x18\x06 \x01(\tR\x06roomId\x12\x1b\n" +
+	"\troom_name\x18\a \x01(\tR\broomName\x12\x1b\n" +
+	"\troom_type\x18\b \x01(\tR\broomType\x12#\n" +
+	"\rproperty_name\x18\t \x01(\tR\fpropertyName\x12\x18\n" +
+	"\acheckin\x18\n" +
+	" \x01(\tR\acheckin\x12\x1a\n" +
+	"\bcheckout\x18\v \x01(\tR\bcheckout\x12\x16\n" +
+	"\x06adults\x18\f \x01(\x05R\x06adults\x12\x1a\n" +
+	"\bchildren\x18\r \x01(\x05R\bchildren\x12\x14\n" +
+	"\x05notes\x18\x0e \x01(\tR\x05notes\x12%\n" +
+	"\x0epayment_status\x18\x0f \x01(\tR\rpaymentStatus\x12\x16\n" +
+	"\x06source\x18\x10 \x01(\tR\x06source\x12\x18\n" +
+	"\amessage\x18\x11 \x01(\tR\amessage\"E\n" +
+	"\x15CreateBookingResponse\x12,\n" +
+	"\abooking\x18\x01 \x01(\v2\x12.pms.v1.PmsBookingR\abooking\"S\n" +
+	"\x11GetBookingRequest\x12\x1f\n" +
+	"\vproperty_id\x18\x01 \x01(\tR\n" +
+	"propertyId\x12\x1d\n" +
+	"\n" +
+	"booking_id\x18\x02 \x01(\tR\tbookingId\"B\n" +
+	"\x12GetBookingResponse\x12,\n" +
+	"\abooking\x18\x01 \x01(\v2\x12.pms.v1.PmsBookingR\abooking\"\x8e\x03\n" +
+	"\x14UpdateBookingRequest\x12\x1f\n" +
+	"\vproperty_id\x18\x01 \x01(\tR\n" +
+	"propertyId\x12\x1d\n" +
+	"\n" +
+	"booking_id\x18\x02 \x01(\tR\tbookingId\x121\n" +
+	"\acheckin\x18\x03 \x01(\v2\x17.common.v1.CalendarDateR\acheckin\x123\n" +
+	"\bcheckout\x18\x04 \x01(\v2\x17.common.v1.CalendarDateR\bcheckout\x12\x1d\n" +
+	"\n" +
+	"guest_name\x18\x05 \x01(\tR\tguestName\x12\x14\n" +
+	"\x05email\x18\x06 \x01(\tR\x05email\x12\x14\n" +
+	"\x05phone\x18\a \x01(\tR\x05phone\x12\x1b\n" +
+	"\x06adults\x18\b \x01(\x05H\x00R\x06adults\x88\x01\x01\x12\x1f\n" +
+	"\bchildren\x18\t \x01(\x05H\x01R\bchildren\x88\x01\x01\x12\x14\n" +
+	"\x05notes\x18\n" +
+	" \x01(\tR\x05notes\x12\x17\n" +
+	"\aroom_id\x18\v \x01(\tR\x06roomIdB\t\n" +
+	"\a_adultsB\v\n" +
+	"\t_children\"E\n" +
+	"\x15UpdateBookingResponse\x12,\n" +
+	"\abooking\x18\x01 \x01(\v2\x12.pms.v1.PmsBookingR\abooking\"n\n" +
+	"\x14CancelBookingRequest\x12\x1f\n" +
+	"\vproperty_id\x18\x01 \x01(\tR\n" +
+	"propertyId\x12\x1d\n" +
+	"\n" +
+	"booking_id\x18\x02 \x01(\tR\tbookingId\x12\x16\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\"h\n" +
+	"\x15CancelBookingResponse\x12\x1d\n" +
+	"\n" +
+	"booking_id\x18\x01 \x01(\tR\tbookingId\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage*\x8b\x01\n" +
 	"\aPmsKind\x12\x18\n" +
 	"\x14PMS_KIND_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12PMS_KIND_CLOUDBEDS\x10\x01\x12\x11\n" +
 	"\rPMS_KIND_MEWS\x10\x02\x12\x12\n" +
 	"\x0ePMS_KIND_OPERA\x10\x03\x12\x13\n" +
-	"\x0fPMS_KIND_CUSTOM\x10\x04*\x88\x01\n" +
+	"\x0fPMS_KIND_CUSTOM\x10\x04\x12\x12\n" +
+	"\x0ePMS_KIND_MYPMS\x10\x05*\x88\x01\n" +
 	"\tPmsStatus\x12\x1a\n" +
 	"\x16PMS_STATUS_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11PMS_STATUS_ACTIVE\x10\x01\x12\x15\n" +
 	"\x11PMS_STATUS_PAUSED\x10\x02\x12\x1b\n" +
 	"\x17PMS_STATUS_DISCONNECTED\x10\x03\x12\x14\n" +
-	"\x10PMS_STATUS_ERROR\x10\x042\xda\x03\n" +
+	"\x10PMS_STATUS_ERROR\x10\x042\x80\t\n" +
 	"\n" +
 	"PmsService\x12R\n" +
 	"\x0fListConnections\x12\x1e.pms.v1.ListConnectionsRequest\x1a\x1f.pms.v1.ListConnectionsResponse\x12C\n" +
@@ -1174,7 +2705,17 @@ const file_pms_v1_pms_proto_rawDesc = "" +
 	"\rDisconnectPms\x12\x1c.pms.v1.DisconnectPmsRequest\x1a\x1d.pms.v1.DisconnectPmsResponse\x12O\n" +
 	"\x0eListProperties\x12\x1d.pms.v1.ListPropertiesRequest\x1a\x1e.pms.v1.ListPropertiesResponse\x12F\n" +
 	"\vGetProperty\x12\x1a.pms.v1.GetPropertyRequest\x1a\x1b.pms.v1.GetPropertyResponse\x12L\n" +
-	"\rListRoomTypes\x12\x1c.pms.v1.ListRoomTypesRequest\x1a\x1d.pms.v1.ListRoomTypesResponseB@Z>github.com/channel-manager/channel-manager/gen/go/pms/v1;pmsv1b\x06proto3"
+	"\rListRoomTypes\x12\x1c.pms.v1.ListRoomTypesRequest\x1a\x1d.pms.v1.ListRoomTypesResponse\x12F\n" +
+	"\vSyncCatalog\x12\x1a.pms.v1.SyncCatalogRequest\x1a\x1b.pms.v1.SyncCatalogResponse\x12[\n" +
+	"\x12IngestAvailability\x12!.pms.v1.IngestAvailabilityRequest\x1a\".pms.v1.IngestAvailabilityResponse\x12@\n" +
+	"\tOrgHealth\x12\x18.pms.v1.OrgHealthRequest\x1a\x19.pms.v1.OrgHealthResponse\x12O\n" +
+	"\x0ePropertyHealth\x12\x1d.pms.v1.PropertyHealthRequest\x1a\x1e.pms.v1.PropertyHealthResponse\x12=\n" +
+	"\bGetQuote\x12\x17.pms.v1.GetQuoteRequest\x1a\x18.pms.v1.GetQuoteResponse\x12L\n" +
+	"\rCreateBooking\x12\x1c.pms.v1.CreateBookingRequest\x1a\x1d.pms.v1.CreateBookingResponse\x12C\n" +
+	"\n" +
+	"GetBooking\x12\x19.pms.v1.GetBookingRequest\x1a\x1a.pms.v1.GetBookingResponse\x12L\n" +
+	"\rUpdateBooking\x12\x1c.pms.v1.UpdateBookingRequest\x1a\x1d.pms.v1.UpdateBookingResponse\x12L\n" +
+	"\rCancelBooking\x12\x1c.pms.v1.CancelBookingRequest\x1a\x1d.pms.v1.CancelBookingResponseB@Z>github.com/channel-manager/channel-manager/gen/go/pms/v1;pmsv1b\x06proto3"
 
 var (
 	file_pms_v1_pms_proto_rawDescOnce sync.Once
@@ -1189,77 +2730,127 @@ func file_pms_v1_pms_proto_rawDescGZIP() []byte {
 }
 
 var file_pms_v1_pms_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_pms_v1_pms_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_pms_v1_pms_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
 var file_pms_v1_pms_proto_goTypes = []any{
-	(PmsKind)(0),                    // 0: pms.v1.PmsKind
-	(PmsStatus)(0),                  // 1: pms.v1.PmsStatus
-	(*PmsConnection)(nil),           // 2: pms.v1.PmsConnection
-	(*Property)(nil),                // 3: pms.v1.Property
-	(*RoomType)(nil),                // 4: pms.v1.RoomType
-	(*ListConnectionsRequest)(nil),  // 5: pms.v1.ListConnectionsRequest
-	(*ListConnectionsResponse)(nil), // 6: pms.v1.ListConnectionsResponse
-	(*ConnectPmsRequest)(nil),       // 7: pms.v1.ConnectPmsRequest
-	(*ConnectPmsResponse)(nil),      // 8: pms.v1.ConnectPmsResponse
-	(*DisconnectPmsRequest)(nil),    // 9: pms.v1.DisconnectPmsRequest
-	(*DisconnectPmsResponse)(nil),   // 10: pms.v1.DisconnectPmsResponse
-	(*ListPropertiesRequest)(nil),   // 11: pms.v1.ListPropertiesRequest
-	(*ListPropertiesResponse)(nil),  // 12: pms.v1.ListPropertiesResponse
-	(*GetPropertyRequest)(nil),      // 13: pms.v1.GetPropertyRequest
-	(*GetPropertyResponse)(nil),     // 14: pms.v1.GetPropertyResponse
-	(*ListRoomTypesRequest)(nil),    // 15: pms.v1.ListRoomTypesRequest
-	(*ListRoomTypesResponse)(nil),   // 16: pms.v1.ListRoomTypesResponse
-	nil,                             // 17: pms.v1.ConnectPmsRequest.CredentialsEntry
-	(*timestamppb.Timestamp)(nil),   // 18: google.protobuf.Timestamp
-	(*v1.PageRequest)(nil),          // 19: common.v1.PageRequest
-	(*v1.PageResponse)(nil),         // 20: common.v1.PageResponse
-	(*v1.IdempotencyKey)(nil),       // 21: common.v1.IdempotencyKey
-	(*v1.AuditMetadata)(nil),        // 22: common.v1.AuditMetadata
+	(PmsKind)(0),                       // 0: pms.v1.PmsKind
+	(PmsStatus)(0),                     // 1: pms.v1.PmsStatus
+	(*PmsConnection)(nil),              // 2: pms.v1.PmsConnection
+	(*Property)(nil),                   // 3: pms.v1.Property
+	(*RoomType)(nil),                   // 4: pms.v1.RoomType
+	(*ListConnectionsRequest)(nil),     // 5: pms.v1.ListConnectionsRequest
+	(*ListConnectionsResponse)(nil),    // 6: pms.v1.ListConnectionsResponse
+	(*ConnectPmsRequest)(nil),          // 7: pms.v1.ConnectPmsRequest
+	(*ConnectPmsResponse)(nil),         // 8: pms.v1.ConnectPmsResponse
+	(*DisconnectPmsRequest)(nil),       // 9: pms.v1.DisconnectPmsRequest
+	(*DisconnectPmsResponse)(nil),      // 10: pms.v1.DisconnectPmsResponse
+	(*ListPropertiesRequest)(nil),      // 11: pms.v1.ListPropertiesRequest
+	(*ListPropertiesResponse)(nil),     // 12: pms.v1.ListPropertiesResponse
+	(*GetPropertyRequest)(nil),         // 13: pms.v1.GetPropertyRequest
+	(*GetPropertyResponse)(nil),        // 14: pms.v1.GetPropertyResponse
+	(*ListRoomTypesRequest)(nil),       // 15: pms.v1.ListRoomTypesRequest
+	(*ListRoomTypesResponse)(nil),      // 16: pms.v1.ListRoomTypesResponse
+	(*SyncCatalogRequest)(nil),         // 17: pms.v1.SyncCatalogRequest
+	(*SyncCatalogResponse)(nil),        // 18: pms.v1.SyncCatalogResponse
+	(*IngestAvailabilityRequest)(nil),  // 19: pms.v1.IngestAvailabilityRequest
+	(*IngestAvailabilityResponse)(nil), // 20: pms.v1.IngestAvailabilityResponse
+	(*OrgHealthRequest)(nil),           // 21: pms.v1.OrgHealthRequest
+	(*OrgHealthResponse)(nil),          // 22: pms.v1.OrgHealthResponse
+	(*PropertyHealthRequest)(nil),      // 23: pms.v1.PropertyHealthRequest
+	(*PropertyHealthResponse)(nil),     // 24: pms.v1.PropertyHealthResponse
+	(*GetQuoteRequest)(nil),            // 25: pms.v1.GetQuoteRequest
+	(*GetQuoteResponse)(nil),           // 26: pms.v1.GetQuoteResponse
+	(*CreateBookingRequest)(nil),       // 27: pms.v1.CreateBookingRequest
+	(*PmsBooking)(nil),                 // 28: pms.v1.PmsBooking
+	(*CreateBookingResponse)(nil),      // 29: pms.v1.CreateBookingResponse
+	(*GetBookingRequest)(nil),          // 30: pms.v1.GetBookingRequest
+	(*GetBookingResponse)(nil),         // 31: pms.v1.GetBookingResponse
+	(*UpdateBookingRequest)(nil),       // 32: pms.v1.UpdateBookingRequest
+	(*UpdateBookingResponse)(nil),      // 33: pms.v1.UpdateBookingResponse
+	(*CancelBookingRequest)(nil),       // 34: pms.v1.CancelBookingRequest
+	(*CancelBookingResponse)(nil),      // 35: pms.v1.CancelBookingResponse
+	nil,                                // 36: pms.v1.ConnectPmsRequest.CredentialsEntry
+	(*timestamppb.Timestamp)(nil),      // 37: google.protobuf.Timestamp
+	(*v1.PageRequest)(nil),             // 38: common.v1.PageRequest
+	(*v1.PageResponse)(nil),            // 39: common.v1.PageResponse
+	(*v1.IdempotencyKey)(nil),          // 40: common.v1.IdempotencyKey
+	(*v1.AuditMetadata)(nil),           // 41: common.v1.AuditMetadata
+	(*v1.CalendarDate)(nil),            // 42: common.v1.CalendarDate
 }
 var file_pms_v1_pms_proto_depIdxs = []int32{
 	0,  // 0: pms.v1.PmsConnection.kind:type_name -> pms.v1.PmsKind
 	1,  // 1: pms.v1.PmsConnection.status:type_name -> pms.v1.PmsStatus
-	18, // 2: pms.v1.PmsConnection.last_sync_at:type_name -> google.protobuf.Timestamp
-	18, // 3: pms.v1.PmsConnection.created_at:type_name -> google.protobuf.Timestamp
-	18, // 4: pms.v1.PmsConnection.updated_at:type_name -> google.protobuf.Timestamp
-	18, // 5: pms.v1.Property.created_at:type_name -> google.protobuf.Timestamp
-	18, // 6: pms.v1.Property.updated_at:type_name -> google.protobuf.Timestamp
-	18, // 7: pms.v1.RoomType.created_at:type_name -> google.protobuf.Timestamp
-	18, // 8: pms.v1.RoomType.updated_at:type_name -> google.protobuf.Timestamp
-	19, // 9: pms.v1.ListConnectionsRequest.page:type_name -> common.v1.PageRequest
+	37, // 2: pms.v1.PmsConnection.last_sync_at:type_name -> google.protobuf.Timestamp
+	37, // 3: pms.v1.PmsConnection.created_at:type_name -> google.protobuf.Timestamp
+	37, // 4: pms.v1.PmsConnection.updated_at:type_name -> google.protobuf.Timestamp
+	37, // 5: pms.v1.Property.created_at:type_name -> google.protobuf.Timestamp
+	37, // 6: pms.v1.Property.updated_at:type_name -> google.protobuf.Timestamp
+	37, // 7: pms.v1.RoomType.created_at:type_name -> google.protobuf.Timestamp
+	37, // 8: pms.v1.RoomType.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 9: pms.v1.ListConnectionsRequest.page:type_name -> common.v1.PageRequest
 	2,  // 10: pms.v1.ListConnectionsResponse.connections:type_name -> pms.v1.PmsConnection
-	20, // 11: pms.v1.ListConnectionsResponse.page:type_name -> common.v1.PageResponse
+	39, // 11: pms.v1.ListConnectionsResponse.page:type_name -> common.v1.PageResponse
 	0,  // 12: pms.v1.ConnectPmsRequest.kind:type_name -> pms.v1.PmsKind
-	17, // 13: pms.v1.ConnectPmsRequest.credentials:type_name -> pms.v1.ConnectPmsRequest.CredentialsEntry
-	21, // 14: pms.v1.ConnectPmsRequest.idempotency_key:type_name -> common.v1.IdempotencyKey
-	22, // 15: pms.v1.ConnectPmsRequest.audit:type_name -> common.v1.AuditMetadata
+	36, // 13: pms.v1.ConnectPmsRequest.credentials:type_name -> pms.v1.ConnectPmsRequest.CredentialsEntry
+	40, // 14: pms.v1.ConnectPmsRequest.idempotency_key:type_name -> common.v1.IdempotencyKey
+	41, // 15: pms.v1.ConnectPmsRequest.audit:type_name -> common.v1.AuditMetadata
 	2,  // 16: pms.v1.ConnectPmsResponse.connection:type_name -> pms.v1.PmsConnection
-	22, // 17: pms.v1.DisconnectPmsRequest.audit:type_name -> common.v1.AuditMetadata
+	41, // 17: pms.v1.DisconnectPmsRequest.audit:type_name -> common.v1.AuditMetadata
 	2,  // 18: pms.v1.DisconnectPmsResponse.connection:type_name -> pms.v1.PmsConnection
-	19, // 19: pms.v1.ListPropertiesRequest.page:type_name -> common.v1.PageRequest
+	38, // 19: pms.v1.ListPropertiesRequest.page:type_name -> common.v1.PageRequest
 	3,  // 20: pms.v1.ListPropertiesResponse.properties:type_name -> pms.v1.Property
-	20, // 21: pms.v1.ListPropertiesResponse.page:type_name -> common.v1.PageResponse
+	39, // 21: pms.v1.ListPropertiesResponse.page:type_name -> common.v1.PageResponse
 	3,  // 22: pms.v1.GetPropertyResponse.property:type_name -> pms.v1.Property
 	4,  // 23: pms.v1.GetPropertyResponse.room_types:type_name -> pms.v1.RoomType
-	19, // 24: pms.v1.ListRoomTypesRequest.page:type_name -> common.v1.PageRequest
+	38, // 24: pms.v1.ListRoomTypesRequest.page:type_name -> common.v1.PageRequest
 	4,  // 25: pms.v1.ListRoomTypesResponse.room_types:type_name -> pms.v1.RoomType
-	20, // 26: pms.v1.ListRoomTypesResponse.page:type_name -> common.v1.PageResponse
-	5,  // 27: pms.v1.PmsService.ListConnections:input_type -> pms.v1.ListConnectionsRequest
-	7,  // 28: pms.v1.PmsService.ConnectPms:input_type -> pms.v1.ConnectPmsRequest
-	9,  // 29: pms.v1.PmsService.DisconnectPms:input_type -> pms.v1.DisconnectPmsRequest
-	11, // 30: pms.v1.PmsService.ListProperties:input_type -> pms.v1.ListPropertiesRequest
-	13, // 31: pms.v1.PmsService.GetProperty:input_type -> pms.v1.GetPropertyRequest
-	15, // 32: pms.v1.PmsService.ListRoomTypes:input_type -> pms.v1.ListRoomTypesRequest
-	6,  // 33: pms.v1.PmsService.ListConnections:output_type -> pms.v1.ListConnectionsResponse
-	8,  // 34: pms.v1.PmsService.ConnectPms:output_type -> pms.v1.ConnectPmsResponse
-	10, // 35: pms.v1.PmsService.DisconnectPms:output_type -> pms.v1.DisconnectPmsResponse
-	12, // 36: pms.v1.PmsService.ListProperties:output_type -> pms.v1.ListPropertiesResponse
-	14, // 37: pms.v1.PmsService.GetProperty:output_type -> pms.v1.GetPropertyResponse
-	16, // 38: pms.v1.PmsService.ListRoomTypes:output_type -> pms.v1.ListRoomTypesResponse
-	33, // [33:39] is the sub-list for method output_type
-	27, // [27:33] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	39, // 26: pms.v1.ListRoomTypesResponse.page:type_name -> common.v1.PageResponse
+	42, // 27: pms.v1.IngestAvailabilityRequest.checkin:type_name -> common.v1.CalendarDate
+	42, // 28: pms.v1.IngestAvailabilityRequest.checkout:type_name -> common.v1.CalendarDate
+	3,  // 29: pms.v1.PropertyHealthResponse.property:type_name -> pms.v1.Property
+	42, // 30: pms.v1.GetQuoteRequest.checkin:type_name -> common.v1.CalendarDate
+	42, // 31: pms.v1.GetQuoteRequest.checkout:type_name -> common.v1.CalendarDate
+	42, // 32: pms.v1.CreateBookingRequest.checkin:type_name -> common.v1.CalendarDate
+	42, // 33: pms.v1.CreateBookingRequest.checkout:type_name -> common.v1.CalendarDate
+	28, // 34: pms.v1.CreateBookingResponse.booking:type_name -> pms.v1.PmsBooking
+	28, // 35: pms.v1.GetBookingResponse.booking:type_name -> pms.v1.PmsBooking
+	42, // 36: pms.v1.UpdateBookingRequest.checkin:type_name -> common.v1.CalendarDate
+	42, // 37: pms.v1.UpdateBookingRequest.checkout:type_name -> common.v1.CalendarDate
+	28, // 38: pms.v1.UpdateBookingResponse.booking:type_name -> pms.v1.PmsBooking
+	5,  // 39: pms.v1.PmsService.ListConnections:input_type -> pms.v1.ListConnectionsRequest
+	7,  // 40: pms.v1.PmsService.ConnectPms:input_type -> pms.v1.ConnectPmsRequest
+	9,  // 41: pms.v1.PmsService.DisconnectPms:input_type -> pms.v1.DisconnectPmsRequest
+	11, // 42: pms.v1.PmsService.ListProperties:input_type -> pms.v1.ListPropertiesRequest
+	13, // 43: pms.v1.PmsService.GetProperty:input_type -> pms.v1.GetPropertyRequest
+	15, // 44: pms.v1.PmsService.ListRoomTypes:input_type -> pms.v1.ListRoomTypesRequest
+	17, // 45: pms.v1.PmsService.SyncCatalog:input_type -> pms.v1.SyncCatalogRequest
+	19, // 46: pms.v1.PmsService.IngestAvailability:input_type -> pms.v1.IngestAvailabilityRequest
+	21, // 47: pms.v1.PmsService.OrgHealth:input_type -> pms.v1.OrgHealthRequest
+	23, // 48: pms.v1.PmsService.PropertyHealth:input_type -> pms.v1.PropertyHealthRequest
+	25, // 49: pms.v1.PmsService.GetQuote:input_type -> pms.v1.GetQuoteRequest
+	27, // 50: pms.v1.PmsService.CreateBooking:input_type -> pms.v1.CreateBookingRequest
+	30, // 51: pms.v1.PmsService.GetBooking:input_type -> pms.v1.GetBookingRequest
+	32, // 52: pms.v1.PmsService.UpdateBooking:input_type -> pms.v1.UpdateBookingRequest
+	34, // 53: pms.v1.PmsService.CancelBooking:input_type -> pms.v1.CancelBookingRequest
+	6,  // 54: pms.v1.PmsService.ListConnections:output_type -> pms.v1.ListConnectionsResponse
+	8,  // 55: pms.v1.PmsService.ConnectPms:output_type -> pms.v1.ConnectPmsResponse
+	10, // 56: pms.v1.PmsService.DisconnectPms:output_type -> pms.v1.DisconnectPmsResponse
+	12, // 57: pms.v1.PmsService.ListProperties:output_type -> pms.v1.ListPropertiesResponse
+	14, // 58: pms.v1.PmsService.GetProperty:output_type -> pms.v1.GetPropertyResponse
+	16, // 59: pms.v1.PmsService.ListRoomTypes:output_type -> pms.v1.ListRoomTypesResponse
+	18, // 60: pms.v1.PmsService.SyncCatalog:output_type -> pms.v1.SyncCatalogResponse
+	20, // 61: pms.v1.PmsService.IngestAvailability:output_type -> pms.v1.IngestAvailabilityResponse
+	22, // 62: pms.v1.PmsService.OrgHealth:output_type -> pms.v1.OrgHealthResponse
+	24, // 63: pms.v1.PmsService.PropertyHealth:output_type -> pms.v1.PropertyHealthResponse
+	26, // 64: pms.v1.PmsService.GetQuote:output_type -> pms.v1.GetQuoteResponse
+	29, // 65: pms.v1.PmsService.CreateBooking:output_type -> pms.v1.CreateBookingResponse
+	31, // 66: pms.v1.PmsService.GetBooking:output_type -> pms.v1.GetBookingResponse
+	33, // 67: pms.v1.PmsService.UpdateBooking:output_type -> pms.v1.UpdateBookingResponse
+	35, // 68: pms.v1.PmsService.CancelBooking:output_type -> pms.v1.CancelBookingResponse
+	54, // [54:69] is the sub-list for method output_type
+	39, // [39:54] is the sub-list for method input_type
+	39, // [39:39] is the sub-list for extension type_name
+	39, // [39:39] is the sub-list for extension extendee
+	0,  // [0:39] is the sub-list for field type_name
 }
 
 func init() { file_pms_v1_pms_proto_init() }
@@ -1267,13 +2858,14 @@ func file_pms_v1_pms_proto_init() {
 	if File_pms_v1_pms_proto != nil {
 		return
 	}
+	file_pms_v1_pms_proto_msgTypes[30].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pms_v1_pms_proto_rawDesc), len(file_pms_v1_pms_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   16,
+			NumMessages:   35,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

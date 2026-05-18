@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strings"
 
-	workos "github.com/workos/workos-go/v7"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	workos "github.com/workos/workos-go/v7"
 )
 
 // Store syncs WorkOS identities into the local tenancy schema and resolves
@@ -32,6 +32,19 @@ func (s *Store) ResolveOrgID(ctx context.Context, workosOrgID string) (string, e
 		return "", fmt.Errorf("identity: resolve org %q: %w", workosOrgID, err)
 	}
 	return id, nil
+}
+
+// ResolveWorkosOrgID returns the WorkOS org ID for the given local UUID.
+func (s *Store) ResolveWorkosOrgID(ctx context.Context, localOrgID string) (string, error) {
+	var workosID string
+	err := s.pool.QueryRow(ctx,
+		`SELECT workos_id FROM tenancy.organizations WHERE id = $1`,
+		localOrgID,
+	).Scan(&workosID)
+	if err != nil {
+		return "", fmt.Errorf("identity: resolve workos org %q: %w", localOrgID, err)
+	}
+	return workosID, nil
 }
 
 // UpsertOrg creates or updates the local mirror of a WorkOS organization and

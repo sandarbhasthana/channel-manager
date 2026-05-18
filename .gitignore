@@ -21,6 +21,8 @@ coverage.html
 node_modules/
 .pnpm-store/
 *.tsbuildinfo
+.next/
+
 
 # ── Build / generated artifacts that we DO commit ────────────────────────────
 # gen/go is intentionally committed — it is the protobuf contract surface

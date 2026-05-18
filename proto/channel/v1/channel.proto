@@ -1,5 +1,9 @@
 // Channel service — registry of OTA channel connections per property and the
 // sync envelope domain events that drive outbound updates.
+//
+// Two-table model:
+//   Connection = org-level provider credential/account
+//   Channel    = property-level OTA listing attached to a connection
 syntax = "proto3";
 
 package channel.v1;
@@ -28,22 +32,42 @@ enum ChannelStatus {
   CHANNEL_STATUS_ERROR = 4;
 }
 
-// Channel is a configured connection between one property and one OTA.
-// Credentials are NOT carried on this message; they live in Secrets Manager
-// keyed by channel id.
+enum ConnectionStatus {
+  CONNECTION_STATUS_UNSPECIFIED = 0;
+  CONNECTION_STATUS_INACTIVE = 1;
+  CONNECTION_STATUS_ACTIVE = 2;
+  CONNECTION_STATUS_ERROR = 3;
+  CONNECTION_STATUS_DISABLED = 4;
+}
+
+// Connection is an org-level credential/account for an OTA provider.
+// Credentials live in Secrets Manager keyed by secret_ref.
+message Connection {
+  string id = 1;
+  ChannelKind kind = 2;
+  string name = 3;
+  ConnectionStatus status = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+// Channel is a property-level OTA listing attached to an org-level Connection.
+// Credentials are NOT carried on this message; they are resolved from the
+// parent Connection's secret_ref.
 message Channel {
   string id = 1;
   string property_id = 2;
-  ChannelKind kind = 3;
-  ChannelStatus status = 4;
+  string connection_id = 3;
+  ChannelKind kind = 4;
+  ChannelStatus status = 5;
   // OTA-side identifier of the property/listing.
-  string external_property_id = 5;
+  string external_property_id = 6;
   // Last successful round-trip with the OTA.
-  google.protobuf.Timestamp last_sync_at = 6;
+  google.protobuf.Timestamp last_sync_at = 7;
   // Last error message observed (truncated, for ops display only).
-  string last_error = 7;
-  google.protobuf.Timestamp created_at = 8;
-  google.protobuf.Timestamp updated_at = 9;
+  string last_error = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
 }
 
 // SyncJob describes an outbound work unit dispatched to an OTA adapter.
@@ -60,6 +84,72 @@ message SyncJob {
   google.protobuf.Timestamp completed_at = 7;
 }
 
+// ---------------------------------------------------------------------------
+// ConnectionService — org-level OTA credential management.
+// ---------------------------------------------------------------------------
+service ConnectionService {
+  rpc CreateConnection(CreateConnectionRequest) returns (CreateConnectionResponse);
+  rpc GetConnection(GetConnectionRequest) returns (GetConnectionResponse);
+  rpc ListConnections(ListConnectionsRequest) returns (ListConnectionsResponse);
+  rpc UpdateConnection(UpdateConnectionRequest) returns (UpdateConnectionResponse);
+  rpc DeleteConnection(DeleteConnectionRequest) returns (DeleteConnectionResponse);
+}
+
+message CreateConnectionRequest {
+  ChannelKind kind = 1;
+  string name = 2;
+  // Channel-specific credentials (api_key, oauth_token, etc.).
+  // Forwarded to Secrets Manager — never persisted in any DB column.
+  map<string, string> credentials = 3;
+  common.v1.IdempotencyKey idempotency_key = 4;
+  common.v1.AuditMetadata audit = 5;
+}
+
+message CreateConnectionResponse {
+  Connection connection = 1;
+}
+
+message GetConnectionRequest {
+  string id = 1;
+}
+
+message GetConnectionResponse {
+  Connection connection = 1;
+}
+
+message ListConnectionsRequest {
+  common.v1.PageRequest page = 1;
+}
+
+message ListConnectionsResponse {
+  repeated Connection connections = 1;
+  common.v1.PageResponse page = 2;
+}
+
+message UpdateConnectionRequest {
+  string id = 1;
+  string name = 2;
+  // Optional: update credentials — forwarded to Secrets Manager.
+  map<string, string> credentials = 3;
+  common.v1.AuditMetadata audit = 4;
+  // Optional: update status. UNSPECIFIED means "do not change".
+  ConnectionStatus status = 5;
+}
+
+message UpdateConnectionResponse {
+  Connection connection = 1;
+}
+
+message DeleteConnectionRequest {
+  string id = 1;
+  common.v1.AuditMetadata audit = 2;
+}
+
+message DeleteConnectionResponse {}
+
+// ---------------------------------------------------------------------------
+// ChannelService — property-level OTA channel management.
+// ---------------------------------------------------------------------------
 service ChannelService {
   rpc ListChannels(ListChannelsRequest) returns (ListChannelsResponse);
   rpc GetChannel(GetChannelRequest) returns (GetChannelResponse);
@@ -87,17 +177,16 @@ message GetChannelResponse {
   Channel channel = 1;
 }
 
-// ConnectChannel registers a new OTA connection. Credentials are passed in a
-// transient envelope and forwarded to Secrets Manager — they are not echoed
-// back in the response or persisted in any DB column.
+// ConnectChannel links a property to an existing org-level Connection.
+// The client must specify the connection_id explicitly — the API will not
+// silently decide which credential set to attach.
 message ConnectChannelRequest {
   string property_id = 1;
-  ChannelKind kind = 2;
+  // The org-level Connection to use for this channel.
+  string connection_id = 2;
   string external_property_id = 3;
-  // Channel-specific credentials (api_key, oauth_token, etc.).
-  map<string, string> credentials = 4;
-  common.v1.IdempotencyKey idempotency_key = 5;
-  common.v1.AuditMetadata audit = 6;
+  common.v1.IdempotencyKey idempotency_key = 4;
+  common.v1.AuditMetadata audit = 5;
 }
 
 message ConnectChannelResponse {

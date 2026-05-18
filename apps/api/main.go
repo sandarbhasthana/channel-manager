@@ -14,18 +14,40 @@ import (
 	"github.com/redis/go-redis/v9"
 	workos "github.com/workos/workos-go/v7"
 
+	"github.com/channel-manager/channel-manager/gen/go/channel/v1/channelv1connect"
 	"github.com/channel-manager/channel-manager/gen/go/inventory/v1/inventoryv1connect"
+	"github.com/channel-manager/channel-manager/gen/go/pms/v1/pmsv1connect"
 	"github.com/channel-manager/channel-manager/platform/auth"
 	"github.com/channel-manager/channel-manager/platform/config"
 	"github.com/channel-manager/channel-manager/platform/db"
 	platformevents "github.com/channel-manager/channel-manager/platform/events"
 	"github.com/channel-manager/channel-manager/platform/events/inproc"
+	platformintegration "github.com/channel-manager/channel-manager/platform/integration"
 	"github.com/channel-manager/channel-manager/platform/observability"
+	"github.com/channel-manager/channel-manager/services/channel/adapters/agoda"
+	"github.com/channel-manager/channel-manager/services/channel/adapters/airbnb"
+	"github.com/channel-manager/channel-manager/services/channel/adapters/bookingcom"
+	channelconnect "github.com/channel-manager/channel-manager/services/channel/adapters/connect"
+	channelevents "github.com/channel-manager/channel-manager/services/channel/adapters/events"
+	"github.com/channel-manager/channel-manager/services/channel/adapters/expedia"
+	"github.com/channel-manager/channel-manager/services/channel/adapters/infra"
+	channelpostgres "github.com/channel-manager/channel-manager/services/channel/adapters/postgres"
+	channelusecases "github.com/channel-manager/channel-manager/services/channel/usecases"
 	inventoryconnect "github.com/channel-manager/channel-manager/services/inventory/adapters/connect"
 	inventoryevents "github.com/channel-manager/channel-manager/services/inventory/adapters/events"
 	inventorypostgres "github.com/channel-manager/channel-manager/services/inventory/adapters/postgres"
 	inventoryredis "github.com/channel-manager/channel-manager/services/inventory/adapters/redis"
 	"github.com/channel-manager/channel-manager/services/inventory/usecases"
+	pmsconnect "github.com/channel-manager/channel-manager/services/pms/adapters/connect"
+	pmsinventory "github.com/channel-manager/channel-manager/services/pms/adapters/inventory"
+	pmsinfra "github.com/channel-manager/channel-manager/services/pms/adapters/infra"
+	pmspostgres "github.com/channel-manager/channel-manager/services/pms/adapters/postgres"
+	pmsusecases "github.com/channel-manager/channel-manager/services/pms/usecases"
+	integrationhttp "github.com/channel-manager/channel-manager/services/integration/adapters/http"
+	integrationusecases "github.com/channel-manager/channel-manager/services/integration/usecases"
+	resevents "github.com/channel-manager/channel-manager/services/reservations/adapters/events"
+	respostgres "github.com/channel-manager/channel-manager/services/reservations/adapters/postgres"
+	resusecases "github.com/channel-manager/channel-manager/services/reservations/usecases"
 )
 
 func main() {
@@ -61,10 +83,12 @@ func main() {
 	wos := workos.NewClient(cfg.Auth.WorkOSAPIKey, workos.WithClientID(cfg.Auth.WorkOSClientID))
 
 	// ── JWT verifier (JWKS + RS256) ───────────────────────────────────────────
+	// WorkOS AuthKit access tokens do not include an `aud` claim, so the
+	// audience check is left empty (disabled). The issuer is validated against
+	// AUTH_ISSUER which must match the token's `iss`.
 	verifier, err := auth.NewVerifier(ctx, auth.VerifierConfig{
-		JWKSURL:  cfg.Auth.JWKSURL,
-		Issuer:   cfg.Auth.Issuer,
-		Audience: cfg.Auth.WorkOSClientID,
+		JWKSURL: cfg.Auth.JWKSURL,
+		Issuer:  cfg.Auth.Issuer,
 	})
 	must(err, "init jwt verifier")
 
@@ -117,6 +141,50 @@ func main() {
 	invSvc := usecases.NewInventoryService(invRepo, invIdem, invPublisher)
 	invHandler := inventoryconnect.NewHandler(invSvc)
 
+	// ── Channel service ───────────────────────────────────────────────────────
+	connRepo := channelpostgres.NewConnectionRepository(pool)
+	chanRepo := channelpostgres.NewChannelRepository(pool)
+	syncJobRepo := channelpostgres.NewSyncJobRepository(pool)
+	chanSecrets := infra.NewInMemorySecretResolver()
+	chanPublisher := channelevents.NewPublisher(bus)
+	chanBreaker := infra.NewNoopCircuitBreaker()
+	chanSvc := channelusecases.NewChannelService(connRepo, chanRepo, syncJobRepo, chanSecrets, chanPublisher, chanBreaker)
+
+	// Register OTA adapters.
+	chanSvc.RegisterAdapter(airbnb.NewAdapter())
+	chanSvc.RegisterAdapter(bookingcom.NewAdapter())
+	chanSvc.RegisterAdapter(expedia.NewAdapter())
+	chanSvc.RegisterAdapter(agoda.NewAdapter())
+
+	connHandler := channelconnect.NewConnectionHandler(chanSvc)
+	chanHandler := channelconnect.NewChannelHandler(chanSvc)
+
+	// ── PMS service (MyPMS webhook ingestion) ─────────────────────────────────
+	pmsSecrets := pmsinfra.NewInMemorySecretResolver()
+	pmsConnRepo := pmspostgres.NewConnectionRepository(pool)
+	pmsPropRepo := pmspostgres.NewPropertyRepository(pool)
+	pmsRTRepo := pmspostgres.NewRoomTypeRepository(pool)
+	pmsInvWriter := pmsinventory.NewWriter(invSvc)
+	pmsSvc := pmsusecases.NewPmsService(pmsConnRepo, pmsPropRepo, pmsRTRepo, pmsSecrets, pmsInvWriter)
+	pmsHandler := pmsconnect.NewHandler(pmsSvc)
+
+	// ── Reservations service ────────────────────────────────────────────────────
+	resRepo := respostgres.NewRepository(pool)
+	resSvc := resusecases.NewReservationService(resRepo, resevents.NoopPublisher{})
+
+	// ── PMS outbound integration (REST + API key auth) ─────────────────────────
+	envSecrets, err := platformintegration.LoadEnvSecretsFromJSON(cfg.Integration.SecretsJSON)
+	must(err, "load integration secrets")
+	intKeyStore := platformintegration.NewKeyStore(pool)
+	intAuth := platformintegration.NewAuthenticator(envSecrets, intKeyStore)
+	intSvc := integrationusecases.NewService(pmsPropRepo, chanSvc, syncJobRepo, invSvc, resSvc)
+	intHandler := integrationhttp.NewHandler(intSvc)
+	adminKeysHandler := integrationhttp.NewAdminKeysHandler(intKeyStore)
+
+	mux.Handle("GET /api/integrations/pms", intAuth.Middleware(http.HandlerFunc(intHandler.OrgHealth)))
+	mux.Handle("GET /api/integrations/pms/{propertyId}", intAuth.Middleware(http.HandlerFunc(intHandler.PropertyHealth)))
+	mux.Handle("POST /api/integrations/pms/{propertyId}", intAuth.Middleware(http.HandlerFunc(intHandler.Dispatch)))
+
 	// ── Connect-RPC interceptor (auth-gated) ──────────────────────────────────
 	interceptor := connect.WithInterceptors(auth.NewUnaryInterceptor(verifier, store, enforcer))
 
@@ -125,10 +193,34 @@ func main() {
 	rpcPath, rpcHandler := inventoryv1connect.NewInventoryServiceHandler(invHandler, interceptor)
 	rpcMux.Handle(rpcPath, rpcHandler)
 
+	connRPCPath, connRPCHandler := channelv1connect.NewConnectionServiceHandler(connHandler, interceptor)
+	rpcMux.Handle(connRPCPath, connRPCHandler)
+
+	chanRPCPath, chanRPCHandler := channelv1connect.NewChannelServiceHandler(chanHandler, interceptor)
+	rpcMux.Handle(chanRPCPath, chanRPCHandler)
+
+	pmsRPCPath, pmsRPCHandler := pmsv1connect.NewPmsServiceHandler(pmsHandler, interceptor)
+	rpcMux.Handle(pmsRPCPath, pmsRPCHandler)
+
 	// ── HTTP mux — public + protected ────────────────────────────────────────
 	protected := http.NewServeMux()
 	protected.Handle("GET /me", auth.MeHandler())
+
+	// Team management routes (admin-only, calls WorkOS directly).
+	protected.Handle("GET /team/members", auth.ListTeamMembersHandler(wos, store))
+	protected.Handle("GET /team/invitations", auth.ListInvitationsHandler(wos, store))
+	protected.Handle("POST /team/invite", auth.SendInvitationHandler(wos, store))
+	protected.Handle("POST /team/revoke-invitation", auth.RevokeInvitationHandler(wos))
+	protected.Handle("POST /team/remove-member", auth.RemoveMemberHandler(wos))
+
+	protected.Handle("GET /admin/integration-keys", http.HandlerFunc(adminKeysHandler.ListKeys))
+	protected.Handle("POST /admin/integration-keys", http.HandlerFunc(adminKeysHandler.CreateKey))
+	protected.Handle("DELETE /admin/integration-keys/{id}", http.HandlerFunc(adminKeysHandler.RevokeKey))
+
 	protected.Handle(rpcPath, rpcMux)
+	protected.Handle(connRPCPath, rpcMux)
+	protected.Handle(chanRPCPath, rpcMux)
+	protected.Handle(pmsRPCPath, rpcMux)
 
 	mux.Handle("/", auth.NewMiddleware(verifier, store)(protected))
 

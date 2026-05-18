@@ -9,9 +9,11 @@ use (
 	./platform/db
 	./platform/events
 	./platform/http
+	./platform/integration
 	./platform/observability
 	./services/audit
 	./services/channel
+	./services/integration
 	./services/inventory
 	./services/mapping
 	./services/pms

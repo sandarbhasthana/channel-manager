@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"os"
 
 	workos "github.com/workos/workos-go/v7"
 )
@@ -99,7 +100,14 @@ func CallbackHandler(wos *workos.Client, store *Store) http.HandlerFunc {
 
 		syncIdentity(r, wos, store, resp.OrganizationID, resp.User)
 		setAuthCookies(w, resp.AccessToken, resp.RefreshToken)
-		http.Redirect(w, r, "/me", http.StatusFound)
+
+		// Redirect to dashboard after successful auth (for local dev).
+		// In production, use the same domain for API and dashboard to avoid CORS.
+		dashboardURL := os.Getenv("DASHBOARD_URL")
+		if dashboardURL == "" {
+			dashboardURL = "http://localhost:3000"
+		}
+		http.Redirect(w, r, dashboardURL+"/dashboard", http.StatusFound)
 	}
 }
 

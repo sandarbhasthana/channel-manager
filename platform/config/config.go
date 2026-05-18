@@ -11,7 +11,14 @@ type AppConfig struct {
 	Redis         RedisConfig
 	NATS          NATSConfig
 	Auth          AuthConfig
+	Integration   IntegrationConfig
 	Observability ObservabilityConfig
+}
+
+// IntegrationConfig holds PMS ↔ Channel Manager machine auth settings.
+type IntegrationConfig struct {
+	// SecretsJSON is the raw CM_INTEGRATION_SECRETS env value (org_id → token map).
+	SecretsJSON string
 }
 
 // DBConfig holds PostgreSQL connection settings.
@@ -112,6 +119,9 @@ func Load() (*AppConfig, error) {
 			WorkOSCookiePassword: getEnv("WORKOS_COOKIE_PASSWORD", ""),
 			WorkOSRedirectURI:    getEnv("WORKOS_REDIRECT_URI", "http://localhost:8080/auth/callback"),
 			WorkOSWebhookSecret:  getEnv("WORKOS_WEBHOOK_SECRET", ""),
+		},
+		Integration: IntegrationConfig{
+			SecretsJSON: getEnv("CM_INTEGRATION_SECRETS", ""),
 		},
 		Observability: ObservabilityConfig{
 			ServiceName:  getEnv("OTEL_SERVICE_NAME", "channel-manager"),

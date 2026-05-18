@@ -9,8 +9,13 @@ require (
 	github.com/channel-manager/channel-manager/platform/config v0.0.0-00010101000000-000000000000
 	github.com/channel-manager/channel-manager/platform/db v0.0.0-00010101000000-000000000000
 	github.com/channel-manager/channel-manager/platform/events v0.0.0-00010101000000-000000000000
+	github.com/channel-manager/channel-manager/platform/integration v0.0.0-00010101000000-000000000000
 	github.com/channel-manager/channel-manager/platform/observability v0.0.0-00010101000000-000000000000
+	github.com/channel-manager/channel-manager/services/channel v0.0.0-00010101000000-000000000000
+	github.com/channel-manager/channel-manager/services/integration v0.0.0-00010101000000-000000000000
 	github.com/channel-manager/channel-manager/services/inventory v0.0.0-00010101000000-000000000000
+	github.com/channel-manager/channel-manager/services/pms v0.0.0-00010101000000-000000000000
+	github.com/channel-manager/channel-manager/services/reservations v0.0.0-00010101000000-000000000000
 	github.com/redis/go-redis/v9 v9.7.3
 	github.com/workos/workos-go/v7 v7.1.0
 )
@@ -36,7 +41,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/pgx/v5 v5.7.5 // indirect
+	github.com/jackc/pgx/v5 v5.9.2 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
@@ -68,6 +73,11 @@ replace (
 	github.com/channel-manager/channel-manager/platform/config => ../../platform/config
 	github.com/channel-manager/channel-manager/platform/db => ../../platform/db
 	github.com/channel-manager/channel-manager/platform/events => ../../platform/events
+	github.com/channel-manager/channel-manager/platform/integration => ../../platform/integration
 	github.com/channel-manager/channel-manager/platform/observability => ../../platform/observability
+	github.com/channel-manager/channel-manager/services/channel => ../../services/channel
+	github.com/channel-manager/channel-manager/services/integration => ../../services/integration
 	github.com/channel-manager/channel-manager/services/inventory => ../../services/inventory
+	github.com/channel-manager/channel-manager/services/pms => ../../services/pms
+	github.com/channel-manager/channel-manager/services/reservations => ../../services/reservations
 )

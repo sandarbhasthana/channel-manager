@@ -1,3 +1,16 @@
-@tailwind base;
+/* Tailwind base (Preflight) is intentionally excluded — it resets
+   element styles that break AntD Layout/Sider/Header flexbox.
+   Utilities + components are kept for the login page. */
 @tailwind components;
 @tailwind utilities;
+
+/* Minimal reset (replaces Preflight for body only) */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html, body {
+  margin: 0;
+  padding: 0;
+}
