@@ -160,12 +160,15 @@ func main() {
 	chanHandler := channelconnect.NewChannelHandler(chanSvc)
 
 	// ── PMS service (MyPMS webhook ingestion) ─────────────────────────────────
-	pmsSecrets := pmsinfra.NewInMemorySecretResolver()
 	pmsConnRepo := pmspostgres.NewConnectionRepository(pool)
 	pmsPropRepo := pmspostgres.NewPropertyRepository(pool)
 	pmsRTRepo := pmspostgres.NewRoomTypeRepository(pool)
+	pmsRoomRepo := pmspostgres.NewRoomRepository(pool)
+	pmsSecrets := pmsinfra.NewInMemorySecretResolver()
 	pmsInvWriter := pmsinventory.NewWriter(invSvc)
-	pmsSvc := pmsusecases.NewPmsService(pmsConnRepo, pmsPropRepo, pmsRTRepo, pmsSecrets, pmsInvWriter)
+
+	// Usecases
+	pmsSvc := pmsusecases.NewPmsService(pmsConnRepo, pmsPropRepo, pmsRTRepo, pmsRoomRepo, pmsSecrets, pmsInvWriter)
 	pmsHandler := pmsconnect.NewHandler(pmsSvc)
 
 	// ── Reservations service ────────────────────────────────────────────────────
@@ -177,11 +180,12 @@ func main() {
 	must(err, "load integration secrets")
 	intKeyStore := platformintegration.NewKeyStore(pool)
 	intAuth := platformintegration.NewAuthenticator(envSecrets, intKeyStore)
-	intSvc := integrationusecases.NewService(pmsPropRepo, chanSvc, syncJobRepo, invSvc, resSvc)
+	intSvc := integrationusecases.NewService(pmsPropRepo, chanSvc, syncJobRepo, invSvc, resSvc, pmsSvc)
 	intHandler := integrationhttp.NewHandler(intSvc)
 	adminKeysHandler := integrationhttp.NewAdminKeysHandler(intKeyStore)
 
 	mux.Handle("GET /api/integrations/pms", intAuth.Middleware(http.HandlerFunc(intHandler.OrgHealth)))
+	mux.Handle("POST /api/integrations/pms", intAuth.Middleware(http.HandlerFunc(intHandler.OrgDispatch)))
 	mux.Handle("GET /api/integrations/pms/{propertyId}", intAuth.Middleware(http.HandlerFunc(intHandler.PropertyHealth)))
 	mux.Handle("POST /api/integrations/pms/{propertyId}", intAuth.Middleware(http.HandlerFunc(intHandler.Dispatch)))
 
@@ -204,7 +208,7 @@ func main() {
 
 	// ── HTTP mux — public + protected ────────────────────────────────────────
 	protected := http.NewServeMux()
-	protected.Handle("GET /me", auth.MeHandler())
+	protected.Handle("GET /me", auth.MeHandler(store))
 
 	// Team management routes (admin-only, calls WorkOS directly).
 	protected.Handle("GET /team/members", auth.ListTeamMembersHandler(wos, store))
@@ -222,7 +226,7 @@ func main() {
 	protected.Handle(chanRPCPath, rpcMux)
 	protected.Handle(pmsRPCPath, rpcMux)
 
-	mux.Handle("/", auth.NewMiddleware(verifier, store)(protected))
+	mux.Handle("/", auth.NewMiddleware(verifier, store, wos)(protected))
 
 	port := os.Getenv("PORT")
 	if port == "" {

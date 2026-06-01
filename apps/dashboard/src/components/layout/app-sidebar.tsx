@@ -5,20 +5,24 @@ import { Layout, Menu } from "antd";
 import type { MenuProps } from "antd";
 import {
   AppstoreOutlined,
-  ApiOutlined,
+  CalendarOutlined,
+  BookOutlined,
+  TagOutlined,
   HomeOutlined,
+  FolderOutlined,
   TeamOutlined,
-  SettingOutlined,
 } from "@ant-design/icons";
 
 const { Sider } = Layout;
 
 const menuItems: MenuProps["items"] = [
   { key: "/dashboard", icon: <AppstoreOutlined />, label: "Dashboard" },
-  { key: "/dashboard/connectors", icon: <ApiOutlined />, label: "Connectors" },
+  { key: "/dashboard/inventory", icon: <CalendarOutlined />, label: "Inventory" },
+  { key: "/dashboard/bookings", icon: <BookOutlined />, label: "Bookings" },
+  { key: "/dashboard/room-rates", icon: <TagOutlined />, label: "Rooms & Rates" },
   { key: "/dashboard/properties", icon: <HomeOutlined />, label: "Properties" },
+  { key: "/dashboard/groups", icon: <FolderOutlined />, label: "Groups" },
   { key: "/dashboard/team", icon: <TeamOutlined />, label: "Team" },
-  { key: "/dashboard/settings", icon: <SettingOutlined />, label: "Settings" },
 ];
 
 function CMLogo({ collapsed }: { collapsed: boolean }) {

@@ -63,6 +63,13 @@ type RoomTypeRepository interface {
 	GetByExternalID(ctx context.Context, propertyID, externalID string) (domain.RoomType, error)
 }
 
+// RoomRepository persists canonical physical rooms.
+type RoomRepository interface {
+	Upsert(ctx context.Context, r domain.Room) (domain.Room, error)
+	ListByProperty(ctx context.Context, propertyID string) ([]domain.Room, error)
+	ListByRoomType(ctx context.Context, roomTypeID string) ([]domain.Room, error)
+}
+
 // SecretResolver stores connection credentials.
 type SecretResolver interface {
 	Store(ctx context.Context, ref string, creds map[string]string) (string, error)

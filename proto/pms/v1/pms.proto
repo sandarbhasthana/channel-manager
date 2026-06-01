@@ -51,6 +51,18 @@ message Property {
   google.protobuf.Timestamp updated_at = 8;
 }
 
+// Room is a physical room within a RoomType.
+message Room {
+  string id = 1;
+  string property_id = 2;
+  string room_type_id = 3;
+  string external_id = 4;
+  string name = 5;
+  bool is_active = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
 // RoomType is a sellable unit category within a property.
 message RoomType {
   string id = 1;
@@ -59,6 +71,7 @@ message RoomType {
   string name = 4;
   int32 max_occupancy = 5;
   int32 base_occupancy = 6;
+  repeated Room rooms = 9;
   google.protobuf.Timestamp created_at = 7;
   google.protobuf.Timestamp updated_at = 8;
 }

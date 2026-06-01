@@ -39,6 +39,18 @@ type PmsProperty struct {
 	UpdatedAt    time.Time   `json:"updated_at"`
 }
 
+type PmsRoom struct {
+	ID         uuid.UUID `json:"id"`
+	OrgID      uuid.UUID `json:"org_id"`
+	PropertyID uuid.UUID `json:"property_id"`
+	RoomTypeID uuid.UUID `json:"room_type_id"`
+	ExternalID string    `json:"external_id"`
+	Name       string    `json:"name"`
+	IsActive   bool      `json:"is_active"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+}
+
 type PmsRoomType struct {
 	ID            uuid.UUID `json:"id"`
 	OrgID         uuid.UUID `json:"org_id"`

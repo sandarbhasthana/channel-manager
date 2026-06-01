@@ -107,6 +107,9 @@ func roomTypesFromDetails(propertyID string, resp *GetRoomDetailsResponse) []dom
 	for _, rt := range details {
 		extID := rt.RoomTypeID
 		if extID == "" {
+			extID = rt.ID
+		}
+		if extID == "" {
 			extID = rt.RoomType
 		}
 		name := rt.Name
@@ -121,6 +124,27 @@ func roomTypesFromDetails(propertyID string, resp *GetRoomDetailsResponse) []dom
 		if baseOcc == 0 {
 			baseOcc = maxOcc
 		}
+		
+		var rooms []domain.Room
+		// If rooms are provided nested inside the room type
+		for _, r := range rt.Rooms {
+			rooms = append(rooms, domain.Room{
+				ExternalID: r.GetID(),
+				Name:       r.Name,
+				IsActive:   true,
+			})
+		}
+		// If rooms are provided globally
+		for _, r := range resp.RoomsList() {
+			if r.RoomTypeID == extID || r.RoomTypeID == rt.RoomType {
+				rooms = append(rooms, domain.Room{
+					ExternalID: r.GetID(),
+					Name:       r.Name,
+					IsActive:   true,
+				})
+			}
+		}
+
 		out = append(out, domain.RoomType{
 			ExternalPropertyID: propertyID,
 			ExternalID:         extID,
@@ -128,6 +152,7 @@ func roomTypesFromDetails(propertyID string, resp *GetRoomDetailsResponse) []dom
 			Name:               name,
 			MaxOccupancy:       maxOcc,
 			BaseOccupancy:      baseOcc,
+			Rooms:              rooms,
 		})
 	}
 	return out
@@ -352,4 +377,7 @@ func CredentialsFromMap(creds map[string]string) (baseURL, token string, err err
 		return "", "", fmt.Errorf("mypms: credentials require base_url and bearer_token")
 	}
 	return baseURL, token, nil
+}
+func TestRoomTypesFromDetails(propertyID string, resp *GetRoomDetailsResponse) []domain.RoomType {
+	return roomTypesFromDetails(propertyID, resp)
 }

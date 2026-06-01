@@ -59,20 +59,29 @@ type SearchPropertiesResponse struct {
 	// Some deployments return a bare array; UnmarshalJSON handles both.
 }
 
-// UnmarshalJSON accepts either {"properties":[...]} or a top-level array.
 func (r *SearchPropertiesResponse) UnmarshalJSON(data []byte) error {
 	var wrapped struct {
 		Properties []PropertySummary `json:"properties"`
-		Data       []PropertySummary `json:"data"`
+		Data       json.RawMessage   `json:"data"`
 	}
 	if err := json.Unmarshal(data, &wrapped); err == nil {
-		switch {
-		case len(wrapped.Properties) > 0:
+		if len(wrapped.Properties) > 0 {
 			r.Properties = wrapped.Properties
 			return nil
-		case len(wrapped.Data) > 0:
-			r.Properties = wrapped.Data
-			return nil
+		}
+		if len(wrapped.Data) > 0 {
+			var arr []PropertySummary
+			if err := json.Unmarshal(wrapped.Data, &arr); err == nil {
+				r.Properties = arr
+				return nil
+			}
+			var nested struct {
+				Properties []PropertySummary `json:"properties"`
+			}
+			if err := json.Unmarshal(wrapped.Data, &nested); err == nil && len(nested.Properties) > 0 {
+				r.Properties = nested.Properties
+				return nil
+			}
 		}
 	}
 	var arr []PropertySummary
@@ -112,14 +121,26 @@ type AvailabilityRoom struct {
 // SearchAvailabilityResponse wraps availability results.
 type SearchAvailabilityResponse struct {
 	Rooms []AvailabilityRoom `json:"rooms"`
-	Data  []AvailabilityRoom `json:"data"`
+	Data  json.RawMessage    `json:"data"`
 }
 
 func (r *SearchAvailabilityResponse) RoomsList() []AvailabilityRoom {
 	if len(r.Rooms) > 0 {
 		return r.Rooms
 	}
-	return r.Data
+	if len(r.Data) > 0 {
+		var arr []AvailabilityRoom
+		if err := json.Unmarshal(r.Data, &arr); err == nil {
+			return arr
+		}
+		var nested struct {
+			Rooms []AvailabilityRoom `json:"rooms"`
+		}
+		if err := json.Unmarshal(r.Data, &nested); err == nil && len(nested.Rooms) > 0 {
+			return nested.Rooms
+		}
+	}
+	return nil
 }
 
 // GetRoomDetailsRequest is the body for action get_room_details.
@@ -131,20 +152,30 @@ type GetRoomDetailsRequest struct {
 
 // RoomTypeDetail describes a sellable room category from the PMS.
 type RoomTypeDetail struct {
+	ID           string `json:"id"`
 	RoomTypeID   string `json:"room_type_id"`
 	RoomType     string `json:"room_type"`
 	Name         string `json:"name"`
 	MaxOccupancy int    `json:"max_occupancy"`
 	BaseOccupancy int   `json:"base_occupancy"`
-	Capacity     int    `json:"capacity"`
-	Description  string `json:"description"`
+	Capacity      int          `json:"capacity"`
+	Description   string       `json:"description"`
+	Rooms         []RoomDetail `json:"rooms"`
 }
 
 // RoomDetail describes a physical room from the PMS.
 type RoomDetail struct {
+	ID         string `json:"id"`
 	RoomID     string `json:"room_id"`
 	RoomTypeID string `json:"room_type_id"`
 	Name       string `json:"name"`
+}
+
+func (r *RoomDetail) GetID() string {
+	if r.RoomID != "" {
+		return r.RoomID
+	}
+	return r.ID
 }
 
 // GetRoomDetailsResponse is returned by get_room_details.
@@ -163,6 +194,45 @@ func (r *GetRoomDetailsResponse) RoomTypesList() []RoomTypeDetail {
 	}
 	if r.RoomType != nil {
 		return []RoomTypeDetail{*r.RoomType}
+	}
+	if len(r.Data) > 0 {
+		var nested struct {
+			RoomTypes []RoomTypeDetail `json:"room_types"`
+			RoomType  *RoomTypeDetail  `json:"room_type"`
+		}
+		if err := json.Unmarshal(r.Data, &nested); err == nil {
+			if len(nested.RoomTypes) > 0 {
+				return nested.RoomTypes
+			}
+			if nested.RoomType != nil {
+				return []RoomTypeDetail{*nested.RoomType}
+			}
+		}
+	}
+	return nil
+}
+
+// RoomsList returns all rooms from the response regardless of shape.
+func (r *GetRoomDetailsResponse) RoomsList() []RoomDetail {
+	if len(r.Rooms) > 0 {
+		return r.Rooms
+	}
+	if r.Room != nil {
+		return []RoomDetail{*r.Room}
+	}
+	if len(r.Data) > 0 {
+		var nested struct {
+			Rooms []RoomDetail `json:"rooms"`
+			Room  *RoomDetail  `json:"room"`
+		}
+		if err := json.Unmarshal(r.Data, &nested); err == nil {
+			if len(nested.Rooms) > 0 {
+				return nested.Rooms
+			}
+			if nested.Room != nil {
+				return []RoomDetail{*nested.Room}
+			}
+		}
 	}
 	return nil
 }

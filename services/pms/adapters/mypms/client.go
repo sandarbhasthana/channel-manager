@@ -196,6 +196,9 @@ func (c *Client) doBytes(ctx context.Context, method, path string, body any) ([]
 	if err != nil {
 		return nil, fmt.Errorf("mypms: read body: %w", err)
 	}
+
+	fmt.Println("MYPMS RAW BODY:", string(raw))
+
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		msg := strings.TrimSpace(string(raw))
 		if msg == "" {

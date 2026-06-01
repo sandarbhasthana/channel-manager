@@ -153,18 +153,24 @@ func PasswordLoginHandler(wos *workos.Client, store *Store) http.HandlerFunc {
 
 // MeHandler returns the TenantContext attached by the auth middleware as JSON.
 // Mount it behind NewMiddleware to ensure the context is always present.
-func MeHandler() http.HandlerFunc {
+func MeHandler(store *Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tc, err := FromContext(r.Context())
 		if err != nil {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
+		
+		var email, fullName string
+		_ = store.pool.QueryRow(r.Context(), "SELECT email, full_name FROM tenancy.users WHERE id = $1", tc.UserID).Scan(&email, &fullName)
+
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]string{
-			"user_id": tc.UserID,
-			"org_id":  tc.OrgID,
-			"role":    tc.Role,
+			"user_id":   tc.UserID,
+			"org_id":    tc.OrgID,
+			"role":      tc.Role,
+			"email":     email,
+			"full_name": fullName,
 		})
 	}
 }

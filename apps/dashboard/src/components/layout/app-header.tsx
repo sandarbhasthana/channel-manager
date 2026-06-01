@@ -1,8 +1,10 @@
 "use client";
 
-import { Layout, Dropdown, Avatar, Typography, Flex } from "antd";
+import { Layout, Dropdown, Typography, Flex } from "antd";
 import { UserOutlined, LogoutOutlined, SettingOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
+import { useRouter } from "next/navigation";
+import Avatar, { genConfig } from "react-nice-avatar";
 
 const { Header } = Layout;
 const { Text } = Typography;
@@ -29,19 +31,27 @@ const userMenuItems: MenuProps["items"] = [
   },
 ];
 
-export function AppHeader() {
+export function AppHeader({ 
+  userEmail = "admin@channel-manager.com",
+  userName = "Admin User"
+}: { 
+  userEmail?: string;
+  userName?: string;
+}) {
+  const router = useRouter();
+
   const handleMenuClick: MenuProps["onClick"] = ({ key }) => {
     if (key === "logout") {
-      // TODO: Implement logout
+      router.push("/api/auth/logout"); 
       console.log("Logout clicked");
     } else if (key === "settings") {
-      // TODO: Navigate to settings
-      console.log("Settings clicked");
+      router.push("/dashboard/settings");
     } else if (key === "profile") {
-      // TODO: Navigate to profile
-      console.log("Profile clicked");
+      router.push("/dashboard/settings"); 
     }
   };
+
+  const avatarConfig = genConfig(userEmail);
 
   return (
     <Header
@@ -59,13 +69,16 @@ export function AppHeader() {
         <Flex align="center" gap={10} style={{ cursor: "pointer", padding: "8px 12px", borderRadius: 8, transition: "background 0.2s" }}>
           <Flex vertical align="flex-end" style={{ marginRight: 4 }}>
             <Text strong style={{ fontSize: 13, lineHeight: 1.2 }}>
-              Admin User
+              {userName}
             </Text>
             <Text type="secondary" style={{ fontSize: 11, lineHeight: 1.2 }}>
-              admin@channel-manager.com
+              {userEmail}
             </Text>
           </Flex>
-          <Avatar icon={<UserOutlined />} style={{ backgroundColor: "#2563EB" }} />
+          <div style={{ width: 32, height: 32 }}>
+            {/* @ts-ignore - React 19 type mismatch for this package */}
+            <Avatar style={{ width: '100%', height: '100%' }} {...avatarConfig} />
+          </div>
         </Flex>
       </Dropdown>
     </Header>

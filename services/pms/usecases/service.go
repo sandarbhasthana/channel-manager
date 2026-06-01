@@ -19,6 +19,7 @@ type PmsService struct {
 	conns     ports.ConnectionRepository
 	props     ports.PropertyRepository
 	roomTypes ports.RoomTypeRepository
+	rooms     ports.RoomRepository
 	secrets   ports.SecretResolver
 	inventory ports.InventoryWriter
 	engines   map[string]func(map[string]string) (ports.BookingEngineClient, error)
@@ -30,6 +31,7 @@ func NewPmsService(
 	conns ports.ConnectionRepository,
 	props ports.PropertyRepository,
 	roomTypes ports.RoomTypeRepository,
+	rooms ports.RoomRepository,
 	secrets ports.SecretResolver,
 	inventory ports.InventoryWriter,
 ) *PmsService {
@@ -37,6 +39,7 @@ func NewPmsService(
 		conns:     conns,
 		props:     props,
 		roomTypes: roomTypes,
+		rooms:     rooms,
 		secrets:   secrets,
 		inventory: inventory,
 		engines:   make(map[string]func(map[string]string) (ports.BookingEngineClient, error)),
@@ -130,7 +133,7 @@ func (s *PmsService) GetProperty(ctx context.Context, id string) (domain.Propert
 	if err != nil {
 		return domain.Property{}, nil, err
 	}
-	rts, err := s.roomTypes.ListByProperty(ctx, id)
+	rts, err := s.ListRoomTypes(ctx, id)
 	if err != nil {
 		return prop, nil, err
 	}
@@ -138,7 +141,25 @@ func (s *PmsService) GetProperty(ctx context.Context, id string) (domain.Propert
 }
 
 func (s *PmsService) ListRoomTypes(ctx context.Context, propertyID string) ([]domain.RoomType, error) {
-	return s.roomTypes.ListByProperty(ctx, propertyID)
+	rts, err := s.roomTypes.ListByProperty(ctx, propertyID)
+	if err != nil {
+		return nil, err
+	}
+	rooms, err := s.rooms.ListByProperty(ctx, propertyID)
+	if err != nil {
+		return nil, err
+	}
+	
+	roomsByRT := make(map[string][]domain.Room)
+	for _, r := range rooms {
+		roomsByRT[r.RoomTypeID] = append(roomsByRT[r.RoomTypeID], r)
+	}
+
+	for i := range rts {
+		rts[i].Rooms = roomsByRT[rts[i].ID]
+	}
+
+	return rts, nil
 }
 
 // SyncCatalog pulls properties and room types from the PMS into the local catalog.
@@ -188,7 +209,7 @@ func (s *PmsService) SyncCatalog(ctx context.Context, connectionID string, filte
 			continue
 		}
 		for _, rt := range roomTypes {
-			_, err := s.roomTypes.Upsert(ctx, domain.RoomType{
+			savedRT, err := s.roomTypes.Upsert(ctx, domain.RoomType{
 				OrgID:        tc.OrgID,
 				PropertyID:   saved.ID,
 				ExternalID:   rt.ExternalID,
@@ -202,6 +223,23 @@ func (s *PmsService) SyncCatalog(ctx context.Context, connectionID string, filte
 				s.log.Error("upsert room type failed", "code", rt.Code, "err", err)
 				continue
 			}
+			
+			for _, rm := range rt.Rooms {
+				s.log.Info("syncing room", "property", saved.ID, "room_type", savedRT.ID, "external_id", rm.ExternalID, "name", rm.Name)
+				_, err := s.rooms.Upsert(ctx, domain.Room{
+					OrgID:      tc.OrgID,
+					PropertyID: saved.ID,
+					RoomTypeID: savedRT.ID,
+					ExternalID: rm.ExternalID,
+					Name:       rm.Name,
+					IsActive:   true,
+				})
+				if err != nil {
+					s.log.Error("upsert room failed", "room", rm.Name, "err", err)
+					return domain.SyncCatalogResult{}, fmt.Errorf("failed to sync room '%s': %w", rm.Name, err)
+				}
+			}
+
 			rtsSynced++
 		}
 	}

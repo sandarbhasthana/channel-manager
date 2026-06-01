@@ -69,6 +69,26 @@ func (h *Handler) Dispatch(w http.ResponseWriter, r *http.Request) {
 	jsonOK(w, resp)
 }
 
+// OrgDispatch handles POST /api/integrations/pms.
+func (h *Handler) OrgDispatch(w http.ResponseWriter, r *http.Request) {
+	var body map[string]any
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		jsonError(w, "invalid json body", http.StatusBadRequest)
+		return
+	}
+	action, _ := body["action"].(string)
+	if action == "" {
+		jsonError(w, "action is required", http.StatusBadRequest)
+		return
+	}
+	resp, err := h.svc.OrgDispatch(r.Context(), action, body)
+	if err != nil {
+		jsonError(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	jsonOK(w, resp)
+}
+
 func jsonOK(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(v)

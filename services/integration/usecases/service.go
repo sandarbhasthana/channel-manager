@@ -14,6 +14,8 @@ import (
 	invdomain "github.com/channel-manager/channel-manager/services/inventory/domain"
 	invusecases "github.com/channel-manager/channel-manager/services/inventory/usecases"
 	pmsports "github.com/channel-manager/channel-manager/services/pms/ports"
+	pmsusecases "github.com/channel-manager/channel-manager/services/pms/usecases"
+	pmsdomain "github.com/channel-manager/channel-manager/services/pms/domain"
 	resdomain "github.com/channel-manager/channel-manager/services/reservations/domain"
 	resusecases "github.com/channel-manager/channel-manager/services/reservations/usecases"
 )
@@ -25,6 +27,7 @@ type Service struct {
 	jobs     channelports.SyncJobRepository
 	inv      *invusecases.InventoryService
 	res      *resusecases.ReservationService
+	pms      *pmsusecases.PmsService
 	log      *slog.Logger
 }
 
@@ -35,6 +38,7 @@ func NewService(
 	jobs channelports.SyncJobRepository,
 	inv *invusecases.InventoryService,
 	res *resusecases.ReservationService,
+	pms *pmsusecases.PmsService,
 ) *Service {
 	return &Service{
 		props:    props,
@@ -42,6 +46,7 @@ func NewService(
 		jobs:     jobs,
 		inv:      inv,
 		res:      res,
+		pms:      pms,
 		log:      slog.Default().With("service", "integration"),
 	}
 }
@@ -101,6 +106,64 @@ func (s *Service) Dispatch(ctx context.Context, propertyID, action string, body 
 		return s.pushRates(ctx, propertyID, body)
 	case domain.ActionGetSyncJobs:
 		return s.getSyncJobs(ctx, propertyID, body)
+	default:
+		return nil, fmt.Errorf("unknown action %q", action)
+	}
+}
+
+// OrgDispatch runs an organization-scoped action from the POST body.
+func (s *Service) OrgDispatch(ctx context.Context, action string, body map[string]any) (any, error) {
+	switch action {
+	case "sync_catalog":
+		conns, err := s.pms.ListConnections(ctx)
+		if err != nil {
+			return nil, err
+		}
+		var connID string
+		if len(conns) == 0 {
+			baseURL, _ := body["base_url"].(string)
+			if baseURL == "" {
+				return nil, errors.New("no PMS connections found for organization, and no base_url provided for auto-registration")
+			}
+			token, _ := body["token"].(string)
+			if token == "" {
+				token = "auto-registered-dummy-token" // Fallback to prevent credential errors
+			}
+			s.log.Info("Auto-registering PMS", "base_url", baseURL, "token", token)
+			creds := map[string]string{
+				"base_url":     baseURL,
+				"bearer_token": token,
+				"token":        token,
+			}
+			newConn, err := s.pms.ConnectPms(ctx, "mypms", "Auto-Registered PMS", creds)
+			if err != nil {
+				return nil, fmt.Errorf("failed to auto-register PMS: %w", err)
+			}
+			connID = newConn.ID
+		} else {
+			connID = conns[0].ID
+			if id, ok := body["connection_id"].(string); ok && id != "" {
+				found := false
+				for _, c := range conns {
+					if c.ID == id {
+						found = true
+						break
+					}
+				}
+				if !found {
+					return nil, errors.New("invalid connection_id")
+				}
+				connID = id
+			}
+		}
+		res, err := s.pms.SyncCatalog(ctx, connID, pmsdomain.PropertySearchFilter{})
+		if err != nil {
+			return nil, err
+		}
+		return map[string]any{
+			"properties_synced": res.PropertiesSynced,
+			"room_types_synced": res.RoomTypesSynced,
+		}, nil
 	default:
 		return nil, fmt.Errorf("unknown action %q", action)
 	}

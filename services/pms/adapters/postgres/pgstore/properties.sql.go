@@ -40,17 +40,17 @@ func (q *Queries) GetProperty(ctx context.Context, id uuid.UUID) (PmsProperty, e
 const getPropertyByExternal = `-- name: GetPropertyByExternal :one
 SELECT id, org_id, connection_id, external_id, name, timezone, currency, address, is_active, created_at, updated_at
   FROM pms.properties
- WHERE connection_id = $1
+ WHERE org_id = $1
    AND external_id = $2
 `
 
 type GetPropertyByExternalParams struct {
-	ConnectionID pgtype.UUID `json:"connection_id"`
-	ExternalID   *string     `json:"external_id"`
+	OrgID      uuid.UUID `json:"org_id"`
+	ExternalID *string   `json:"external_id"`
 }
 
 func (q *Queries) GetPropertyByExternal(ctx context.Context, arg GetPropertyByExternalParams) (PmsProperty, error) {
-	row := q.db.QueryRow(ctx, getPropertyByExternal, arg.ConnectionID, arg.ExternalID)
+	row := q.db.QueryRow(ctx, getPropertyByExternal, arg.OrgID, arg.ExternalID)
 	var i PmsProperty
 	err := row.Scan(
 		&i.ID,
@@ -205,18 +205,20 @@ UPDATE pms.properties
        currency = $3,
        address = $4,
        is_active = $5,
+       connection_id = $6,
        updated_at = now()
- WHERE id = $6
+ WHERE id = $7
 RETURNING id, org_id, connection_id, external_id, name, timezone, currency, address, is_active, created_at, updated_at
 `
 
 type UpdatePropertyParams struct {
-	Name     string    `json:"name"`
-	Timezone string    `json:"timezone"`
-	Currency string    `json:"currency"`
-	Address  []byte    `json:"address"`
-	IsActive bool      `json:"is_active"`
-	ID       uuid.UUID `json:"id"`
+	Name         string      `json:"name"`
+	Timezone     string      `json:"timezone"`
+	Currency     string      `json:"currency"`
+	Address      []byte      `json:"address"`
+	IsActive     bool        `json:"is_active"`
+	ConnectionID pgtype.UUID `json:"connection_id"`
+	ID           uuid.UUID   `json:"id"`
 }
 
 func (q *Queries) UpdateProperty(ctx context.Context, arg UpdatePropertyParams) (PmsProperty, error) {
@@ -226,6 +228,7 @@ func (q *Queries) UpdateProperty(ctx context.Context, arg UpdatePropertyParams) 
 		arg.Currency,
 		arg.Address,
 		arg.IsActive,
+		arg.ConnectionID,
 		arg.ID,
 	)
 	var i PmsProperty

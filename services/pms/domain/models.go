@@ -87,9 +87,23 @@ type RoomType struct {
 	Name               string
 	MaxOccupancy       int
 	BaseOccupancy      int
+	Rooms              []Room
 	IsActive           bool
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
+}
+
+// Room is a physical room within a RoomType.
+type Room struct {
+	ID           string
+	OrgID        string
+	PropertyID   string
+	RoomTypeID   string
+	ExternalID   string
+	Name         string
+	IsActive     bool
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 // AvailabilityQuery parameters for search_availability.

@@ -50,19 +50,20 @@ func (r *PropertyRepository) Upsert(ctx context.Context, p domain.Property) (dom
 	var result domain.Property
 	err = r.pool.WithTenant(ctx, tc.OrgID, func(ctx context.Context, tx pgx.Tx) error {
 		q := pgstore.New(tx)
-		if p.ConnectionID != "" && ext != "" {
+		if ext != "" {
 			existing, err := q.GetPropertyByExternal(ctx, pgstore.GetPropertyByExternalParams{
-				ConnectionID: connID,
-				ExternalID:   extPtr,
+				OrgID:      orgID,
+				ExternalID: extPtr,
 			})
 			if err == nil {
 				row, err := q.UpdateProperty(ctx, pgstore.UpdatePropertyParams{
-					ID:       existing.ID,
-					Name:     p.Name,
-					Timezone: tz,
-					Currency: currency,
-					Address:  addressJSON(p.City, p.Country),
-					IsActive: p.IsActive,
+					ID:           existing.ID,
+					Name:         p.Name,
+					Timezone:     tz,
+					Currency:     currency,
+					Address:      addressJSON(p.City, p.Country),
+					IsActive:     p.IsActive,
+					ConnectionID: connID,
 				})
 				if err != nil {
 					return err
@@ -132,9 +133,10 @@ func (r *PropertyRepository) GetByExternalID(ctx context.Context, connectionID, 
 	var result domain.Property
 	err = r.pool.WithTenant(ctx, tc.OrgID, func(ctx context.Context, tx pgx.Tx) error {
 		ext := externalID
+		orgID, _ := uuid.Parse(tc.OrgID)
 		row, err := pgstore.New(tx).GetPropertyByExternal(ctx, pgstore.GetPropertyByExternalParams{
-			ConnectionID: pgtypeUUID(connectionID),
-			ExternalID:   &ext,
+			OrgID:      orgID,
+			ExternalID: &ext,
 		})
 		if err != nil {
 			return err

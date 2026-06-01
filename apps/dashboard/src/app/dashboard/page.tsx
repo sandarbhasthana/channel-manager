@@ -1,5 +1,8 @@
-import { redirect } from "next/navigation";
-
 export default function DashboardRoot() {
-  redirect("/dashboard/connectors");
+  return (
+    <div style={{ padding: 24 }}>
+      <h1>Dashboard</h1>
+      <p>Welcome to the Dashboard.</p>
+    </div>
+  );
 }

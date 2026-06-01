@@ -95,6 +95,25 @@ func propertyToProto(p domain.Property) *pmsv1.Property {
 }
 
 func roomTypeToProto(rt domain.RoomType) *pmsv1.RoomType {
+	var protoRooms []*pmsv1.Room
+	for _, r := range rt.Rooms {
+		protoRoom := &pmsv1.Room{
+			Id:         r.ID,
+			PropertyId: r.PropertyID,
+			RoomTypeId: r.RoomTypeID,
+			ExternalId: r.ExternalID,
+			Name:       r.Name,
+			IsActive:   r.IsActive,
+		}
+		if !r.CreatedAt.IsZero() {
+			protoRoom.CreatedAt = timestamppb.New(r.CreatedAt)
+		}
+		if !r.UpdatedAt.IsZero() {
+			protoRoom.UpdatedAt = timestamppb.New(r.UpdatedAt)
+		}
+		protoRooms = append(protoRooms, protoRoom)
+	}
+
 	out := &pmsv1.RoomType{
 		Id:           rt.ID,
 		PropertyId:   rt.PropertyID,
@@ -102,6 +121,7 @@ func roomTypeToProto(rt domain.RoomType) *pmsv1.RoomType {
 		Name:         rt.Name,
 		MaxOccupancy: int32(rt.MaxOccupancy),  //nolint:gosec
 		BaseOccupancy: int32(rt.BaseOccupancy), //nolint:gosec
+		Rooms:        protoRooms,
 	}
 	if !rt.CreatedAt.IsZero() {
 		out.CreatedAt = timestamppb.New(rt.CreatedAt)

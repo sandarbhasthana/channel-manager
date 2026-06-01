@@ -159,8 +159,8 @@ func (k *KeyStore) ResolveOrgID(ctx context.Context, token string) (string, erro
 	var expiresAt, revokedAt *time.Time
 	err = pool.QueryRow(ctx, `
 		SELECT org_id::text, key_hash, expires_at, revoked_at
-		  FROM tenancy.integration_api_keys
-		 WHERE key_prefix = $1`, prefix).Scan(&orgID, &hash, &expiresAt, &revokedAt)
+		  FROM tenancy.resolve_integration_api_key($1)
+		`, prefix).Scan(&orgID, &hash, &expiresAt, &revokedAt)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return "", nil

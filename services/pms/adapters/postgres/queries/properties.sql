@@ -13,6 +13,7 @@ UPDATE pms.properties
        currency = @currency,
        address = @address,
        is_active = @is_active,
+       connection_id = @connection_id,
        updated_at = now()
  WHERE id = @id
 RETURNING id, org_id, connection_id, external_id, name, timezone, currency, address, is_active, created_at, updated_at;
@@ -25,7 +26,7 @@ SELECT id, org_id, connection_id, external_id, name, timezone, currency, address
 -- name: GetPropertyByExternal :one
 SELECT id, org_id, connection_id, external_id, name, timezone, currency, address, is_active, created_at, updated_at
   FROM pms.properties
- WHERE connection_id = @connection_id
+ WHERE org_id = @org_id
    AND external_id = @external_id;
 
 -- name: ListPropertiesByConnection :many

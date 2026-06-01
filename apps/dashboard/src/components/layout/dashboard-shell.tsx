@@ -7,14 +7,22 @@ import { AppHeader } from "./app-header";
 
 const { Content } = Layout;
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
+export function DashboardShell({ 
+  children,
+  userEmail = "admin@channel-manager.com",
+  userName = "Admin User"
+}: { 
+  children: React.ReactNode;
+  userEmail?: string;
+  userName?: string;
+}) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
     <Layout hasSider style={{ minHeight: "100vh" }}>
       <AppSidebar collapsed={collapsed} onCollapse={setCollapsed} />
       <Layout>
-        <AppHeader />
+        <AppHeader userEmail={userEmail} userName={userName} />
         <Content style={{ background: "#f8fafc", overflowY: "auto" }}>
           {children}
         </Content>

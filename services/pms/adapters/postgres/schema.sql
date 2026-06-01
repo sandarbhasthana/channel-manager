@@ -42,3 +42,15 @@ CREATE TABLE pms.room_types (
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE TABLE pms.rooms (
+    id              UUID        PRIMARY KEY,
+    org_id          UUID        NOT NULL,
+    property_id     UUID        NOT NULL,
+    room_type_id    UUID        NOT NULL,
+    external_id     TEXT        NOT NULL,
+    name            TEXT        NOT NULL,
+    is_active       BOOLEAN     NOT NULL DEFAULT TRUE,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
