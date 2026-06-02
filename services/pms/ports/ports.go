@@ -22,6 +22,7 @@ type BookingEngineClient interface {
 	GetQuote(ctx context.Context, externalPropertyID string, q domain.QuoteQuery) (*domain.Quote, error)
 	CreateBooking(ctx context.Context, externalPropertyID string, in domain.CreateBookingInput) (*domain.PmsBooking, error)
 	GetBooking(ctx context.Context, externalPropertyID, bookingID string) (*domain.PmsBooking, error)
+	ListBookings(ctx context.Context, externalPropertyID string, in domain.ListBookingsInput) (*domain.ListBookingsResult, error)
 	UpdateBooking(ctx context.Context, externalPropertyID string, in domain.UpdateBookingInput) (*domain.PmsBooking, error)
 	CancelBooking(ctx context.Context, externalPropertyID, bookingID, reason string) (*domain.CancelBookingResult, error)
 }

@@ -308,6 +308,33 @@ func (a *Adapter) CancelBooking(ctx context.Context, externalPropertyID, booking
 	}, nil
 }
 
+func (a *Adapter) ListBookings(ctx context.Context, externalPropertyID string, in domain.ListBookingsInput) (*domain.ListBookingsResult, error) {
+	req := ListBookingsRequest{
+		Status: in.Status,
+	}
+	if in.StartDate != nil {
+		req.StartDate = in.StartDate.Format("2006-01-02")
+	}
+	if in.EndDate != nil {
+		req.EndDate = in.EndDate.Format("2006-01-02")
+	}
+
+	resp, err := a.client.ListBookings(ctx, externalPropertyID, req)
+	if err != nil {
+		return nil, err
+	}
+
+	var bookings []domain.PmsBooking
+	for _, b := range resp.Data.Bookings {
+		bookings = append(bookings, *bookingToDomain(&b))
+	}
+
+	return &domain.ListBookingsResult{
+		Bookings: bookings,
+		Count:    resp.Data.Count,
+	}, nil
+}
+
 func quoteToDomain(q *Quote) *domain.Quote {
 	if q == nil {
 		return nil

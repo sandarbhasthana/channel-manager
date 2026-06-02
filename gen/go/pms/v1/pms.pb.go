@@ -2573,6 +2573,126 @@ func (x *CancelBookingResponse) GetMessage() string {
 	return ""
 }
 
+type ListBookingsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PropertyId    string                 `protobuf:"bytes,1,opt,name=property_id,json=propertyId,proto3" json:"property_id,omitempty"`
+	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	StartDate     *v1.CalendarDate       `protobuf:"bytes,3,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
+	EndDate       *v1.CalendarDate       `protobuf:"bytes,4,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBookingsRequest) Reset() {
+	*x = ListBookingsRequest{}
+	mi := &file_pms_v1_pms_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBookingsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBookingsRequest) ProtoMessage() {}
+
+func (x *ListBookingsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBookingsRequest.ProtoReflect.Descriptor instead.
+func (*ListBookingsRequest) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *ListBookingsRequest) GetPropertyId() string {
+	if x != nil {
+		return x.PropertyId
+	}
+	return ""
+}
+
+func (x *ListBookingsRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ListBookingsRequest) GetStartDate() *v1.CalendarDate {
+	if x != nil {
+		return x.StartDate
+	}
+	return nil
+}
+
+func (x *ListBookingsRequest) GetEndDate() *v1.CalendarDate {
+	if x != nil {
+		return x.EndDate
+	}
+	return nil
+}
+
+type ListBookingsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Bookings      []*PmsBooking          `protobuf:"bytes,1,rep,name=bookings,proto3" json:"bookings,omitempty"`
+	Count         int32                  `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBookingsResponse) Reset() {
+	*x = ListBookingsResponse{}
+	mi := &file_pms_v1_pms_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBookingsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBookingsResponse) ProtoMessage() {}
+
+func (x *ListBookingsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBookingsResponse.ProtoReflect.Descriptor instead.
+func (*ListBookingsResponse) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *ListBookingsResponse) GetBookings() []*PmsBooking {
+	if x != nil {
+		return x.Bookings
+	}
+	return nil
+}
+
+func (x *ListBookingsResponse) GetCount() int32 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
 var File_pms_v1_pms_proto protoreflect.FileDescriptor
 
 const file_pms_v1_pms_proto_rawDesc = "" +
@@ -2807,7 +2927,17 @@ const file_pms_v1_pms_proto_rawDesc = "" +
 	"\n" +
 	"booking_id\x18\x01 \x01(\tR\tbookingId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage*\x8b\x01\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\"\xba\x01\n" +
+	"\x13ListBookingsRequest\x12\x1f\n" +
+	"\vproperty_id\x18\x01 \x01(\tR\n" +
+	"propertyId\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\x126\n" +
+	"\n" +
+	"start_date\x18\x03 \x01(\v2\x17.common.v1.CalendarDateR\tstartDate\x122\n" +
+	"\bend_date\x18\x04 \x01(\v2\x17.common.v1.CalendarDateR\aendDate\"\\\n" +
+	"\x14ListBookingsResponse\x12.\n" +
+	"\bbookings\x18\x01 \x03(\v2\x12.pms.v1.PmsBookingR\bbookings\x12\x14\n" +
+	"\x05count\x18\x02 \x01(\x05R\x05count*\x8b\x01\n" +
 	"\aPmsKind\x12\x18\n" +
 	"\x14PMS_KIND_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12PMS_KIND_CLOUDBEDS\x10\x01\x12\x11\n" +
@@ -2820,7 +2950,7 @@ const file_pms_v1_pms_proto_rawDesc = "" +
 	"\x11PMS_STATUS_ACTIVE\x10\x01\x12\x15\n" +
 	"\x11PMS_STATUS_PAUSED\x10\x02\x12\x1b\n" +
 	"\x17PMS_STATUS_DISCONNECTED\x10\x03\x12\x14\n" +
-	"\x10PMS_STATUS_ERROR\x10\x042\x80\t\n" +
+	"\x10PMS_STATUS_ERROR\x10\x042\xcb\t\n" +
 	"\n" +
 	"PmsService\x12R\n" +
 	"\x0fListConnections\x12\x1e.pms.v1.ListConnectionsRequest\x1a\x1f.pms.v1.ListConnectionsResponse\x12C\n" +
@@ -2839,7 +2969,8 @@ const file_pms_v1_pms_proto_rawDesc = "" +
 	"\n" +
 	"GetBooking\x12\x19.pms.v1.GetBookingRequest\x1a\x1a.pms.v1.GetBookingResponse\x12L\n" +
 	"\rUpdateBooking\x12\x1c.pms.v1.UpdateBookingRequest\x1a\x1d.pms.v1.UpdateBookingResponse\x12L\n" +
-	"\rCancelBooking\x12\x1c.pms.v1.CancelBookingRequest\x1a\x1d.pms.v1.CancelBookingResponseB@Z>github.com/channel-manager/channel-manager/gen/go/pms/v1;pmsv1b\x06proto3"
+	"\rCancelBooking\x12\x1c.pms.v1.CancelBookingRequest\x1a\x1d.pms.v1.CancelBookingResponse\x12I\n" +
+	"\fListBookings\x12\x1b.pms.v1.ListBookingsRequest\x1a\x1c.pms.v1.ListBookingsResponseB@Z>github.com/channel-manager/channel-manager/gen/go/pms/v1;pmsv1b\x06proto3"
 
 var (
 	file_pms_v1_pms_proto_rawDescOnce sync.Once
@@ -2854,7 +2985,7 @@ func file_pms_v1_pms_proto_rawDescGZIP() []byte {
 }
 
 var file_pms_v1_pms_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_pms_v1_pms_proto_msgTypes = make([]protoimpl.MessageInfo, 36)
+var file_pms_v1_pms_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
 var file_pms_v1_pms_proto_goTypes = []any{
 	(PmsKind)(0),                       // 0: pms.v1.PmsKind
 	(PmsStatus)(0),                     // 1: pms.v1.PmsStatus
@@ -2893,92 +3024,99 @@ var file_pms_v1_pms_proto_goTypes = []any{
 	(*UpdateBookingResponse)(nil),      // 34: pms.v1.UpdateBookingResponse
 	(*CancelBookingRequest)(nil),       // 35: pms.v1.CancelBookingRequest
 	(*CancelBookingResponse)(nil),      // 36: pms.v1.CancelBookingResponse
-	nil,                                // 37: pms.v1.ConnectPmsRequest.CredentialsEntry
-	(*timestamppb.Timestamp)(nil),      // 38: google.protobuf.Timestamp
-	(*v1.PageRequest)(nil),             // 39: common.v1.PageRequest
-	(*v1.PageResponse)(nil),            // 40: common.v1.PageResponse
-	(*v1.IdempotencyKey)(nil),          // 41: common.v1.IdempotencyKey
-	(*v1.AuditMetadata)(nil),           // 42: common.v1.AuditMetadata
-	(*v1.CalendarDate)(nil),            // 43: common.v1.CalendarDate
+	(*ListBookingsRequest)(nil),        // 37: pms.v1.ListBookingsRequest
+	(*ListBookingsResponse)(nil),       // 38: pms.v1.ListBookingsResponse
+	nil,                                // 39: pms.v1.ConnectPmsRequest.CredentialsEntry
+	(*timestamppb.Timestamp)(nil),      // 40: google.protobuf.Timestamp
+	(*v1.PageRequest)(nil),             // 41: common.v1.PageRequest
+	(*v1.PageResponse)(nil),            // 42: common.v1.PageResponse
+	(*v1.IdempotencyKey)(nil),          // 43: common.v1.IdempotencyKey
+	(*v1.AuditMetadata)(nil),           // 44: common.v1.AuditMetadata
+	(*v1.CalendarDate)(nil),            // 45: common.v1.CalendarDate
 }
 var file_pms_v1_pms_proto_depIdxs = []int32{
 	0,  // 0: pms.v1.PmsConnection.kind:type_name -> pms.v1.PmsKind
 	1,  // 1: pms.v1.PmsConnection.status:type_name -> pms.v1.PmsStatus
-	38, // 2: pms.v1.PmsConnection.last_sync_at:type_name -> google.protobuf.Timestamp
-	38, // 3: pms.v1.PmsConnection.created_at:type_name -> google.protobuf.Timestamp
-	38, // 4: pms.v1.PmsConnection.updated_at:type_name -> google.protobuf.Timestamp
-	38, // 5: pms.v1.Property.created_at:type_name -> google.protobuf.Timestamp
-	38, // 6: pms.v1.Property.updated_at:type_name -> google.protobuf.Timestamp
-	38, // 7: pms.v1.Room.created_at:type_name -> google.protobuf.Timestamp
-	38, // 8: pms.v1.Room.updated_at:type_name -> google.protobuf.Timestamp
+	40, // 2: pms.v1.PmsConnection.last_sync_at:type_name -> google.protobuf.Timestamp
+	40, // 3: pms.v1.PmsConnection.created_at:type_name -> google.protobuf.Timestamp
+	40, // 4: pms.v1.PmsConnection.updated_at:type_name -> google.protobuf.Timestamp
+	40, // 5: pms.v1.Property.created_at:type_name -> google.protobuf.Timestamp
+	40, // 6: pms.v1.Property.updated_at:type_name -> google.protobuf.Timestamp
+	40, // 7: pms.v1.Room.created_at:type_name -> google.protobuf.Timestamp
+	40, // 8: pms.v1.Room.updated_at:type_name -> google.protobuf.Timestamp
 	4,  // 9: pms.v1.RoomType.rooms:type_name -> pms.v1.Room
-	38, // 10: pms.v1.RoomType.created_at:type_name -> google.protobuf.Timestamp
-	38, // 11: pms.v1.RoomType.updated_at:type_name -> google.protobuf.Timestamp
-	39, // 12: pms.v1.ListConnectionsRequest.page:type_name -> common.v1.PageRequest
+	40, // 10: pms.v1.RoomType.created_at:type_name -> google.protobuf.Timestamp
+	40, // 11: pms.v1.RoomType.updated_at:type_name -> google.protobuf.Timestamp
+	41, // 12: pms.v1.ListConnectionsRequest.page:type_name -> common.v1.PageRequest
 	2,  // 13: pms.v1.ListConnectionsResponse.connections:type_name -> pms.v1.PmsConnection
-	40, // 14: pms.v1.ListConnectionsResponse.page:type_name -> common.v1.PageResponse
+	42, // 14: pms.v1.ListConnectionsResponse.page:type_name -> common.v1.PageResponse
 	0,  // 15: pms.v1.ConnectPmsRequest.kind:type_name -> pms.v1.PmsKind
-	37, // 16: pms.v1.ConnectPmsRequest.credentials:type_name -> pms.v1.ConnectPmsRequest.CredentialsEntry
-	41, // 17: pms.v1.ConnectPmsRequest.idempotency_key:type_name -> common.v1.IdempotencyKey
-	42, // 18: pms.v1.ConnectPmsRequest.audit:type_name -> common.v1.AuditMetadata
+	39, // 16: pms.v1.ConnectPmsRequest.credentials:type_name -> pms.v1.ConnectPmsRequest.CredentialsEntry
+	43, // 17: pms.v1.ConnectPmsRequest.idempotency_key:type_name -> common.v1.IdempotencyKey
+	44, // 18: pms.v1.ConnectPmsRequest.audit:type_name -> common.v1.AuditMetadata
 	2,  // 19: pms.v1.ConnectPmsResponse.connection:type_name -> pms.v1.PmsConnection
-	42, // 20: pms.v1.DisconnectPmsRequest.audit:type_name -> common.v1.AuditMetadata
+	44, // 20: pms.v1.DisconnectPmsRequest.audit:type_name -> common.v1.AuditMetadata
 	2,  // 21: pms.v1.DisconnectPmsResponse.connection:type_name -> pms.v1.PmsConnection
-	39, // 22: pms.v1.ListPropertiesRequest.page:type_name -> common.v1.PageRequest
+	41, // 22: pms.v1.ListPropertiesRequest.page:type_name -> common.v1.PageRequest
 	3,  // 23: pms.v1.ListPropertiesResponse.properties:type_name -> pms.v1.Property
-	40, // 24: pms.v1.ListPropertiesResponse.page:type_name -> common.v1.PageResponse
+	42, // 24: pms.v1.ListPropertiesResponse.page:type_name -> common.v1.PageResponse
 	3,  // 25: pms.v1.GetPropertyResponse.property:type_name -> pms.v1.Property
 	5,  // 26: pms.v1.GetPropertyResponse.room_types:type_name -> pms.v1.RoomType
-	39, // 27: pms.v1.ListRoomTypesRequest.page:type_name -> common.v1.PageRequest
+	41, // 27: pms.v1.ListRoomTypesRequest.page:type_name -> common.v1.PageRequest
 	5,  // 28: pms.v1.ListRoomTypesResponse.room_types:type_name -> pms.v1.RoomType
-	40, // 29: pms.v1.ListRoomTypesResponse.page:type_name -> common.v1.PageResponse
-	43, // 30: pms.v1.IngestAvailabilityRequest.checkin:type_name -> common.v1.CalendarDate
-	43, // 31: pms.v1.IngestAvailabilityRequest.checkout:type_name -> common.v1.CalendarDate
+	42, // 29: pms.v1.ListRoomTypesResponse.page:type_name -> common.v1.PageResponse
+	45, // 30: pms.v1.IngestAvailabilityRequest.checkin:type_name -> common.v1.CalendarDate
+	45, // 31: pms.v1.IngestAvailabilityRequest.checkout:type_name -> common.v1.CalendarDate
 	3,  // 32: pms.v1.PropertyHealthResponse.property:type_name -> pms.v1.Property
-	43, // 33: pms.v1.GetQuoteRequest.checkin:type_name -> common.v1.CalendarDate
-	43, // 34: pms.v1.GetQuoteRequest.checkout:type_name -> common.v1.CalendarDate
-	43, // 35: pms.v1.CreateBookingRequest.checkin:type_name -> common.v1.CalendarDate
-	43, // 36: pms.v1.CreateBookingRequest.checkout:type_name -> common.v1.CalendarDate
+	45, // 33: pms.v1.GetQuoteRequest.checkin:type_name -> common.v1.CalendarDate
+	45, // 34: pms.v1.GetQuoteRequest.checkout:type_name -> common.v1.CalendarDate
+	45, // 35: pms.v1.CreateBookingRequest.checkin:type_name -> common.v1.CalendarDate
+	45, // 36: pms.v1.CreateBookingRequest.checkout:type_name -> common.v1.CalendarDate
 	29, // 37: pms.v1.CreateBookingResponse.booking:type_name -> pms.v1.PmsBooking
 	29, // 38: pms.v1.GetBookingResponse.booking:type_name -> pms.v1.PmsBooking
-	43, // 39: pms.v1.UpdateBookingRequest.checkin:type_name -> common.v1.CalendarDate
-	43, // 40: pms.v1.UpdateBookingRequest.checkout:type_name -> common.v1.CalendarDate
+	45, // 39: pms.v1.UpdateBookingRequest.checkin:type_name -> common.v1.CalendarDate
+	45, // 40: pms.v1.UpdateBookingRequest.checkout:type_name -> common.v1.CalendarDate
 	29, // 41: pms.v1.UpdateBookingResponse.booking:type_name -> pms.v1.PmsBooking
-	6,  // 42: pms.v1.PmsService.ListConnections:input_type -> pms.v1.ListConnectionsRequest
-	8,  // 43: pms.v1.PmsService.ConnectPms:input_type -> pms.v1.ConnectPmsRequest
-	10, // 44: pms.v1.PmsService.DisconnectPms:input_type -> pms.v1.DisconnectPmsRequest
-	12, // 45: pms.v1.PmsService.ListProperties:input_type -> pms.v1.ListPropertiesRequest
-	14, // 46: pms.v1.PmsService.GetProperty:input_type -> pms.v1.GetPropertyRequest
-	16, // 47: pms.v1.PmsService.ListRoomTypes:input_type -> pms.v1.ListRoomTypesRequest
-	18, // 48: pms.v1.PmsService.SyncCatalog:input_type -> pms.v1.SyncCatalogRequest
-	20, // 49: pms.v1.PmsService.IngestAvailability:input_type -> pms.v1.IngestAvailabilityRequest
-	22, // 50: pms.v1.PmsService.OrgHealth:input_type -> pms.v1.OrgHealthRequest
-	24, // 51: pms.v1.PmsService.PropertyHealth:input_type -> pms.v1.PropertyHealthRequest
-	26, // 52: pms.v1.PmsService.GetQuote:input_type -> pms.v1.GetQuoteRequest
-	28, // 53: pms.v1.PmsService.CreateBooking:input_type -> pms.v1.CreateBookingRequest
-	31, // 54: pms.v1.PmsService.GetBooking:input_type -> pms.v1.GetBookingRequest
-	33, // 55: pms.v1.PmsService.UpdateBooking:input_type -> pms.v1.UpdateBookingRequest
-	35, // 56: pms.v1.PmsService.CancelBooking:input_type -> pms.v1.CancelBookingRequest
-	7,  // 57: pms.v1.PmsService.ListConnections:output_type -> pms.v1.ListConnectionsResponse
-	9,  // 58: pms.v1.PmsService.ConnectPms:output_type -> pms.v1.ConnectPmsResponse
-	11, // 59: pms.v1.PmsService.DisconnectPms:output_type -> pms.v1.DisconnectPmsResponse
-	13, // 60: pms.v1.PmsService.ListProperties:output_type -> pms.v1.ListPropertiesResponse
-	15, // 61: pms.v1.PmsService.GetProperty:output_type -> pms.v1.GetPropertyResponse
-	17, // 62: pms.v1.PmsService.ListRoomTypes:output_type -> pms.v1.ListRoomTypesResponse
-	19, // 63: pms.v1.PmsService.SyncCatalog:output_type -> pms.v1.SyncCatalogResponse
-	21, // 64: pms.v1.PmsService.IngestAvailability:output_type -> pms.v1.IngestAvailabilityResponse
-	23, // 65: pms.v1.PmsService.OrgHealth:output_type -> pms.v1.OrgHealthResponse
-	25, // 66: pms.v1.PmsService.PropertyHealth:output_type -> pms.v1.PropertyHealthResponse
-	27, // 67: pms.v1.PmsService.GetQuote:output_type -> pms.v1.GetQuoteResponse
-	30, // 68: pms.v1.PmsService.CreateBooking:output_type -> pms.v1.CreateBookingResponse
-	32, // 69: pms.v1.PmsService.GetBooking:output_type -> pms.v1.GetBookingResponse
-	34, // 70: pms.v1.PmsService.UpdateBooking:output_type -> pms.v1.UpdateBookingResponse
-	36, // 71: pms.v1.PmsService.CancelBooking:output_type -> pms.v1.CancelBookingResponse
-	57, // [57:72] is the sub-list for method output_type
-	42, // [42:57] is the sub-list for method input_type
-	42, // [42:42] is the sub-list for extension type_name
-	42, // [42:42] is the sub-list for extension extendee
-	0,  // [0:42] is the sub-list for field type_name
+	45, // 42: pms.v1.ListBookingsRequest.start_date:type_name -> common.v1.CalendarDate
+	45, // 43: pms.v1.ListBookingsRequest.end_date:type_name -> common.v1.CalendarDate
+	29, // 44: pms.v1.ListBookingsResponse.bookings:type_name -> pms.v1.PmsBooking
+	6,  // 45: pms.v1.PmsService.ListConnections:input_type -> pms.v1.ListConnectionsRequest
+	8,  // 46: pms.v1.PmsService.ConnectPms:input_type -> pms.v1.ConnectPmsRequest
+	10, // 47: pms.v1.PmsService.DisconnectPms:input_type -> pms.v1.DisconnectPmsRequest
+	12, // 48: pms.v1.PmsService.ListProperties:input_type -> pms.v1.ListPropertiesRequest
+	14, // 49: pms.v1.PmsService.GetProperty:input_type -> pms.v1.GetPropertyRequest
+	16, // 50: pms.v1.PmsService.ListRoomTypes:input_type -> pms.v1.ListRoomTypesRequest
+	18, // 51: pms.v1.PmsService.SyncCatalog:input_type -> pms.v1.SyncCatalogRequest
+	20, // 52: pms.v1.PmsService.IngestAvailability:input_type -> pms.v1.IngestAvailabilityRequest
+	22, // 53: pms.v1.PmsService.OrgHealth:input_type -> pms.v1.OrgHealthRequest
+	24, // 54: pms.v1.PmsService.PropertyHealth:input_type -> pms.v1.PropertyHealthRequest
+	26, // 55: pms.v1.PmsService.GetQuote:input_type -> pms.v1.GetQuoteRequest
+	28, // 56: pms.v1.PmsService.CreateBooking:input_type -> pms.v1.CreateBookingRequest
+	31, // 57: pms.v1.PmsService.GetBooking:input_type -> pms.v1.GetBookingRequest
+	33, // 58: pms.v1.PmsService.UpdateBooking:input_type -> pms.v1.UpdateBookingRequest
+	35, // 59: pms.v1.PmsService.CancelBooking:input_type -> pms.v1.CancelBookingRequest
+	37, // 60: pms.v1.PmsService.ListBookings:input_type -> pms.v1.ListBookingsRequest
+	7,  // 61: pms.v1.PmsService.ListConnections:output_type -> pms.v1.ListConnectionsResponse
+	9,  // 62: pms.v1.PmsService.ConnectPms:output_type -> pms.v1.ConnectPmsResponse
+	11, // 63: pms.v1.PmsService.DisconnectPms:output_type -> pms.v1.DisconnectPmsResponse
+	13, // 64: pms.v1.PmsService.ListProperties:output_type -> pms.v1.ListPropertiesResponse
+	15, // 65: pms.v1.PmsService.GetProperty:output_type -> pms.v1.GetPropertyResponse
+	17, // 66: pms.v1.PmsService.ListRoomTypes:output_type -> pms.v1.ListRoomTypesResponse
+	19, // 67: pms.v1.PmsService.SyncCatalog:output_type -> pms.v1.SyncCatalogResponse
+	21, // 68: pms.v1.PmsService.IngestAvailability:output_type -> pms.v1.IngestAvailabilityResponse
+	23, // 69: pms.v1.PmsService.OrgHealth:output_type -> pms.v1.OrgHealthResponse
+	25, // 70: pms.v1.PmsService.PropertyHealth:output_type -> pms.v1.PropertyHealthResponse
+	27, // 71: pms.v1.PmsService.GetQuote:output_type -> pms.v1.GetQuoteResponse
+	30, // 72: pms.v1.PmsService.CreateBooking:output_type -> pms.v1.CreateBookingResponse
+	32, // 73: pms.v1.PmsService.GetBooking:output_type -> pms.v1.GetBookingResponse
+	34, // 74: pms.v1.PmsService.UpdateBooking:output_type -> pms.v1.UpdateBookingResponse
+	36, // 75: pms.v1.PmsService.CancelBooking:output_type -> pms.v1.CancelBookingResponse
+	38, // 76: pms.v1.PmsService.ListBookings:output_type -> pms.v1.ListBookingsResponse
+	61, // [61:77] is the sub-list for method output_type
+	45, // [45:61] is the sub-list for method input_type
+	45, // [45:45] is the sub-list for extension type_name
+	45, // [45:45] is the sub-list for extension extendee
+	0,  // [0:45] is the sub-list for field type_name
 }
 
 func init() { file_pms_v1_pms_proto_init() }
@@ -2993,7 +3131,7 @@ func file_pms_v1_pms_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pms_v1_pms_proto_rawDesc), len(file_pms_v1_pms_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   36,
+			NumMessages:   38,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

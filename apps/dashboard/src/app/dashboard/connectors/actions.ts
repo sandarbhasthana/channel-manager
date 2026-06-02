@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { unstable_rethrow } from "next/navigation";
 import {
   createConnection,
   updateConnectionStatus,
@@ -28,6 +29,7 @@ export async function createConnectionAction(formData: FormData) {
     revalidatePath("/dashboard/connectors");
     return { success: true };
   } catch (err) {
+    unstable_rethrow(err);
     return { error: (err as Error).message };
   }
 }
@@ -42,6 +44,7 @@ export async function toggleConnectionAction(id: string, currentStatus: Connecti
     await updateConnectionStatus(id, nextStatus);
     revalidatePath("/dashboard/connectors");
   } catch (err) {
+    unstable_rethrow(err);
     throw new Error((err as Error).message);
   }
 }
@@ -51,6 +54,7 @@ export async function deleteConnectionAction(id: string) {
     await deleteConnection(id);
     revalidatePath("/dashboard/connectors");
   } catch (err) {
+    unstable_rethrow(err);
     throw new Error((err as Error).message);
   }
 }

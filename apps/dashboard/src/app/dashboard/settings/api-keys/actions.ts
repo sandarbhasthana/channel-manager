@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { unstable_rethrow } from "next/navigation";
 import { createIntegrationKey, revokeIntegrationKey } from "@/lib/api";
 
 export async function createKeyAction(formData: FormData) {
@@ -12,6 +13,7 @@ export async function createKeyAction(formData: FormData) {
     revalidatePath("/dashboard/settings/api-keys");
     return { success: true, secretKey: result.secret_key };
   } catch (err) {
+    unstable_rethrow(err);
     return { error: (err as Error).message };
   }
 }
@@ -22,6 +24,7 @@ export async function revokeKeyAction(id: string) {
     revalidatePath("/dashboard/settings/api-keys");
     return { success: true };
   } catch (err) {
+    unstable_rethrow(err);
     return { error: (err as Error).message };
   }
 }

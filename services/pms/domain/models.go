@@ -178,6 +178,19 @@ type UpdateBookingInput struct {
 	RoomID    string
 }
 
+// ListBookingsInput parameters for list_bookings.
+type ListBookingsInput struct {
+	Status    string
+	StartDate *time.Time
+	EndDate   *time.Time
+}
+
+// ListBookingsResult is returned by list_bookings.
+type ListBookingsResult struct {
+	Bookings []PmsBooking
+	Count    int
+}
+
 // PmsBooking is a reservation as returned by the PMS booking engine.
 type PmsBooking struct {
 	BookingID     string

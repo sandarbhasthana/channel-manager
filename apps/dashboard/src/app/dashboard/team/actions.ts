@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { unstable_rethrow } from "next/navigation";
 import {
   sendInvitation,
   revokeInvitation,
@@ -13,6 +14,7 @@ export async function sendInviteAction(email: string, role: string) {
     revalidatePath("/dashboard/team");
     return { success: true };
   } catch (err) {
+    unstable_rethrow(err);
     return { error: (err as Error).message };
   }
 }
@@ -23,6 +25,7 @@ export async function revokeInviteAction(id: string) {
     revalidatePath("/dashboard/team");
     return { success: true };
   } catch (err) {
+    unstable_rethrow(err);
     return { error: (err as Error).message };
   }
 }
@@ -33,6 +36,7 @@ export async function removeMemberAction(membershipId: string) {
     revalidatePath("/dashboard/team");
     return { success: true };
   } catch (err) {
+    unstable_rethrow(err);
     return { error: (err as Error).message };
   }
 }

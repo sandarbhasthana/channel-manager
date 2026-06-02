@@ -338,6 +338,46 @@ func (h *Handler) CancelBooking(
 	}), nil
 }
 
+func (h *Handler) ListBookings(
+	ctx context.Context,
+	req *connect.Request[pmsv1.ListBookingsRequest],
+) (*connect.Response[pmsv1.ListBookingsResponse], error) {
+	r := req.Msg
+	if r.GetPropertyId() == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("property_id is required"))
+	}
+	
+	in := domain.ListBookingsInput{
+		Status: r.GetStatus(),
+	}
+	if r.GetStartDate() != nil {
+		t := calendarDateToTime(r.GetStartDate())
+		in.StartDate = &t
+	}
+	if r.GetEndDate() != nil {
+		t := calendarDateToTime(r.GetEndDate())
+		in.EndDate = &t
+	}
+
+	result, err := h.svc.ListBookings(ctx, r.GetPropertyId(), in)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	out := make([]*pmsv1.PmsBooking, 0, len(result.Bookings))
+	for _, b := range result.Bookings {
+		// Use a local copy of b so we can take its address safely in old Go versions, 
+		// though in 1.22+ it's fine.
+		bCopy := b
+		out = append(out, bookingToProto(&bCopy))
+	}
+
+	return connect.NewResponse(&pmsv1.ListBookingsResponse{
+		Bookings: out,
+		Count:    int32(result.Count),
+	}), nil
+}
+
 func calendarDateToTime(cd *commonv1.CalendarDate) time.Time {
 	if cd == nil {
 		return time.Time{}

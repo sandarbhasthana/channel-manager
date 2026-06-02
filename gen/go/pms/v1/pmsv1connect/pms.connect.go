@@ -75,6 +75,8 @@ const (
 	// PmsServiceCancelBookingProcedure is the fully-qualified name of the PmsService's CancelBooking
 	// RPC.
 	PmsServiceCancelBookingProcedure = "/pms.v1.PmsService/CancelBooking"
+	// PmsServiceListBookingsProcedure is the fully-qualified name of the PmsService's ListBookings RPC.
+	PmsServiceListBookingsProcedure = "/pms.v1.PmsService/ListBookings"
 )
 
 // PmsServiceClient is a client for the pms.v1.PmsService service.
@@ -96,6 +98,7 @@ type PmsServiceClient interface {
 	GetBooking(context.Context, *connect.Request[v1.GetBookingRequest]) (*connect.Response[v1.GetBookingResponse], error)
 	UpdateBooking(context.Context, *connect.Request[v1.UpdateBookingRequest]) (*connect.Response[v1.UpdateBookingResponse], error)
 	CancelBooking(context.Context, *connect.Request[v1.CancelBookingRequest]) (*connect.Response[v1.CancelBookingResponse], error)
+	ListBookings(context.Context, *connect.Request[v1.ListBookingsRequest]) (*connect.Response[v1.ListBookingsResponse], error)
 }
 
 // NewPmsServiceClient constructs a client for the pms.v1.PmsService service. By default, it uses
@@ -199,6 +202,12 @@ func NewPmsServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(pmsServiceMethods.ByName("CancelBooking")),
 			connect.WithClientOptions(opts...),
 		),
+		listBookings: connect.NewClient[v1.ListBookingsRequest, v1.ListBookingsResponse](
+			httpClient,
+			baseURL+PmsServiceListBookingsProcedure,
+			connect.WithSchema(pmsServiceMethods.ByName("ListBookings")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -219,6 +228,7 @@ type pmsServiceClient struct {
 	getBooking         *connect.Client[v1.GetBookingRequest, v1.GetBookingResponse]
 	updateBooking      *connect.Client[v1.UpdateBookingRequest, v1.UpdateBookingResponse]
 	cancelBooking      *connect.Client[v1.CancelBookingRequest, v1.CancelBookingResponse]
+	listBookings       *connect.Client[v1.ListBookingsRequest, v1.ListBookingsResponse]
 }
 
 // ListConnections calls pms.v1.PmsService.ListConnections.
@@ -296,6 +306,11 @@ func (c *pmsServiceClient) CancelBooking(ctx context.Context, req *connect.Reque
 	return c.cancelBooking.CallUnary(ctx, req)
 }
 
+// ListBookings calls pms.v1.PmsService.ListBookings.
+func (c *pmsServiceClient) ListBookings(ctx context.Context, req *connect.Request[v1.ListBookingsRequest]) (*connect.Response[v1.ListBookingsResponse], error) {
+	return c.listBookings.CallUnary(ctx, req)
+}
+
 // PmsServiceHandler is an implementation of the pms.v1.PmsService service.
 type PmsServiceHandler interface {
 	ListConnections(context.Context, *connect.Request[v1.ListConnectionsRequest]) (*connect.Response[v1.ListConnectionsResponse], error)
@@ -315,6 +330,7 @@ type PmsServiceHandler interface {
 	GetBooking(context.Context, *connect.Request[v1.GetBookingRequest]) (*connect.Response[v1.GetBookingResponse], error)
 	UpdateBooking(context.Context, *connect.Request[v1.UpdateBookingRequest]) (*connect.Response[v1.UpdateBookingResponse], error)
 	CancelBooking(context.Context, *connect.Request[v1.CancelBookingRequest]) (*connect.Response[v1.CancelBookingResponse], error)
+	ListBookings(context.Context, *connect.Request[v1.ListBookingsRequest]) (*connect.Response[v1.ListBookingsResponse], error)
 }
 
 // NewPmsServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -414,6 +430,12 @@ func NewPmsServiceHandler(svc PmsServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(pmsServiceMethods.ByName("CancelBooking")),
 		connect.WithHandlerOptions(opts...),
 	)
+	pmsServiceListBookingsHandler := connect.NewUnaryHandler(
+		PmsServiceListBookingsProcedure,
+		svc.ListBookings,
+		connect.WithSchema(pmsServiceMethods.ByName("ListBookings")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/pms.v1.PmsService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case PmsServiceListConnectionsProcedure:
@@ -446,6 +468,8 @@ func NewPmsServiceHandler(svc PmsServiceHandler, opts ...connect.HandlerOption) 
 			pmsServiceUpdateBookingHandler.ServeHTTP(w, r)
 		case PmsServiceCancelBookingProcedure:
 			pmsServiceCancelBookingHandler.ServeHTTP(w, r)
+		case PmsServiceListBookingsProcedure:
+			pmsServiceListBookingsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -513,4 +537,8 @@ func (UnimplementedPmsServiceHandler) UpdateBooking(context.Context, *connect.Re
 
 func (UnimplementedPmsServiceHandler) CancelBooking(context.Context, *connect.Request[v1.CancelBookingRequest]) (*connect.Response[v1.CancelBookingResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pms.v1.PmsService.CancelBooking is not implemented"))
+}
+
+func (UnimplementedPmsServiceHandler) ListBookings(context.Context, *connect.Request[v1.ListBookingsRequest]) (*connect.Response[v1.ListBookingsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pms.v1.PmsService.ListBookings is not implemented"))
 }

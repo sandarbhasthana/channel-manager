@@ -1,35 +1,15 @@
 "use client";
 
-import { Layout, Dropdown, Typography, Flex } from "antd";
-import { UserOutlined, LogoutOutlined, SettingOutlined } from "@ant-design/icons";
+import React, { useState } from "react";
+import { Layout, Dropdown, Typography, Flex, theme, Segmented } from "antd";
+import { UserOutlined, LogoutOutlined, SettingOutlined, LaptopOutlined, SunOutlined, MoonOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import { useRouter } from "next/navigation";
 import Avatar, { genConfig } from "react-nice-avatar";
+import { useTheme, ThemeMode } from "../antd-provider";
 
 const { Header } = Layout;
 const { Text } = Typography;
-
-const userMenuItems: MenuProps["items"] = [
-  {
-    key: "profile",
-    icon: <UserOutlined />,
-    label: "Profile",
-  },
-  {
-    key: "settings",
-    icon: <SettingOutlined />,
-    label: "Settings",
-  },
-  {
-    type: "divider",
-  },
-  {
-    key: "logout",
-    icon: <LogoutOutlined />,
-    label: "Sign out",
-    danger: true,
-  },
-];
 
 export function AppHeader({ 
   userEmail = "admin@channel-manager.com",
@@ -39,11 +19,13 @@ export function AppHeader({
   userName?: string;
 }) {
   const router = useRouter();
+  const { mode, setMode } = useTheme();
+  const { token } = theme.useToken();
+  const [clickPos, setClickPos] = useState({ x: 0, y: 0 });
 
   const handleMenuClick: MenuProps["onClick"] = ({ key }) => {
     if (key === "logout") {
       router.push("/api/auth/logout"); 
-      console.log("Logout clicked");
     } else if (key === "settings") {
       router.push("/dashboard/settings");
     } else if (key === "profile") {
@@ -51,14 +33,94 @@ export function AppHeader({
     }
   };
 
+  const handleThemeChange = (newMode: ThemeMode) => {
+    // Check if View Transitions API is supported and user prefers motion
+    // @ts-ignore - document.startViewTransition is relatively new
+    if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setMode(newMode);
+      return;
+    }
+
+    const { x, y } = clickPos;
+    const endRadius = Math.hypot(
+      Math.max(x, innerWidth - x),
+      Math.max(y, innerHeight - y)
+    );
+
+    // @ts-ignore
+    const transition = document.startViewTransition(() => {
+      setMode(newMode);
+    });
+
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        [
+          { clipPath: `circle(0px at ${x}px ${y}px)` },
+          { clipPath: `circle(${endRadius}px at ${x}px ${y}px)` }
+        ],
+        {
+          duration: 500,
+          easing: "ease-in-out",
+          pseudoElement: "::view-transition-new(root)"
+        }
+      );
+    });
+  };
+
+  const userMenuItems: MenuProps["items"] = [
+    {
+      key: "profile",
+      icon: <UserOutlined />,
+      label: "My Profile",
+    },
+    {
+      key: "settings",
+      icon: <SettingOutlined />,
+      label: "Settings",
+    },
+    {
+      type: "divider",
+    },
+    {
+      key: "theme_switcher",
+      style: { padding: '8px 12px', cursor: 'default', background: 'transparent' },
+      label: (
+        <Flex justify="space-between" align="center" style={{ width: 200 }} onClick={e => e.stopPropagation()}>
+          <Text style={{ fontSize: 13, fontWeight: 500 }}>Theme</Text>
+          <div onMouseDown={(e) => setClickPos({ x: e.clientX, y: e.clientY })}>
+            <Segmented
+              value={mode}
+              onChange={(value) => handleThemeChange(value as ThemeMode)}
+              options={[
+                { value: 'system', icon: <LaptopOutlined /> },
+                { value: 'light', icon: <SunOutlined /> },
+                { value: 'dark', icon: <MoonOutlined /> },
+              ]}
+              size="small"
+              style={{ padding: 2 }}
+            />
+          </div>
+        </Flex>
+      ),
+    },
+    {
+      type: "divider",
+    },
+    {
+      key: "logout",
+      icon: <LogoutOutlined style={{ color: token.colorError }} />,
+      label: <span style={{ color: token.colorError }}>Logout</span>,
+    },
+  ];
+
   const avatarConfig = genConfig(userEmail);
 
   return (
     <Header
       style={{
-        background: "#fff",
+        background: token.colorBgContainer,
         padding: "0 24px",
-        borderBottom: "1px solid #f0f0f0",
+        borderBottom: `1px solid ${token.colorBorderSecondary}`,
         display: "flex",
         alignItems: "center",
         justifyContent: "flex-end",
@@ -84,3 +146,4 @@ export function AppHeader({
     </Header>
   );
 }
+

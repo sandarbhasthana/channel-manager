@@ -208,6 +208,10 @@ func (s *PmsService) SyncCatalog(ctx context.Context, connectionID string, filte
 			s.log.Error("list room types failed", "property", rp.ExternalID, "err", err)
 			continue
 		}
+
+		activeRTExtIDs := make(map[string]bool)
+		activeRoomExtIDs := make(map[string]bool)
+
 		for _, rt := range roomTypes {
 			savedRT, err := s.roomTypes.Upsert(ctx, domain.RoomType{
 				OrgID:        tc.OrgID,
@@ -226,6 +230,9 @@ func (s *PmsService) SyncCatalog(ctx context.Context, connectionID string, filte
 			
 			for _, rm := range rt.Rooms {
 				s.log.Info("syncing room", "property", saved.ID, "room_type", savedRT.ID, "external_id", rm.ExternalID, "name", rm.Name)
+				if rm.ExternalID != "" {
+					activeRoomExtIDs[rm.ExternalID] = true
+				}
 				_, err := s.rooms.Upsert(ctx, domain.Room{
 					OrgID:      tc.OrgID,
 					PropertyID: saved.ID,
@@ -240,7 +247,39 @@ func (s *PmsService) SyncCatalog(ctx context.Context, connectionID string, filte
 				}
 			}
 
+			if rt.ExternalID != "" {
+				activeRTExtIDs[rt.ExternalID] = true
+			} else if rt.Code != "" {
+				activeRTExtIDs[rt.Code] = true
+			}
+
 			rtsSynced++
+		}
+
+		// Deactivate missing room types
+		if existingRTs, err := s.roomTypes.ListByProperty(ctx, saved.ID); err == nil {
+			for _, ert := range existingRTs {
+				key := ert.ExternalID
+				if key == "" {
+					key = ert.Code
+				}
+				if key != "" && !activeRTExtIDs[key] && ert.IsActive {
+					s.log.Info("deactivating missing room type", "property", saved.ID, "key", key, "name", ert.Name)
+					ert.IsActive = false
+					_, _ = s.roomTypes.Upsert(ctx, ert)
+				}
+			}
+		}
+
+		// Deactivate missing rooms
+		if existingRooms, err := s.rooms.ListByProperty(ctx, saved.ID); err == nil {
+			for _, er := range existingRooms {
+				if er.ExternalID != "" && !activeRoomExtIDs[er.ExternalID] && er.IsActive {
+					s.log.Info("deactivating missing room", "property", saved.ID, "external_id", er.ExternalID, "name", er.Name)
+					er.IsActive = false
+					_, _ = s.rooms.Upsert(ctx, er)
+				}
+			}
 		}
 	}
 
@@ -403,4 +442,17 @@ func (s *PmsService) CancelBooking(ctx context.Context, propertyID, bookingID, r
 		return nil, err
 	}
 	return engine.CancelBooking(ctx, prop.ExternalID, bookingID, reason)
+}
+
+// ListBookings proxies list_bookings to the PMS.
+func (s *PmsService) ListBookings(ctx context.Context, propertyID string, in domain.ListBookingsInput) (*domain.ListBookingsResult, error) {
+	prop, err := s.props.GetByID(ctx, propertyID)
+	if err != nil {
+		return nil, err
+	}
+	engine, _, err := s.engineForConnection(ctx, prop.ConnectionID)
+	if err != nil {
+		return nil, err
+	}
+	return engine.ListBookings(ctx, prop.ExternalID, in)
 }

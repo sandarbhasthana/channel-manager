@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Layout } from "antd";
+import { Layout, theme } from "antd";
 import { AppSidebar } from "./app-sidebar";
 import { AppHeader } from "./app-header";
 
@@ -17,13 +17,14 @@ export function DashboardShell({
   userName?: string;
 }) {
   const [collapsed, setCollapsed] = useState(false);
+  const { token } = theme.useToken();
 
   return (
     <Layout hasSider style={{ minHeight: "100vh" }}>
       <AppSidebar collapsed={collapsed} onCollapse={setCollapsed} />
-      <Layout>
+      <Layout style={{ background: token.colorBgLayout }}>
         <AppHeader userEmail={userEmail} userName={userName} />
-        <Content style={{ background: "#f8fafc", overflowY: "auto" }}>
+        <Content style={{ background: token.colorBgLayout, overflowY: "auto" }}>
           {children}
         </Content>
       </Layout>

@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { Layout, Menu } from "antd";
+import { Layout, Menu, theme, Switch, Flex } from "antd";
 import type { MenuProps } from "antd";
 import {
   AppstoreOutlined,
@@ -11,7 +11,10 @@ import {
   HomeOutlined,
   FolderOutlined,
   TeamOutlined,
+  SunOutlined,
+  MoonOutlined,
 } from "@ant-design/icons";
+import { useTheme } from "../antd-provider";
 
 const { Sider } = Layout;
 
@@ -26,6 +29,7 @@ const menuItems: MenuProps["items"] = [
 ];
 
 function CMLogo({ collapsed }: { collapsed: boolean }) {
+  const { token } = theme.useToken();
   return (
     <div
       style={{
@@ -33,10 +37,13 @@ function CMLogo({ collapsed }: { collapsed: boolean }) {
         alignItems: "center",
         justifyContent: collapsed ? "center" : "flex-start",
         gap: collapsed ? 0 : 12,
-        padding: collapsed ? "20px 0 16px" : "20px 20px 16px",
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
-        marginBottom: 8,
+        padding: "0 20px",
+        height: 64, // Exact height of the header
+        borderBottom: `1px solid ${token.colorBorderSecondary}`,
+        borderRight: `1px solid ${token.colorBorderSecondary}`,
+        boxSizing: "border-box",
         transition: "all 0.2s ease",
+        flexShrink: 0,
       }}
     >
       <svg width="34" height="34" viewBox="0 0 56 56" fill="none" style={{ flexShrink: 0 }}>
@@ -49,7 +56,7 @@ function CMLogo({ collapsed }: { collapsed: boolean }) {
         <text x="28" y="33" textAnchor="middle" fontSize="11" fontWeight="700" fill="white" fontFamily="Inter, sans-serif">CM</text>
       </svg>
       {!collapsed && (
-        <span style={{ color: "white", fontWeight: 600, fontSize: 13, lineHeight: 1.35, whiteSpace: "nowrap" }}>
+        <span style={{ color: token.colorTextBase, fontWeight: 600, fontSize: 13, lineHeight: 1.35, whiteSpace: "nowrap" }}>
           Channel<br />Manager
         </span>
       )}
@@ -65,6 +72,9 @@ interface AppSidebarProps {
 export function AppSidebar({ collapsed, onCollapse }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { token } = theme.useToken();
+  const { mode } = useTheme();
+  const isDark = mode === "dark";
 
   const selectedKey =
     (menuItems as { key: string }[])
@@ -78,18 +88,27 @@ export function AppSidebar({ collapsed, onCollapse }: AppSidebarProps) {
       collapsed={collapsed}
       onCollapse={onCollapse}
       width={230}
-      theme="dark"
-      style={{ height: "100vh", position: "sticky", top: 0 }}
+      style={{ 
+        height: "100vh", 
+        position: "sticky", 
+        top: 0,
+        borderRight: `1px solid ${token.colorBorderSecondary}`,
+      }}
     >
-      <CMLogo collapsed={collapsed} />
-      <Menu
-        theme="dark"
-        mode="inline"
-        selectedKeys={[selectedKey]}
-        items={menuItems}
-        onClick={({ key }) => router.push(key)}
-        style={{ border: "none" }}
-      />
+      <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+        <CMLogo collapsed={collapsed} />
+        
+        <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden", paddingTop: 8 }}>
+          <Menu
+            mode="inline"
+            selectedKeys={[selectedKey]}
+            items={menuItems}
+            onClick={({ key }) => router.push(key)}
+            style={{ border: "none", background: "transparent" }}
+          />
+        </div>
+      </div>
     </Sider>
   );
 }
+

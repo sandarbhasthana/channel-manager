@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 
 const API_BASE = process.env.API_URL ?? "http://localhost:8080";
 
@@ -68,7 +68,8 @@ export async function listConnections(): Promise<Connection[]> {
       {}
     );
     return data.connections ?? [];
-  } catch {
+  } catch (err) {
+    unstable_rethrow(err);
     return [];
   }
 }
@@ -142,7 +143,8 @@ export async function listIntegrationKeys(): Promise<IntegrationKey[]> {
   try {
     const data = await rest<{ keys: IntegrationKey[] }>("/admin/integration-keys", "GET");
     return data.keys || [];
-  } catch {
+  } catch (err) {
+    unstable_rethrow(err);
     return [];
   }
 }
@@ -180,6 +182,7 @@ export async function listProperties(): Promise<Property[]> {
     const data = await rpc<{ properties: Property[] }>("/pms.v1.PmsService/ListProperties", {});
     return data.properties || [];
   } catch (err) {
+    unstable_rethrow(err);
     console.error("Error listing properties:", err);
     return [];
   }
@@ -212,6 +215,7 @@ export async function listRoomTypes(propertyId: string): Promise<RoomType[]> {
     const data = await rpc<{ roomTypes: RoomType[] }>("/pms.v1.PmsService/ListRoomTypes", { property_id: propertyId });
     return data.roomTypes || [];
   } catch (err) {
+    unstable_rethrow(err);
     console.error("Error listing room types:", err);
     return [];
   }
@@ -220,7 +224,49 @@ export async function listRoomTypes(propertyId: string): Promise<RoomType[]> {
 export async function getMe(): Promise<MeResponse | null> {
   try {
     return await rest<MeResponse>("/me", "GET");
-  } catch {
+  } catch (err) {
+    unstable_rethrow(err);
     return null;
+  }
+}
+
+export interface PmsBooking {
+  bookingId: string;
+  booking_id?: string;
+  status: string;
+  guestName: string;
+  guest_name?: string;
+  email: string;
+  phone: string;
+  roomId: string;
+  room_id?: string;
+  roomName: string;
+  room_name?: string;
+  roomType: string;
+  room_type?: string;
+  propertyName: string;
+  property_name?: string;
+  checkin: string;
+  checkout: string;
+  adults: number;
+  children: number;
+  notes: string;
+  paymentStatus: string;
+  payment_status?: string;
+  source: string;
+  message: string;
+}
+
+export async function listBookings(propertyId: string, status?: string): Promise<PmsBooking[]> {
+  try {
+    const data = await rpc<{ bookings: PmsBooking[] }>("/pms.v1.PmsService/ListBookings", {
+      property_id: propertyId,
+      status: status || ""
+    });
+    return data.bookings || [];
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("Error listing bookings:", err);
+    return [];
   }
 }

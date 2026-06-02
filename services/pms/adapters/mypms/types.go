@@ -17,6 +17,7 @@ const (
 	ActionGetBooking           = "get_booking"
 	ActionUpdateBooking        = "update_booking"
 	ActionCancelBooking        = "cancel_booking"
+	ActionListBookings         = "list_bookings"
 )
 
 // OrgHealthResponse is returned by GET /api/webhooks/bookings.
@@ -335,6 +336,22 @@ type CancelBookingResponse struct {
 	BookingID string `json:"booking_id"`
 	Status    string `json:"status"`
 	Message   string `json:"message"`
+}
+
+// ListBookingsRequest is the body for action list_bookings.
+type ListBookingsRequest struct {
+	Action    string `json:"action"`
+	Status    string `json:"status,omitempty"`
+	StartDate string `json:"start_date,omitempty"`
+	EndDate   string `json:"end_date,omitempty"`
+}
+
+// ListBookingsResponse wraps a list of bookings.
+type ListBookingsResponse struct {
+	Data struct {
+		Bookings []Booking `json:"bookings"`
+		Count    int       `json:"count"`
+	} `json:"data"`
 }
 
 // APIError is a structured error returned by the PMS.
