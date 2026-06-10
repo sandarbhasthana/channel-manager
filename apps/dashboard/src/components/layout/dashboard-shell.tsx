@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Layout, theme } from "antd";
 import { AppSidebar } from "./app-sidebar";
 import { AppHeader } from "./app-header";
+import { PropertyProvider } from "../property-provider";
 
 const { Content } = Layout;
 
@@ -20,14 +21,16 @@ export function DashboardShell({
   const { token } = theme.useToken();
 
   return (
-    <Layout hasSider style={{ minHeight: "100vh" }}>
-      <AppSidebar collapsed={collapsed} onCollapse={setCollapsed} />
-      <Layout style={{ background: token.colorBgLayout }}>
-        <AppHeader userEmail={userEmail} userName={userName} />
-        <Content style={{ background: token.colorBgLayout, overflowY: "auto" }}>
-          {children}
-        </Content>
+    <PropertyProvider>
+      <Layout hasSider style={{ minHeight: "100vh" }}>
+        <AppSidebar collapsed={collapsed} onCollapse={setCollapsed} />
+        <Layout style={{ background: token.colorBgLayout }}>
+          <AppHeader userEmail={userEmail} userName={userName} />
+          <Content style={{ background: token.colorBgLayout, overflowY: "auto" }}>
+            {children}
+          </Content>
+        </Layout>
       </Layout>
-    </Layout>
+    </PropertyProvider>
   );
 }

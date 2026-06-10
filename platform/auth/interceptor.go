@@ -7,54 +7,26 @@ import (
 
 	"connectrpc.com/connect"
 	casbin "github.com/casbin/casbin/v3"
-	"github.com/jackc/pgx/v5"
 )
 
 // NewUnaryInterceptor returns a Connect-RPC unary interceptor that:
-//  1. Verifies the Bearer JWT and extracts claims.
-//  2. Resolves the WorkOS org_id to the local UUID.
-//  3. Enforces RBAC via Casbin (sub=userID, dom=orgID, obj=procedure, act=read|write).
-//  4. Attaches a TenantContext to the request context for downstream handlers.
+//  1. Extracts the TenantContext populated by the HTTP middleware.
+//  2. Enforces RBAC via Casbin (sub=userID, dom=orgID, obj=procedure, act=read|write).
 //
 // Unauthenticated procedures should be mounted without this interceptor.
-func NewUnaryInterceptor(v *Verifier, s *Store, e *casbin.Enforcer) connect.UnaryInterceptorFunc {
+func NewUnaryInterceptor(e *casbin.Enforcer) connect.UnaryInterceptorFunc {
 	return connect.UnaryInterceptorFunc(func(next connect.UnaryFunc) connect.UnaryFunc {
 		return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
-			claims, err := v.Verify(ctx, req.Header().Get("Authorization"))
+			tc, err := FromContext(ctx)
 			if err != nil {
-				return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("invalid or missing token"))
-			}
-
-			orgID := claims.OrganizationID
-			if orgID == "" {
-				// Local dev fallback for Password login
-				importOs := false
-				_ = importOs
-				orgID = "org_01KQC7BBQNPDKZ07NJ597EYRTX" // hardcoded fallback for local dev to avoid importing os if not already imported
-			}
-
-			if orgID == "" {
-				return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("organization context required"))
-			}
-
-			localOrgID, err := s.ResolveOrgID(ctx, orgID)
-			if err != nil {
-				if errors.Is(err, pgx.ErrNoRows) {
-					return nil, connect.NewError(connect.CodePermissionDenied, errors.New("organization not registered"))
-				}
-				return nil, connect.NewError(connect.CodeInternal, errors.New("identity resolution failed"))
-			}
-
-			role := claims.Role
-			if orgID == "org_01KQC7BBQNPDKZ07NJ597EYRTX" {
-				role = "admin"
+				return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("unauthenticated request"))
 			}
 
 			// RBAC enforcement: (sub=userID, dom=orgID, obj=procedure, act=read|write).
-			if role != "admin" {
+			if tc.Role != "admin" {
 				procedure := req.Spec().Procedure
 				action := actionFromProcedure(procedure)
-				allowed, err := e.Enforce(claims.Subject(), localOrgID, procedure, action)
+				allowed, err := e.Enforce(tc.UserID, tc.OrgID, procedure, action)
 				if err != nil {
 					return nil, connect.NewError(connect.CodeInternal, errors.New("authorization check failed"))
 				}
@@ -63,11 +35,6 @@ func NewUnaryInterceptor(v *Verifier, s *Store, e *casbin.Enforcer) connect.Unar
 				}
 			}
 
-			ctx = WithTenantContext(ctx, TenantContext{
-				UserID: claims.Subject(),
-				OrgID:  localOrgID,
-				Role:   role,
-			})
 			return next(ctx, req)
 		})
 	})

@@ -97,6 +97,7 @@ service PmsService {
   rpc GetBooking(GetBookingRequest) returns (GetBookingResponse);
   rpc UpdateBooking(UpdateBookingRequest) returns (UpdateBookingResponse);
   rpc CancelBooking(CancelBookingRequest) returns (CancelBookingResponse);
+  rpc DeleteBooking(DeleteBookingRequest) returns (DeleteBookingResponse);
   rpc ListBookings(ListBookingsRequest) returns (ListBookingsResponse);
 }
 
@@ -305,6 +306,16 @@ message CancelBookingResponse {
   string booking_id = 1;
   string status = 2;
   string message = 3;
+}
+
+message DeleteBookingRequest {
+  string property_id = 1;
+  string booking_id = 2;
+}
+
+message DeleteBookingResponse {
+  string booking_id = 1;
+  string status = 2;
 }
 
 message ListBookingsRequest {

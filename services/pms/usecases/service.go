@@ -444,6 +444,19 @@ func (s *PmsService) CancelBooking(ctx context.Context, propertyID, bookingID, r
 	return engine.CancelBooking(ctx, prop.ExternalID, bookingID, reason)
 }
 
+// DeleteBooking proxies delete_booking to the PMS.
+func (s *PmsService) DeleteBooking(ctx context.Context, propertyID, bookingID string) (*domain.DeleteBookingResult, error) {
+	prop, err := s.props.GetByID(ctx, propertyID)
+	if err != nil {
+		return nil, err
+	}
+	engine, _, err := s.engineForConnection(ctx, prop.ConnectionID)
+	if err != nil {
+		return nil, err
+	}
+	return engine.DeleteBooking(ctx, prop.ExternalID, bookingID)
+}
+
 // ListBookings proxies list_bookings to the PMS.
 func (s *PmsService) ListBookings(ctx context.Context, propertyID string, in domain.ListBookingsInput) (*domain.ListBookingsResult, error) {
 	prop, err := s.props.GetByID(ctx, propertyID)

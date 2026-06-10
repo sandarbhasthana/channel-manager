@@ -338,6 +338,24 @@ func (h *Handler) CancelBooking(
 	}), nil
 }
 
+func (h *Handler) DeleteBooking(
+	ctx context.Context,
+	req *connect.Request[pmsv1.DeleteBookingRequest],
+) (*connect.Response[pmsv1.DeleteBookingResponse], error) {
+	r := req.Msg
+	if r.GetPropertyId() == "" || r.GetBookingId() == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("property_id and booking_id are required"))
+	}
+	result, err := h.svc.DeleteBooking(ctx, r.GetPropertyId(), r.GetBookingId())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	return connect.NewResponse(&pmsv1.DeleteBookingResponse{
+		BookingId: result.BookingID,
+		Status:    result.Status,
+	}), nil
+}
+
 func (h *Handler) ListBookings(
 	ctx context.Context,
 	req *connect.Request[pmsv1.ListBookingsRequest],

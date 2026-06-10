@@ -190,7 +190,7 @@ func main() {
 	mux.Handle("POST /api/integrations/pms/{propertyId}", intAuth.Middleware(http.HandlerFunc(intHandler.Dispatch)))
 
 	// ── Connect-RPC interceptor (auth-gated) ──────────────────────────────────
-	interceptor := connect.WithInterceptors(auth.NewUnaryInterceptor(verifier, store, enforcer))
+	interceptor := connect.WithInterceptors(auth.NewUnaryInterceptor(enforcer))
 
 	// ── Protected Connect-RPC mux ─────────────────────────────────────────────
 	rpcMux := http.NewServeMux()
@@ -209,6 +209,7 @@ func main() {
 	// ── HTTP mux — public + protected ────────────────────────────────────────
 	protected := http.NewServeMux()
 	protected.Handle("GET /me", auth.MeHandler(store))
+	protected.Handle("PATCH /me/preferences", auth.UpdatePreferencesHandler(store))
 
 	// Team management routes (admin-only, calls WorkOS directly).
 	protected.Handle("GET /team/members", auth.ListTeamMembersHandler(wos, store))

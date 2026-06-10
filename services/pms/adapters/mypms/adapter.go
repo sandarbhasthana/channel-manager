@@ -308,6 +308,20 @@ func (a *Adapter) CancelBooking(ctx context.Context, externalPropertyID, booking
 	}, nil
 }
 
+func (a *Adapter) DeleteBooking(ctx context.Context, externalPropertyID, bookingID string) (*domain.DeleteBookingResult, error) {
+	resp, err := a.client.DeleteBooking(ctx, externalPropertyID, DeleteBookingRequest{
+		BookingID: bookingID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &domain.DeleteBookingResult{
+		BookingID: resp.BookingID,
+		Status:    resp.Status,
+		Message:   resp.Message,
+	}, nil
+}
+
 func (a *Adapter) ListBookings(ctx context.Context, externalPropertyID string, in domain.ListBookingsInput) (*domain.ListBookingsResult, error) {
 	req := ListBookingsRequest{
 		Status: in.Status,

@@ -25,6 +25,7 @@ type BookingEngineClient interface {
 	ListBookings(ctx context.Context, externalPropertyID string, in domain.ListBookingsInput) (*domain.ListBookingsResult, error)
 	UpdateBooking(ctx context.Context, externalPropertyID string, in domain.UpdateBookingInput) (*domain.PmsBooking, error)
 	CancelBooking(ctx context.Context, externalPropertyID, bookingID, reason string) (*domain.CancelBookingResult, error)
+	DeleteBooking(ctx context.Context, externalPropertyID, bookingID string) (*domain.DeleteBookingResult, error)
 }
 
 // PmsAdapter is the legacy adapter interface retained for other PMS providers.

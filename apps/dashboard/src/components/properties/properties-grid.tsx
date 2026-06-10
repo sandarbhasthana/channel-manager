@@ -17,6 +17,7 @@ import {
   Form,
   Input,
   Select,
+  theme,
 } from "antd";
 import {
   HomeOutlined,
@@ -49,6 +50,7 @@ export function PropertiesGrid({ properties: initialProperties }: Props) {
   
   const [editForm] = Form.useForm();
   const [modal, contextHolder] = Modal.useModal();
+  const { token } = theme.useToken();
 
   // Sync state if initialProperties changes
   useEffect(() => {
@@ -122,7 +124,7 @@ export function PropertiesGrid({ properties: initialProperties }: Props) {
     <>
       {contextHolder}
       {/* ── Page header ── */}
-      <div style={{ background: "#fff", padding: "24px 32px", borderBottom: "1px solid #f0f0f0" }}>
+      <div style={{ background: token.colorBgContainer, padding: "24px 32px", borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
         <Flex align="center" justify="space-between">
           <div>
             <Title level={4} style={{ margin: 0 }}>Properties</Title>

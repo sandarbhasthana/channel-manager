@@ -164,6 +164,17 @@ func (c *Client) CancelBooking(ctx context.Context, propertyID string, req Cance
 	return &out, nil
 }
 
+// DeleteBooking calls POST .../{propertyId} with action delete_booking.
+func (c *Client) DeleteBooking(ctx context.Context, propertyID string, req DeleteBookingRequest) (*DeleteBookingResponse, error) {
+	req.Action = ActionDeleteBooking
+	var out DeleteBookingResponse
+	path := fmt.Sprintf("/api/webhooks/bookings/%s", propertyID)
+	if err := c.do(ctx, http.MethodPost, path, req, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ListBookings calls POST .../{propertyId} with action list_bookings.
 func (c *Client) ListBookings(ctx context.Context, propertyID string, req ListBookingsRequest) (*ListBookingsResponse, error) {
 	req.Action = ActionListBookings

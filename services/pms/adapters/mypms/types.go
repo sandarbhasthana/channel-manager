@@ -17,6 +17,7 @@ const (
 	ActionGetBooking           = "get_booking"
 	ActionUpdateBooking        = "update_booking"
 	ActionCancelBooking        = "cancel_booking"
+	ActionDeleteBooking        = "delete_booking"
 	ActionListBookings         = "list_bookings"
 )
 
@@ -333,6 +334,19 @@ type CancelBookingRequest struct {
 
 // CancelBookingResponse is returned by cancel_booking.
 type CancelBookingResponse struct {
+	BookingID string `json:"booking_id"`
+	Status    string `json:"status"`
+	Message   string `json:"message"`
+}
+
+// DeleteBookingRequest is the body for action delete_booking.
+type DeleteBookingRequest struct {
+	Action    string `json:"action"`
+	BookingID string `json:"booking_id"`
+}
+
+// DeleteBookingResponse is returned by delete_booking.
+type DeleteBookingResponse struct {
 	BookingID string `json:"booking_id"`
 	Status    string `json:"status"`
 	Message   string `json:"message"`

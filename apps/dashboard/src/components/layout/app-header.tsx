@@ -129,12 +129,9 @@ export function AppHeader({
     >
       <Dropdown menu={{ items: userMenuItems, onClick: handleMenuClick }} placement="bottomRight" trigger={["click"]}>
         <Flex align="center" gap={10} style={{ cursor: "pointer", padding: "8px 12px", borderRadius: 8, transition: "background 0.2s" }}>
-          <Flex vertical align="flex-end" style={{ marginRight: 4 }}>
+          <Flex vertical justify="center" align="flex-end" style={{ marginRight: 4 }}>
             <Text strong style={{ fontSize: 13, lineHeight: 1.2 }}>
-              {userName}
-            </Text>
-            <Text type="secondary" style={{ fontSize: 11, lineHeight: 1.2 }}>
-              {userEmail}
+              {userName.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}
             </Text>
           </Flex>
           <div style={{ width: 32, height: 32 }}>

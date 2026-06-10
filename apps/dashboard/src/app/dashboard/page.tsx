@@ -1,109 +1,120 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Typography, Button, Space, Card, Row, Col, Progress, Table, Badge, Flex, Tag, Avatar, Spin, Select } from "antd";
+import { Typography, Button, Space, Card, Row, Col, Progress, Table, Badge, Flex, Tag, Avatar, Spin, Select, App, Dropdown } from "antd";
 import { 
   DownloadOutlined, 
   DashboardOutlined, 
   DollarOutlined, 
   LineChartOutlined, 
   StarOutlined, 
-  RightOutlined 
+  StarFilled,
+  RightOutlined,
+  MoreOutlined
 } from "@ant-design/icons";
 import dynamic from 'next/dynamic';
+import { useRouter } from "next/navigation";
 import { useTheme } from "../../components/antd-provider";
 import { METRICS, REVENUE, CHANNEL_PERF, MOCK_BOOKINGS, CHANNELS } from "../../lib/mock-data";
-import { fetchDashboardData, fetchBookingsForProperty } from "./actions";
-
+import { fetchBookingsForProperty, deleteBookingAction } from "./actions";
+import { usePropertyContext } from "../../components/property-provider";
 // Dynamically import the Area chart because Ant Design Charts uses canvas which isn't SSR compatible
 const Area = dynamic(() => import('@ant-design/plots').then((mod) => mod.Area), { ssr: false });
 
 const { Title, Text } = Typography;
 
 export default function DashboardRoot() {
+  const router = useRouter();
   const [range, setRange] = useState("12M");
   const { mode } = useTheme();
+  const { message } = App.useApp();
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [properties, setProperties] = useState<any[]>([]);
-  const [activeProperty, setActiveProperty] = useState<any>(null);
+  const { properties, activeProperty, setActiveProperty, defaultPropertyId, setDefaultProperty, initialBookings, loading: ctxLoading } = usePropertyContext();
   const isDark = mode === "dark";
 
+  const mapBookings = (data: any[]) => {
+    return data.map((r: any, i: number) => {
+      const bId = r.bookingId || r.booking_id || "";
+      const gName = r.guestName || r.guest_name || "Unknown Guest";
+      const room = r.roomName || r.room_name || r.roomType || r.room_type || "Unknown Room";
+      
+      const formatDate = (d: string) => {
+        if (!d) return "-";
+        const date = new Date(d);
+        if (isNaN(date.getTime())) return d;
+        return date.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
+      };
+
+      return {
+        uid: `${bId}-${i}`,
+        id: bId.substring(0, 8).toUpperCase(),
+        guest: gName,
+        room: room,
+        checkin: formatDate(r.checkin),
+        checkout: formatDate(r.checkout),
+        adults: r.adults || 2,
+        children: r.children || 0,
+        status: (r.status || "CONFIRMED").toUpperCase(),
+        payment: (r.paymentStatus || r.payment_status || "UNPAID").toUpperCase(),
+      };
+    });
+  };
+
   useEffect(() => {
-    const loadDashboard = async () => {
+    if (ctxLoading) return;
+    
+    if (initialBookings && initialBookings.length > 0) {
+      setBookings(mapBookings(initialBookings).slice(0, 8));
+    } else {
+      setBookings(MOCK_BOOKINGS.map((b, i) => ({ 
+        uid: `${b.id}-${i}`,
+        id: b.id,
+        guest: b.guest,
+        room: b.rt,
+        checkin: b.ci,
+        checkout: b.co,
+        adults: 2,
+        children: 0,
+        status: b.status.toUpperCase(),
+        payment: "PAID",
+      })));
+    }
+    setLoading(false);
+  }, [ctxLoading, initialBookings]);
+
+  // When active property changes, refetch bookings (only if not initial load)
+  const [lastPropId, setLastPropId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (ctxLoading || !activeProperty) return;
+    if (!lastPropId) {
+      setLastPropId(activeProperty.id);
+      return; // Skip first mount because initialBookings handles it
+    }
+    if (activeProperty.id === lastPropId) return;
+
+    setLastPropId(activeProperty.id);
+    const loadNewBookings = async () => {
+      setLoading(true);
       try {
-        const data = await fetchDashboardData();
-        if (data.properties.length > 0) {
-          setProperties(data.properties);
-          setActiveProperty(data.properties[0]);
-        }
-        
-        if (data.bookings && data.bookings.length > 0) {
-          // Map the API reservations to the expected format
-          const mapped = data.bookings.map((r: any, i: number) => {
-            return {
-              uid: `${r.bookingId}-${i}`,
-              id: r.bookingId.substring(0, 8).toUpperCase(),
-              guest: r.guestName || "Unknown Guest",
-              rt: r.roomType || r.roomName || "Unknown Room",
-              channel: r.source || "Direct",
-              ci: new Date(r.checkin).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-              co: new Date(r.checkout).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-              nights: Math.ceil((new Date(r.checkout).getTime() - new Date(r.checkin).getTime()) / (1000 * 60 * 60 * 24)),
-              amt: 0, // Since amount is not available in PmsBooking directly, default to 0 for now
-              status: r.status === "CONFIRMED" ? "Confirmed" : (r.status === "IN_HOUSE" ? "Checked-in" : "Pending"),
-            };
-          });
-          setBookings(mapped.slice(0, 8)); // Just show recent 8
-          setLoading(false);
-          return;
+        const newBookings = await fetchBookingsForProperty(activeProperty.id);
+        if (newBookings && newBookings.length > 0) {
+          const mapped = mapBookings(newBookings);
+          setBookings(mapped.slice(0, 8));
+        } else {
+          setBookings([]);
         }
       } catch (err) {
-        console.error("Failed to fetch dashboard data:", err);
-      }
-      
-      // Fallback to mock data with unique uid added
-      setBookings(MOCK_BOOKINGS.map((b, i) => ({ ...b, uid: `${b.id}-${i}` })));
-      setLoading(false);
-    };
-
-    loadDashboard();
-  }, []);
-
-  const handlePropertyChange = async (propertyId: string) => {
-    const prop = properties.find(p => p.id === propertyId);
-    if (prop) setActiveProperty(prop);
-    
-    setLoading(true);
-    try {
-      const newBookings = await fetchBookingsForProperty(propertyId);
-      if (newBookings && newBookings.length > 0) {
-        const mapped = newBookings.map((r: any, i: number) => {
-            return {
-              uid: `${r.bookingId}-${i}`,
-              id: r.bookingId.substring(0, 8).toUpperCase(),
-              guest: r.guestName || "Unknown Guest",
-              rt: r.roomType || r.roomName || "Unknown Room",
-              channel: r.source || "Direct",
-              ci: new Date(r.checkin).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-              co: new Date(r.checkout).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-              nights: Math.ceil((new Date(r.checkout).getTime() - new Date(r.checkin).getTime()) / (1000 * 60 * 60 * 24)),
-              amt: 0,
-              status: r.status === "CONFIRMED" ? "Confirmed" : (r.status === "IN_HOUSE" ? "Checked-in" : "Pending"),
-            };
-          });
-        setBookings(mapped.slice(0, 8));
-      } else {
+        console.error(err);
         setBookings([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error(err);
-      setBookings([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    loadNewBookings();
+  }, [activeProperty, ctxLoading, lastPropId]);
 
   const getIcon = (id: string) => {
     switch (id) {
@@ -115,75 +126,102 @@ export default function DashboardRoot() {
     }
   };
 
+  const handleDelete = async (bookingId: string) => {
+    if (!activeProperty) return;
+    try {
+      const originalBooking = bookings.find(b => b.id === bookingId || b.uid.startsWith(bookingId));
+      const targetId = originalBooking ? originalBooking.uid.substring(0, originalBooking.uid.lastIndexOf('-')) : bookingId;
+      
+      await deleteBookingAction(activeProperty.id, targetId);
+      message.success(`Booking ${targetId} successfully deleted`);
+      
+      setBookings(prev => prev.map(b => 
+        (b.id === bookingId || b.uid.startsWith(bookingId))
+          ? { ...b, status: "CANCELLED" }
+          : b
+      ));
+    } catch (error) {
+      message.error("Failed to delete booking");
+      console.error(error);
+    }
+  };
+
   const columns = [
     {
       title: "GUEST",
       key: "guest",
-      render: (record: any) => (
-        <Flex align="center" gap={12}>
-          <Avatar 
-            style={{ 
-              backgroundColor: isDark ? "#1b2945" : "#e2e8f0", 
-              color: isDark ? "#e8edf7" : "#0f172a",
-              fontWeight: 600,
-              fontSize: 12
-            }}
-          >
-            {record.guest.split(" ").map((n: string) => n[0]).join("").substring(0,2)}
-          </Avatar>
-          <Flex vertical>
-            <Text strong style={{ fontSize: 13.5 }}>{record.guest}</Text>
-            <Text type="secondary" style={{ fontSize: 11.5, fontFamily: "monospace" }}>{record.id}</Text>
-          </Flex>
-        </Flex>
-      )
+      render: (record: any) => <Text style={{ fontSize: 13 }}>{record.guest}</Text>
     },
     {
-      title: "ROOM TYPE",
-      dataIndex: "rt",
-      key: "rt",
-      render: (text: string) => <Text type="secondary" style={{ fontSize: 13.5 }}>{text}</Text>
+      title: "ROOM",
+      dataIndex: "room",
+      key: "room",
+      render: (text: string) => <Text style={{ fontSize: 13 }}>{text}</Text>
     },
     {
-      title: "CHANNEL",
-      key: "channel",
-      render: (record: any) => {
-        const ch = CHANNELS.find(c => c.short === record.channel || c.name === record.channel) || CHANNELS[2];
-        return (
-          <Space size={8}>
-            <div style={{ width: 9, height: 9, borderRadius: 3, background: ch.color }} />
-            <Text strong style={{ fontSize: 13 }}>{ch.short}</Text>
-          </Space>
-        );
-      }
+      title: "CHECK-IN",
+      dataIndex: "checkin",
+      key: "checkin",
+      render: (text: string) => <Text style={{ fontSize: 13 }}>{text}</Text>
     },
     {
-      title: "DATES",
-      key: "dates",
-      render: (record: any) => (
-        <Text type="secondary" style={{ fontSize: 13 }}>
-          {record.ci} → {record.co} · <Text type="secondary" style={{ fontSize: 13, color: isDark ? "#5b6987" : "#94a3b8" }}>{record.nights}n</Text>
-        </Text>
-      )
+      title: "CHECK-OUT",
+      dataIndex: "checkout",
+      key: "checkout",
+      render: (text: string) => <Text style={{ fontSize: 13 }}>{text}</Text>
     },
     {
-      title: "AMOUNT",
-      dataIndex: "amt",
-      key: "amt",
-      align: "right" as const,
-      render: (amt: number) => <Text strong style={{ fontFamily: "monospace", fontSize: 14 }}>${amt?.toLocaleString()}</Text>
+      title: "ADULTS",
+      dataIndex: "adults",
+      key: "adults",
+      align: "center" as const,
+      render: (val: number) => <Text style={{ fontSize: 13 }}>{val}</Text>
+    },
+    {
+      title: "CHILDREN",
+      dataIndex: "children",
+      key: "children",
+      align: "center" as const,
+      render: (val: number) => <Text style={{ fontSize: 13 }}>{val}</Text>
     },
     {
       title: "STATUS",
+      dataIndex: "status",
       key: "status",
-      align: "right" as const,
-      render: (record: any) => {
-        let color = "default";
-        if (record.status === "Confirmed") color = "cyan";
-        else if (record.status === "Checked-in") color = "green";
-        else if (record.status === "Pending") color = "orange";
-        return <Badge color={color} text={<Text style={{ fontSize: 12 }}>{record.status}</Text>} />;
-      }
+      render: (status: string) => <Text style={{ fontSize: 13 }}>{status}</Text>
+    },
+    {
+      title: "PAYMENT",
+      dataIndex: "payment",
+      key: "payment",
+      render: (payment: string) => <Text style={{ fontSize: 13 }}>{payment}</Text>
+    },
+    {
+      title: "ACTIONS",
+      key: "actions",
+      align: "center" as const,
+      render: (text: any, record: any) => (
+        <Dropdown
+          trigger={["click"]}
+          placement="bottomRight"
+          align={{ offset: [0, -8] }}
+          menu={{
+            items: [
+              { key: "report", label: "Generate Report", style: { padding: "0 12px", height: 28, lineHeight: "28px", fontSize: 13 } },
+              { key: "invoice", label: "Generate Invoice", style: { padding: "0 12px", height: 28, lineHeight: "28px", fontSize: 13 } },
+              { 
+                key: "delete", 
+                danger: true,
+                label: "Delete Reservation",
+                style: { padding: "0 12px", height: 28, lineHeight: "28px", fontSize: 13 },
+                onClick: () => handleDelete(record.uid)
+              }
+            ]
+          }}
+        >
+          <Button type="text" size="small" style={{ width: 24, height: 24, padding: 0 }} icon={<MoreOutlined style={{ color: "#8b5cf6", transform: "rotate(90deg)" }} />} />
+        </Dropdown>
+      )
     }
   ];
 
@@ -198,15 +236,34 @@ export default function DashboardRoot() {
           </Text>
         </div>
         <Space size="middle">
-          <Select 
-            value={activeProperty?.id} 
-            onChange={handlePropertyChange}
-            options={properties.map(p => ({ value: p.id, label: p.name }))}
-            style={{ width: 220 }}
-            placeholder="Select a property"
-            loading={properties.length === 0}
-            popupMatchSelectWidth={false}
-          />
+          <Space.Compact>
+            <Select 
+              value={activeProperty?.id} 
+              onChange={(id) => {
+                const prop = properties.find((p: any) => p.id === id);
+                if (prop) setActiveProperty(prop);
+              }}
+              options={properties.map((p: any) => ({ 
+                value: p.id, 
+                label: (
+                  <Flex justify="space-between" align="center">
+                    {p.name}
+                    {defaultPropertyId === p.id && <StarFilled style={{ color: "#faad14", fontSize: 12 }} />}
+                  </Flex>
+                )
+              }))}
+              style={{ width: 220 }}
+              placeholder="Select a property"
+              loading={ctxLoading}
+              popupMatchSelectWidth={false}
+            />
+            <Button 
+              icon={defaultPropertyId === activeProperty?.id ? <StarFilled style={{ color: "#faad14" }} /> : <StarOutlined />}
+              onClick={() => activeProperty && setDefaultProperty(activeProperty.id)}
+              disabled={!activeProperty || defaultPropertyId === activeProperty.id}
+              title={defaultPropertyId === activeProperty?.id ? "Default property" : "Set as default"}
+            />
+          </Space.Compact>
           <Button icon={<DownloadOutlined />} style={{ borderRadius: 10, fontWeight: 600 }}>Export</Button>
           <Space.Compact>
             {["7D", "30D", "12M"].map(r => (
@@ -260,10 +317,10 @@ export default function DashboardRoot() {
       {/* Middle Grid */}
       <Row gutter={[18, 18]} style={{ marginBottom: 18 }}>
         {/* Revenue Chart */}
-        <Col xs={24} lg={14}>
+        <Col xs={24} lg={14} style={{ minWidth: 0 }}>
           <Card 
             variant="outlined" 
-            style={{ borderRadius: 16, height: "100%" }}
+            style={{ borderRadius: 16, height: "100%", overflow: "hidden" }}
             title={
               <Flex justify="space-between" align="center">
                 <div>
@@ -389,7 +446,7 @@ export default function DashboardRoot() {
               <Title level={5} style={{ margin: 0, fontSize: 15 }}>Recent Bookings</Title>
               <Text type="secondary" style={{ fontSize: 12.5, fontWeight: 400 }}>Across all connected channels</Text>
             </div>
-            <Button type="text" size="small" style={{ fontWeight: 600, display: "flex", alignItems: "center" }}>
+            <Button type="text" size="small" style={{ fontWeight: 600, display: "flex", alignItems: "center" }} onClick={() => router.push("/dashboard/bookings")}>
               View all <RightOutlined style={{ fontSize: 12 }} />
             </Button>
           </Flex>
@@ -418,6 +475,14 @@ export default function DashboardRoot() {
         }
         .custom-table .ant-table-tbody > tr > td {
           padding: 13px 16px;
+        }
+        .custom-table .ant-table-thead > tr > th:first-child,
+        .custom-table .ant-table-tbody > tr > td:first-child {
+          padding-left: 24px !important;
+        }
+        .custom-table .ant-table-thead > tr > th:last-child,
+        .custom-table .ant-table-tbody > tr > td:last-child {
+          padding-right: 24px !important;
         }
       `}} />
     </div>

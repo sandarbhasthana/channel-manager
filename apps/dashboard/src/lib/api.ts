@@ -163,6 +163,11 @@ export interface MeResponse {
   role: string;
   email: string;
   full_name: string;
+  preferences: Record<string, any>;
+}
+
+export async function updatePreferences(preferences: Record<string, any>): Promise<void> {
+  await rest("/me/preferences", "PATCH", { preferences });
 }
 
 export interface Property {
@@ -268,5 +273,19 @@ export async function listBookings(propertyId: string, status?: string): Promise
     unstable_rethrow(err);
     console.error("Error listing bookings:", err);
     return [];
+  }
+}
+
+export async function deleteBooking(propertyId: string, bookingId: string): Promise<boolean> {
+  try {
+    await rpc("/pms.v1.PmsService/DeleteBooking", {
+      property_id: propertyId,
+      booking_id: bookingId
+    });
+    return true;
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("Error deleting booking:", err);
+    throw err;
   }
 }

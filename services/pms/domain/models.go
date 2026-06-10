@@ -219,6 +219,13 @@ type CancelBookingResult struct {
 	Message   string
 }
 
+// DeleteBookingResult is returned by delete_booking.
+type DeleteBookingResult struct {
+	BookingID string
+	Status    string
+	Message   string
+}
+
 // InventorySnapshot represents a point-in-time inventory record from a PMS.
 type InventorySnapshot struct {
 	ExternalRoomTypeID string

@@ -160,17 +160,107 @@ func MeHandler(store *Store) http.HandlerFunc {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
-		
+		tx, err := store.pool.Begin(r.Context())
+		if err != nil {
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+		defer tx.Rollback(r.Context())
+
+		if _, err := tx.Exec(r.Context(), "SELECT set_config('app.current_org_id', $1, true)", tc.OrgID); err != nil {
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+
 		var email, fullName string
-		_ = store.pool.QueryRow(r.Context(), "SELECT email, full_name FROM tenancy.users WHERE id = $1", tc.UserID).Scan(&email, &fullName)
+		var preferences []byte
+		err = tx.QueryRow(r.Context(), `
+			SELECT u.email, u.full_name, m.preferences
+			FROM tenancy.users u
+			LEFT JOIN tenancy.memberships m ON u.id = m.user_id AND m.org_id = $2
+			WHERE u.id = $1
+		`, tc.UserID, tc.OrgID).Scan(&email, &fullName, &preferences)
+
+		_ = tx.Commit(r.Context())
+
+		if err != nil {
+			http.Error(w, "user not found", http.StatusInternalServerError)
+			return
+		}
+
+		var prefs map[string]interface{}
+		if len(preferences) > 0 {
+			_ = json.Unmarshal(preferences, &prefs)
+		} else {
+			prefs = make(map[string]interface{})
+		}
 
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(map[string]string{
-			"user_id":   tc.UserID,
-			"org_id":    tc.OrgID,
-			"role":      tc.Role,
-			"email":     email,
-			"full_name": fullName,
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"user_id":     tc.UserID,
+			"org_id":      tc.OrgID,
+			"role":        tc.Role,
+			"email":       email,
+			"full_name":   fullName,
+			"preferences": prefs,
 		})
+	}
+}
+
+// UpdatePreferencesHandler updates the user's preferences in tenancy.memberships.
+func UpdatePreferencesHandler(store *Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tc, err := FromContext(r.Context())
+		if err != nil {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		var req struct {
+			Preferences map[string]interface{} `json:"preferences"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, "invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		prefsBytes, err := json.Marshal(req.Preferences)
+		if err != nil {
+			http.Error(w, "invalid preferences", http.StatusBadRequest)
+			return
+		}
+
+		tx, err := store.pool.Begin(r.Context())
+		if err != nil {
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+		defer tx.Rollback(r.Context())
+
+		if _, err := tx.Exec(r.Context(), "SELECT set_config('app.current_org_id', $1, true)", tc.OrgID); err != nil {
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+
+		_, err = tx.Exec(r.Context(), `
+			INSERT INTO tenancy.memberships (org_id, user_id, preferences)
+			VALUES ($3, $2, $1)
+			ON CONFLICT (org_id, user_id)
+			DO UPDATE SET preferences = $1, updated_at = now()
+		`, prefsBytes, tc.UserID, tc.OrgID)
+
+		if err != nil {
+			slog.Error("failed to update preferences", "err", err)
+			http.Error(w, "failed to update preferences: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if err := tx.Commit(r.Context()); err != nil {
+			http.Error(w, "failed to commit", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 	}
 }

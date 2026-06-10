@@ -2573,6 +2573,110 @@ func (x *CancelBookingResponse) GetMessage() string {
 	return ""
 }
 
+type DeleteBookingRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PropertyId    string                 `protobuf:"bytes,1,opt,name=property_id,json=propertyId,proto3" json:"property_id,omitempty"`
+	BookingId     string                 `protobuf:"bytes,2,opt,name=booking_id,json=bookingId,proto3" json:"booking_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteBookingRequest) Reset() {
+	*x = DeleteBookingRequest{}
+	mi := &file_pms_v1_pms_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteBookingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteBookingRequest) ProtoMessage() {}
+
+func (x *DeleteBookingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteBookingRequest.ProtoReflect.Descriptor instead.
+func (*DeleteBookingRequest) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *DeleteBookingRequest) GetPropertyId() string {
+	if x != nil {
+		return x.PropertyId
+	}
+	return ""
+}
+
+func (x *DeleteBookingRequest) GetBookingId() string {
+	if x != nil {
+		return x.BookingId
+	}
+	return ""
+}
+
+type DeleteBookingResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BookingId     string                 `protobuf:"bytes,1,opt,name=booking_id,json=bookingId,proto3" json:"booking_id,omitempty"`
+	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteBookingResponse) Reset() {
+	*x = DeleteBookingResponse{}
+	mi := &file_pms_v1_pms_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteBookingResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteBookingResponse) ProtoMessage() {}
+
+func (x *DeleteBookingResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pms_v1_pms_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteBookingResponse.ProtoReflect.Descriptor instead.
+func (*DeleteBookingResponse) Descriptor() ([]byte, []int) {
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *DeleteBookingResponse) GetBookingId() string {
+	if x != nil {
+		return x.BookingId
+	}
+	return ""
+}
+
+func (x *DeleteBookingResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
 type ListBookingsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PropertyId    string                 `protobuf:"bytes,1,opt,name=property_id,json=propertyId,proto3" json:"property_id,omitempty"`
@@ -2585,7 +2689,7 @@ type ListBookingsRequest struct {
 
 func (x *ListBookingsRequest) Reset() {
 	*x = ListBookingsRequest{}
-	mi := &file_pms_v1_pms_proto_msgTypes[35]
+	mi := &file_pms_v1_pms_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2597,7 +2701,7 @@ func (x *ListBookingsRequest) String() string {
 func (*ListBookingsRequest) ProtoMessage() {}
 
 func (x *ListBookingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pms_v1_pms_proto_msgTypes[35]
+	mi := &file_pms_v1_pms_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2610,7 +2714,7 @@ func (x *ListBookingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBookingsRequest.ProtoReflect.Descriptor instead.
 func (*ListBookingsRequest) Descriptor() ([]byte, []int) {
-	return file_pms_v1_pms_proto_rawDescGZIP(), []int{35}
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *ListBookingsRequest) GetPropertyId() string {
@@ -2651,7 +2755,7 @@ type ListBookingsResponse struct {
 
 func (x *ListBookingsResponse) Reset() {
 	*x = ListBookingsResponse{}
-	mi := &file_pms_v1_pms_proto_msgTypes[36]
+	mi := &file_pms_v1_pms_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2663,7 +2767,7 @@ func (x *ListBookingsResponse) String() string {
 func (*ListBookingsResponse) ProtoMessage() {}
 
 func (x *ListBookingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pms_v1_pms_proto_msgTypes[36]
+	mi := &file_pms_v1_pms_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2676,7 +2780,7 @@ func (x *ListBookingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBookingsResponse.ProtoReflect.Descriptor instead.
 func (*ListBookingsResponse) Descriptor() ([]byte, []int) {
-	return file_pms_v1_pms_proto_rawDescGZIP(), []int{36}
+	return file_pms_v1_pms_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ListBookingsResponse) GetBookings() []*PmsBooking {
@@ -2927,7 +3031,16 @@ const file_pms_v1_pms_proto_rawDesc = "" +
 	"\n" +
 	"booking_id\x18\x01 \x01(\tR\tbookingId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\"\xba\x01\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\"V\n" +
+	"\x14DeleteBookingRequest\x12\x1f\n" +
+	"\vproperty_id\x18\x01 \x01(\tR\n" +
+	"propertyId\x12\x1d\n" +
+	"\n" +
+	"booking_id\x18\x02 \x01(\tR\tbookingId\"N\n" +
+	"\x15DeleteBookingResponse\x12\x1d\n" +
+	"\n" +
+	"booking_id\x18\x01 \x01(\tR\tbookingId\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\"\xba\x01\n" +
 	"\x13ListBookingsRequest\x12\x1f\n" +
 	"\vproperty_id\x18\x01 \x01(\tR\n" +
 	"propertyId\x12\x16\n" +
@@ -2950,7 +3063,8 @@ const file_pms_v1_pms_proto_rawDesc = "" +
 	"\x11PMS_STATUS_ACTIVE\x10\x01\x12\x15\n" +
 	"\x11PMS_STATUS_PAUSED\x10\x02\x12\x1b\n" +
 	"\x17PMS_STATUS_DISCONNECTED\x10\x03\x12\x14\n" +
-	"\x10PMS_STATUS_ERROR\x10\x042\xcb\t\n" +
+	"\x10PMS_STATUS_ERROR\x10\x042\x99\n" +
+	"\n" +
 	"\n" +
 	"PmsService\x12R\n" +
 	"\x0fListConnections\x12\x1e.pms.v1.ListConnectionsRequest\x1a\x1f.pms.v1.ListConnectionsResponse\x12C\n" +
@@ -2969,7 +3083,8 @@ const file_pms_v1_pms_proto_rawDesc = "" +
 	"\n" +
 	"GetBooking\x12\x19.pms.v1.GetBookingRequest\x1a\x1a.pms.v1.GetBookingResponse\x12L\n" +
 	"\rUpdateBooking\x12\x1c.pms.v1.UpdateBookingRequest\x1a\x1d.pms.v1.UpdateBookingResponse\x12L\n" +
-	"\rCancelBooking\x12\x1c.pms.v1.CancelBookingRequest\x1a\x1d.pms.v1.CancelBookingResponse\x12I\n" +
+	"\rCancelBooking\x12\x1c.pms.v1.CancelBookingRequest\x1a\x1d.pms.v1.CancelBookingResponse\x12L\n" +
+	"\rDeleteBooking\x12\x1c.pms.v1.DeleteBookingRequest\x1a\x1d.pms.v1.DeleteBookingResponse\x12I\n" +
 	"\fListBookings\x12\x1b.pms.v1.ListBookingsRequest\x1a\x1c.pms.v1.ListBookingsResponseB@Z>github.com/channel-manager/channel-manager/gen/go/pms/v1;pmsv1b\x06proto3"
 
 var (
@@ -2985,7 +3100,7 @@ func file_pms_v1_pms_proto_rawDescGZIP() []byte {
 }
 
 var file_pms_v1_pms_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_pms_v1_pms_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
+var file_pms_v1_pms_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
 var file_pms_v1_pms_proto_goTypes = []any{
 	(PmsKind)(0),                       // 0: pms.v1.PmsKind
 	(PmsStatus)(0),                     // 1: pms.v1.PmsStatus
@@ -3024,61 +3139,63 @@ var file_pms_v1_pms_proto_goTypes = []any{
 	(*UpdateBookingResponse)(nil),      // 34: pms.v1.UpdateBookingResponse
 	(*CancelBookingRequest)(nil),       // 35: pms.v1.CancelBookingRequest
 	(*CancelBookingResponse)(nil),      // 36: pms.v1.CancelBookingResponse
-	(*ListBookingsRequest)(nil),        // 37: pms.v1.ListBookingsRequest
-	(*ListBookingsResponse)(nil),       // 38: pms.v1.ListBookingsResponse
-	nil,                                // 39: pms.v1.ConnectPmsRequest.CredentialsEntry
-	(*timestamppb.Timestamp)(nil),      // 40: google.protobuf.Timestamp
-	(*v1.PageRequest)(nil),             // 41: common.v1.PageRequest
-	(*v1.PageResponse)(nil),            // 42: common.v1.PageResponse
-	(*v1.IdempotencyKey)(nil),          // 43: common.v1.IdempotencyKey
-	(*v1.AuditMetadata)(nil),           // 44: common.v1.AuditMetadata
-	(*v1.CalendarDate)(nil),            // 45: common.v1.CalendarDate
+	(*DeleteBookingRequest)(nil),       // 37: pms.v1.DeleteBookingRequest
+	(*DeleteBookingResponse)(nil),      // 38: pms.v1.DeleteBookingResponse
+	(*ListBookingsRequest)(nil),        // 39: pms.v1.ListBookingsRequest
+	(*ListBookingsResponse)(nil),       // 40: pms.v1.ListBookingsResponse
+	nil,                                // 41: pms.v1.ConnectPmsRequest.CredentialsEntry
+	(*timestamppb.Timestamp)(nil),      // 42: google.protobuf.Timestamp
+	(*v1.PageRequest)(nil),             // 43: common.v1.PageRequest
+	(*v1.PageResponse)(nil),            // 44: common.v1.PageResponse
+	(*v1.IdempotencyKey)(nil),          // 45: common.v1.IdempotencyKey
+	(*v1.AuditMetadata)(nil),           // 46: common.v1.AuditMetadata
+	(*v1.CalendarDate)(nil),            // 47: common.v1.CalendarDate
 }
 var file_pms_v1_pms_proto_depIdxs = []int32{
 	0,  // 0: pms.v1.PmsConnection.kind:type_name -> pms.v1.PmsKind
 	1,  // 1: pms.v1.PmsConnection.status:type_name -> pms.v1.PmsStatus
-	40, // 2: pms.v1.PmsConnection.last_sync_at:type_name -> google.protobuf.Timestamp
-	40, // 3: pms.v1.PmsConnection.created_at:type_name -> google.protobuf.Timestamp
-	40, // 4: pms.v1.PmsConnection.updated_at:type_name -> google.protobuf.Timestamp
-	40, // 5: pms.v1.Property.created_at:type_name -> google.protobuf.Timestamp
-	40, // 6: pms.v1.Property.updated_at:type_name -> google.protobuf.Timestamp
-	40, // 7: pms.v1.Room.created_at:type_name -> google.protobuf.Timestamp
-	40, // 8: pms.v1.Room.updated_at:type_name -> google.protobuf.Timestamp
+	42, // 2: pms.v1.PmsConnection.last_sync_at:type_name -> google.protobuf.Timestamp
+	42, // 3: pms.v1.PmsConnection.created_at:type_name -> google.protobuf.Timestamp
+	42, // 4: pms.v1.PmsConnection.updated_at:type_name -> google.protobuf.Timestamp
+	42, // 5: pms.v1.Property.created_at:type_name -> google.protobuf.Timestamp
+	42, // 6: pms.v1.Property.updated_at:type_name -> google.protobuf.Timestamp
+	42, // 7: pms.v1.Room.created_at:type_name -> google.protobuf.Timestamp
+	42, // 8: pms.v1.Room.updated_at:type_name -> google.protobuf.Timestamp
 	4,  // 9: pms.v1.RoomType.rooms:type_name -> pms.v1.Room
-	40, // 10: pms.v1.RoomType.created_at:type_name -> google.protobuf.Timestamp
-	40, // 11: pms.v1.RoomType.updated_at:type_name -> google.protobuf.Timestamp
-	41, // 12: pms.v1.ListConnectionsRequest.page:type_name -> common.v1.PageRequest
+	42, // 10: pms.v1.RoomType.created_at:type_name -> google.protobuf.Timestamp
+	42, // 11: pms.v1.RoomType.updated_at:type_name -> google.protobuf.Timestamp
+	43, // 12: pms.v1.ListConnectionsRequest.page:type_name -> common.v1.PageRequest
 	2,  // 13: pms.v1.ListConnectionsResponse.connections:type_name -> pms.v1.PmsConnection
-	42, // 14: pms.v1.ListConnectionsResponse.page:type_name -> common.v1.PageResponse
+	44, // 14: pms.v1.ListConnectionsResponse.page:type_name -> common.v1.PageResponse
 	0,  // 15: pms.v1.ConnectPmsRequest.kind:type_name -> pms.v1.PmsKind
-	39, // 16: pms.v1.ConnectPmsRequest.credentials:type_name -> pms.v1.ConnectPmsRequest.CredentialsEntry
-	43, // 17: pms.v1.ConnectPmsRequest.idempotency_key:type_name -> common.v1.IdempotencyKey
-	44, // 18: pms.v1.ConnectPmsRequest.audit:type_name -> common.v1.AuditMetadata
+	41, // 16: pms.v1.ConnectPmsRequest.credentials:type_name -> pms.v1.ConnectPmsRequest.CredentialsEntry
+	45, // 17: pms.v1.ConnectPmsRequest.idempotency_key:type_name -> common.v1.IdempotencyKey
+	46, // 18: pms.v1.ConnectPmsRequest.audit:type_name -> common.v1.AuditMetadata
 	2,  // 19: pms.v1.ConnectPmsResponse.connection:type_name -> pms.v1.PmsConnection
-	44, // 20: pms.v1.DisconnectPmsRequest.audit:type_name -> common.v1.AuditMetadata
+	46, // 20: pms.v1.DisconnectPmsRequest.audit:type_name -> common.v1.AuditMetadata
 	2,  // 21: pms.v1.DisconnectPmsResponse.connection:type_name -> pms.v1.PmsConnection
-	41, // 22: pms.v1.ListPropertiesRequest.page:type_name -> common.v1.PageRequest
+	43, // 22: pms.v1.ListPropertiesRequest.page:type_name -> common.v1.PageRequest
 	3,  // 23: pms.v1.ListPropertiesResponse.properties:type_name -> pms.v1.Property
-	42, // 24: pms.v1.ListPropertiesResponse.page:type_name -> common.v1.PageResponse
+	44, // 24: pms.v1.ListPropertiesResponse.page:type_name -> common.v1.PageResponse
 	3,  // 25: pms.v1.GetPropertyResponse.property:type_name -> pms.v1.Property
 	5,  // 26: pms.v1.GetPropertyResponse.room_types:type_name -> pms.v1.RoomType
-	41, // 27: pms.v1.ListRoomTypesRequest.page:type_name -> common.v1.PageRequest
+	43, // 27: pms.v1.ListRoomTypesRequest.page:type_name -> common.v1.PageRequest
 	5,  // 28: pms.v1.ListRoomTypesResponse.room_types:type_name -> pms.v1.RoomType
-	42, // 29: pms.v1.ListRoomTypesResponse.page:type_name -> common.v1.PageResponse
-	45, // 30: pms.v1.IngestAvailabilityRequest.checkin:type_name -> common.v1.CalendarDate
-	45, // 31: pms.v1.IngestAvailabilityRequest.checkout:type_name -> common.v1.CalendarDate
+	44, // 29: pms.v1.ListRoomTypesResponse.page:type_name -> common.v1.PageResponse
+	47, // 30: pms.v1.IngestAvailabilityRequest.checkin:type_name -> common.v1.CalendarDate
+	47, // 31: pms.v1.IngestAvailabilityRequest.checkout:type_name -> common.v1.CalendarDate
 	3,  // 32: pms.v1.PropertyHealthResponse.property:type_name -> pms.v1.Property
-	45, // 33: pms.v1.GetQuoteRequest.checkin:type_name -> common.v1.CalendarDate
-	45, // 34: pms.v1.GetQuoteRequest.checkout:type_name -> common.v1.CalendarDate
-	45, // 35: pms.v1.CreateBookingRequest.checkin:type_name -> common.v1.CalendarDate
-	45, // 36: pms.v1.CreateBookingRequest.checkout:type_name -> common.v1.CalendarDate
+	47, // 33: pms.v1.GetQuoteRequest.checkin:type_name -> common.v1.CalendarDate
+	47, // 34: pms.v1.GetQuoteRequest.checkout:type_name -> common.v1.CalendarDate
+	47, // 35: pms.v1.CreateBookingRequest.checkin:type_name -> common.v1.CalendarDate
+	47, // 36: pms.v1.CreateBookingRequest.checkout:type_name -> common.v1.CalendarDate
 	29, // 37: pms.v1.CreateBookingResponse.booking:type_name -> pms.v1.PmsBooking
 	29, // 38: pms.v1.GetBookingResponse.booking:type_name -> pms.v1.PmsBooking
-	45, // 39: pms.v1.UpdateBookingRequest.checkin:type_name -> common.v1.CalendarDate
-	45, // 40: pms.v1.UpdateBookingRequest.checkout:type_name -> common.v1.CalendarDate
+	47, // 39: pms.v1.UpdateBookingRequest.checkin:type_name -> common.v1.CalendarDate
+	47, // 40: pms.v1.UpdateBookingRequest.checkout:type_name -> common.v1.CalendarDate
 	29, // 41: pms.v1.UpdateBookingResponse.booking:type_name -> pms.v1.PmsBooking
-	45, // 42: pms.v1.ListBookingsRequest.start_date:type_name -> common.v1.CalendarDate
-	45, // 43: pms.v1.ListBookingsRequest.end_date:type_name -> common.v1.CalendarDate
+	47, // 42: pms.v1.ListBookingsRequest.start_date:type_name -> common.v1.CalendarDate
+	47, // 43: pms.v1.ListBookingsRequest.end_date:type_name -> common.v1.CalendarDate
 	29, // 44: pms.v1.ListBookingsResponse.bookings:type_name -> pms.v1.PmsBooking
 	6,  // 45: pms.v1.PmsService.ListConnections:input_type -> pms.v1.ListConnectionsRequest
 	8,  // 46: pms.v1.PmsService.ConnectPms:input_type -> pms.v1.ConnectPmsRequest
@@ -3095,25 +3212,27 @@ var file_pms_v1_pms_proto_depIdxs = []int32{
 	31, // 57: pms.v1.PmsService.GetBooking:input_type -> pms.v1.GetBookingRequest
 	33, // 58: pms.v1.PmsService.UpdateBooking:input_type -> pms.v1.UpdateBookingRequest
 	35, // 59: pms.v1.PmsService.CancelBooking:input_type -> pms.v1.CancelBookingRequest
-	37, // 60: pms.v1.PmsService.ListBookings:input_type -> pms.v1.ListBookingsRequest
-	7,  // 61: pms.v1.PmsService.ListConnections:output_type -> pms.v1.ListConnectionsResponse
-	9,  // 62: pms.v1.PmsService.ConnectPms:output_type -> pms.v1.ConnectPmsResponse
-	11, // 63: pms.v1.PmsService.DisconnectPms:output_type -> pms.v1.DisconnectPmsResponse
-	13, // 64: pms.v1.PmsService.ListProperties:output_type -> pms.v1.ListPropertiesResponse
-	15, // 65: pms.v1.PmsService.GetProperty:output_type -> pms.v1.GetPropertyResponse
-	17, // 66: pms.v1.PmsService.ListRoomTypes:output_type -> pms.v1.ListRoomTypesResponse
-	19, // 67: pms.v1.PmsService.SyncCatalog:output_type -> pms.v1.SyncCatalogResponse
-	21, // 68: pms.v1.PmsService.IngestAvailability:output_type -> pms.v1.IngestAvailabilityResponse
-	23, // 69: pms.v1.PmsService.OrgHealth:output_type -> pms.v1.OrgHealthResponse
-	25, // 70: pms.v1.PmsService.PropertyHealth:output_type -> pms.v1.PropertyHealthResponse
-	27, // 71: pms.v1.PmsService.GetQuote:output_type -> pms.v1.GetQuoteResponse
-	30, // 72: pms.v1.PmsService.CreateBooking:output_type -> pms.v1.CreateBookingResponse
-	32, // 73: pms.v1.PmsService.GetBooking:output_type -> pms.v1.GetBookingResponse
-	34, // 74: pms.v1.PmsService.UpdateBooking:output_type -> pms.v1.UpdateBookingResponse
-	36, // 75: pms.v1.PmsService.CancelBooking:output_type -> pms.v1.CancelBookingResponse
-	38, // 76: pms.v1.PmsService.ListBookings:output_type -> pms.v1.ListBookingsResponse
-	61, // [61:77] is the sub-list for method output_type
-	45, // [45:61] is the sub-list for method input_type
+	37, // 60: pms.v1.PmsService.DeleteBooking:input_type -> pms.v1.DeleteBookingRequest
+	39, // 61: pms.v1.PmsService.ListBookings:input_type -> pms.v1.ListBookingsRequest
+	7,  // 62: pms.v1.PmsService.ListConnections:output_type -> pms.v1.ListConnectionsResponse
+	9,  // 63: pms.v1.PmsService.ConnectPms:output_type -> pms.v1.ConnectPmsResponse
+	11, // 64: pms.v1.PmsService.DisconnectPms:output_type -> pms.v1.DisconnectPmsResponse
+	13, // 65: pms.v1.PmsService.ListProperties:output_type -> pms.v1.ListPropertiesResponse
+	15, // 66: pms.v1.PmsService.GetProperty:output_type -> pms.v1.GetPropertyResponse
+	17, // 67: pms.v1.PmsService.ListRoomTypes:output_type -> pms.v1.ListRoomTypesResponse
+	19, // 68: pms.v1.PmsService.SyncCatalog:output_type -> pms.v1.SyncCatalogResponse
+	21, // 69: pms.v1.PmsService.IngestAvailability:output_type -> pms.v1.IngestAvailabilityResponse
+	23, // 70: pms.v1.PmsService.OrgHealth:output_type -> pms.v1.OrgHealthResponse
+	25, // 71: pms.v1.PmsService.PropertyHealth:output_type -> pms.v1.PropertyHealthResponse
+	27, // 72: pms.v1.PmsService.GetQuote:output_type -> pms.v1.GetQuoteResponse
+	30, // 73: pms.v1.PmsService.CreateBooking:output_type -> pms.v1.CreateBookingResponse
+	32, // 74: pms.v1.PmsService.GetBooking:output_type -> pms.v1.GetBookingResponse
+	34, // 75: pms.v1.PmsService.UpdateBooking:output_type -> pms.v1.UpdateBookingResponse
+	36, // 76: pms.v1.PmsService.CancelBooking:output_type -> pms.v1.CancelBookingResponse
+	38, // 77: pms.v1.PmsService.DeleteBooking:output_type -> pms.v1.DeleteBookingResponse
+	40, // 78: pms.v1.PmsService.ListBookings:output_type -> pms.v1.ListBookingsResponse
+	62, // [62:79] is the sub-list for method output_type
+	45, // [45:62] is the sub-list for method input_type
 	45, // [45:45] is the sub-list for extension type_name
 	45, // [45:45] is the sub-list for extension extendee
 	0,  // [0:45] is the sub-list for field type_name
@@ -3131,7 +3250,7 @@ func file_pms_v1_pms_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pms_v1_pms_proto_rawDesc), len(file_pms_v1_pms_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   38,
+			NumMessages:   40,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

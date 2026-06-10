@@ -1,166 +1,134 @@
-import type { Metadata } from "next";
+"use client";
+
+import React, { useRef } from "react";
+import Lottie from "lottie-react";
 import LoginForm from "@/components/auth/login-form";
-
-export const metadata: Metadata = {
-  title: "Sign In — Channel Manager",
-};
-
-function SecurityIllustration() {
-  return (
-    <svg
-      viewBox="0 0 520 400"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-full max-w-lg"
-      aria-hidden="true"
-    >
-      {/* ── Floor line ── */}
-      <line x1="60" y1="330" x2="460" y2="330" stroke="#CBD5E1" strokeWidth="2" />
-      <line x1="90" y1="332" x2="400" y2="332" stroke="#3B82F6" strokeWidth="3" strokeLinecap="round" />
-
-      {/* ── Desk ── */}
-      <rect x="100" y="272" width="320" height="12" rx="4" fill="#94A3B8" />
-      <rect x="115" y="284" width="10" height="46" rx="3" fill="#78909C" />
-      <rect x="395" y="284" width="10" height="46" rx="3" fill="#78909C" />
-
-      {/* ── Laptop base ── */}
-      <rect x="170" y="258" width="180" height="16" rx="5" fill="#64748B" />
-
-      {/* ── Laptop screen ── */}
-      <path d="M176 258 L162 178 L358 178 L344 258 Z" fill="#1E293B" />
-      <rect x="168" y="182" width="184" height="72" rx="3" fill="#0F172A" />
-      {/* screen glow */}
-      <rect x="174" y="188" width="100" height="7" rx="3" fill="#60A5FA" opacity="0.5" />
-      <rect x="174" y="201" width="72" height="7" rx="3" fill="#60A5FA" opacity="0.3" />
-      <rect x="174" y="214" width="84" height="7" rx="3" fill="#60A5FA" opacity="0.3" />
-      {/* laptop logo dot */}
-      <circle cx="260" cy="268" r="7" fill="#475569" />
-
-      {/* ── Chair ── */}
-      <rect x="210" y="270" width="100" height="10" rx="5" fill="#475569" />
-      <rect x="248" y="280" width="24" height="48" rx="5" fill="#475569" />
-      <rect x="226" y="320" width="68" height="10" rx="5" fill="#475569" />
-
-      {/* ── Person — body (orange sweater) ── */}
-      <rect x="228" y="216" width="64" height="58" rx="14" fill="#F59E0B" />
-
-      {/* ── Person — head ── */}
-      <circle cx="260" cy="204" r="24" fill="#FDE68A" />
-      {/* hair */}
-      <path d="M236 198 Q260 176 284 198" fill="#1E293B" />
-      {/* face details */}
-      <circle cx="253" cy="207" r="2.5" fill="#92400E" />
-      <circle cx="267" cy="207" r="2.5" fill="#92400E" />
-      <path d="M252 216 Q260 221 268 216" stroke="#92400E" strokeWidth="2" strokeLinecap="round" fill="none" />
-
-      {/* ── Person — arms ── */}
-      <path d="M228 232 Q200 248 192 262" stroke="#F59E0B" strokeWidth="16" strokeLinecap="round" />
-      <path d="M292 232 Q316 248 328 262" stroke="#F59E0B" strokeWidth="16" strokeLinecap="round" />
-      {/* hands */}
-      <ellipse cx="191" cy="264" rx="12" ry="9" fill="#FDE68A" />
-      <ellipse cx="329" cy="264" rx="12" ry="9" fill="#FDE68A" />
-
-      {/* ── Person — legs (dark blue trousers) ── */}
-      <path d="M242 274 L234 330" stroke="#1E3A8A" strokeWidth="20" strokeLinecap="round" />
-      <path d="M278 274 L286 330" stroke="#1E3A8A" strokeWidth="20" strokeLinecap="round" />
-      {/* shoes */}
-      <ellipse cx="230" cy="330" rx="18" ry="8" fill="#0F172A" />
-      <ellipse cx="290" cy="330" rx="18" ry="8" fill="#0F172A" />
-
-      {/* ── Plant (left) ── */}
-      {/* pot */}
-      <path d="M68 290 L52 330 L88 330 Z" fill="#78909C" />
-      <rect x="56" y="284" width="28" height="10" rx="3" fill="#64748B" />
-      {/* leaves */}
-      <ellipse cx="70" cy="260" rx="20" ry="28" fill="#16A34A" />
-      <ellipse cx="52" cy="272" rx="16" ry="22" fill="#15803D" />
-      <ellipse cx="88" cy="269" rx="16" ry="22" fill="#166534" />
-
-      {/* ── Floating: green checkmark badge ── */}
-      <rect x="66" y="118" width="50" height="50" rx="10" fill="#DCFCE7" />
-      <rect x="70" y="122" width="42" height="42" rx="8" fill="#22C55E" opacity="0.7" />
-      <path d="M80 142 L89 151 L110 130" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-
-      {/* ── Floating: padlock ── */}
-      <rect x="188" y="88" width="68" height="62" rx="10" fill="#E2E8F0" />
-      <rect x="196" y="108" width="52" height="42" rx="7" fill="#64748B" />
-      <path d="M206 108 Q222 74 238 108" stroke="#CBD5E1" strokeWidth="9" fill="none" strokeLinecap="round" />
-      <circle cx="222" cy="126" r="7" fill="#CBD5E1" />
-      <rect x="219" y="129" width="6" height="10" rx="3" fill="#CBD5E1" />
-
-      {/* ── Floating: key ── */}
-      <circle cx="340" cy="118" r="18" stroke="#F59E0B" strokeWidth="5" fill="none" />
-      <rect x="355" y="115" width="52" height="6" rx="3" fill="#F59E0B" />
-      <rect x="396" y="120" width="6" height="12" rx="3" fill="#F59E0B" />
-      <rect x="384" y="120" width="6" height="10" rx="3" fill="#F59E0B" />
-
-      {/* ── Floating: password dots card ── */}
-      <rect x="322" y="68" width="120" height="38" rx="9" fill="white" stroke="#E2E8F0" strokeWidth="1.5" />
-      <circle cx="348" cy="87" r="6" fill="#475569" />
-      <circle cx="368" cy="87" r="6" fill="#475569" />
-      <circle cx="388" cy="87" r="6" fill="#475569" />
-      <circle cx="408" cy="87" r="6" fill="#475569" />
-      <circle cx="428" cy="87" r="6" fill="#475569" />
-
-      {/* ── Decorative + / – ── */}
-      <text x="145" y="170" fill="#94A3B8" fontSize="20" fontWeight="700">+</text>
-      <text x="370" y="175" fill="#94A3B8" fontSize="20" fontWeight="700">+</text>
-      <text x="424" y="210" fill="#94A3B8" fontSize="18" fontWeight="700">–</text>
-    </svg>
-  );
-}
-
-function CMLogo() {
-  return (
-    <div className="flex flex-col items-center gap-2 mb-6">
-      {/* Circular icon with coloured arcs */}
-      <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="28" cy="28" r="27" stroke="#E2E8F0" strokeWidth="2" />
-        {/* arcs */}
-        <path d="M28 4 A24 24 0 0 1 52 28" stroke="#2563EB" strokeWidth="5" strokeLinecap="round" fill="none" />
-        <path d="M52 28 A24 24 0 0 1 28 52" stroke="#22C55E" strokeWidth="5" strokeLinecap="round" fill="none" />
-        <path d="M28 52 A24 24 0 0 1 4 28" stroke="#F59E0B" strokeWidth="5" strokeLinecap="round" fill="none" />
-        <path d="M4 28 A24 24 0 0 1 28 4" stroke="#EF4444" strokeWidth="5" strokeLinecap="round" fill="none" />
-        {/* inner white circle */}
-        <circle cx="28" cy="28" r="16" fill="white" />
-        <text x="28" y="33" textAnchor="middle" fontSize="11" fontWeight="700" fill="#1E293B" fontFamily="Inter, sans-serif">CM</text>
-      </svg>
-      <span className="text-2xl font-bold text-slate-800 tracking-tight">Channel Manager</span>
-    </div>
-  );
-}
+import animationData from "../../../public/lottie/network.json";
+import "./login.css";
 
 export default function LoginPage() {
+  const worldRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!worldRef.current) return;
+    const stage = e.currentTarget.getBoundingClientRect();
+    const px = (e.clientX - stage.left) / stage.width - 0.5;
+    const py = (e.clientY - stage.top) / stage.height - 0.5;
+    
+    worldRef.current.style.setProperty("--rx", `${(py * 6).toFixed(2)}deg`);
+    worldRef.current.style.setProperty("--ry", `${(px * -5).toFixed(2)}deg`);
+  };
+
+  const handleMouseLeave = () => {
+    if (!worldRef.current) return;
+    worldRef.current.style.setProperty("--rx", "0deg");
+    worldRef.current.style.setProperty("--ry", "0deg");
+  };
+
   return (
-    <div className="flex min-h-screen font-sans">
+    <div className="login-auth">
       {/* ── Left panel — illustration ── */}
-      <div className="hidden lg:flex lg:w-[56%] bg-slate-100 items-center justify-center px-12 py-10 relative overflow-hidden">
-        <SecurityIllustration />
+      <div 
+        className="login-stage" 
+        onMouseMove={handleMouseMove} 
+        onMouseLeave={handleMouseLeave}
+      >
+        <div className="login-blob a"></div>
+        <div className="login-blob b"></div>
+        <div className="login-blob c"></div>
+        <div className="login-blob d"></div>
+        <div className="login-blob e"></div>
+
+        <div className="absolute top-8 left-10 z-10 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg flex-shrink-0 relative shadow-md" style={{ background: "conic-gradient(from 210deg, #f43f5e, #f59e0b, #22c55e, #38bdf8, #6366f1, #d946ef, #f43f5e)" }}>
+            <div className="absolute inset-[3px] bg-slate-900 rounded-[5px] flex items-center justify-center text-[9px] font-bold text-white tracking-wider">CM</div>
+          </div>
+          <div className="text-sm font-semibold leading-tight tracking-tight text-slate-900">
+            <span className="block">Channel</span>
+            <span className="block">Manager</span>
+          </div>
+        </div>
+
+        <div className="login-world" ref={worldRef}>
+          <div className="login-scene">
+
+            {/* Lottie Animation instead of CM Logo */}
+            <div className="login-core-lottie">
+              <Lottie animationData={animationData} loop={true} />
+            </div>
+
+            {/* Floating OTA Chips (Icons only) */}
+            <div className="login-chip c1" style={{ '--tz': '120px' } as React.CSSProperties}>
+              <svg fill="#003A9A" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Booking.com</title><path d="M24 0H0v24h24ZM8.575 6.563h2.658c2.108 0 3.473 1.15 3.473 2.898 0 1.15-.575 1.82-.91 2.108l-.287.263.335.192c.815.479 1.318 1.389 1.318 2.395 0 1.988-1.51 3.257-3.857 3.257H7.449V7.713c0-.623.503-1.126 1.126-1.15zm1.7 1.868c-.479.024-.694.264-.694.79v1.893h1.676c.958 0 1.294-.743 1.294-1.365 0-.815-.503-1.318-1.318-1.318zm-.096 4.36c-.407.071-.598.31-.598.79v2.251h1.868c.934 0 1.509-.55 1.509-1.533 0-.934-.599-1.509-1.51-1.509zm7.737 2.394c.743 0 1.341.599 1.341 1.342a1.34 1.34 0 0 1-1.341 1.341 1.355 1.355 0 0 1-1.341-1.341c0-.743.598-1.342 1.34-1.342z"/></svg>
+            </div>
+            
+            <div className="login-chip c2" style={{ '--tz': '180px' } as React.CSSProperties}>
+              <svg enableBackground="new 0 0 1991.3 2143.2" viewBox="0 0 1991.3 2143.2" xmlns="http://www.w3.org/2000/svg">
+                <path d="m1851.6 1735.6c-15 111.6-90.1 208.1-195.2 251-51.5 21.4-107.3 27.9-163.1 21.4-53.6-6.4-107.3-23.6-163-55.7-77.2-43-154.5-109.4-244.6-208.1 141.6-173.8 227.4-332.5 259.6-474.1 15-66.5 17.2-126.6 10.7-182.4-8.6-53.6-27.9-103-57.9-145.9-66.5-96.5-178.1-152.3-302.5-152.3s-236 57.9-302.5 152.3c-30 42.9-49.3 92.3-57.9 145.9-8.6 55.8-6.4 118 10.7 182.4 32.2 141.6 120.1 302.5 259.6 476.2-88 98.7-167.3 165.2-244.6 208.1-55.8 32.2-109.4 49.4-163 55.8-55.3 6.2-111.2-1.2-163-21.4-105.1-42.9-180.2-139.5-195.2-251-6.4-53.6-2.1-107.2 19.3-167.3 6.4-21.5 17.2-42.9 27.9-68.6 15-34.3 32.2-70.8 49.3-107.3l2.2-4.3c148-319.7 306.8-645.8 472-963.3l6.4-12.9c17.2-32.1 34.3-66.5 51.5-98.7 17.2-34.3 36.5-66.5 60.1-94.4 45.1-51.5 105.1-79.4 171.6-79.4s126.6 27.9 171.6 79.4c23.6 27.9 42.9 60.1 60.1 94.4 17.2 32.2 34.3 66.5 51.5 98.6l6.5 12.9c163 319.6 321.8 645.7 469.8 965.4v2.1c17.2 34.3 32.2 73 49.3 107.3 10.7 25.8 21.5 47.2 27.9 68.6 17.1 55.9 23.5 109.5 14.9 165.3zm-856-100.9c-115.8-145.9-190.9-283.2-216.7-399-10.7-49.4-12.9-92.3-6.4-130.9 4.3-34.3 17.2-64.4 34.3-90.1 40.8-57.9 109.4-94.4 188.8-94.4s150.2 34.4 188.8 94.4c17.2 25.8 30 55.8 34.3 90.1 6.4 38.6 4.3 83.7-6.4 130.9-25.7 113.7-100.8 251-216.7 399zm967.6-111.5c-10.7-25.7-21.5-53.6-32.2-77.2-17.2-38.6-34.3-75.1-49.4-109.4l-2.1-2.1c-148-321.8-306.8-647.9-474.1-969.7l-6.4-12.9c-17.2-32.2-34.3-66.5-51.5-100.8-21.5-38.6-42.9-79.4-77.2-118-68.7-85.9-167.4-133.1-272.5-133.1-107.3 0-203.8 47.2-274.7 128.7-32.2 38.6-55.8 79.4-77.2 118-17.2 34.3-34.3 68.6-51.5 100.8l-6.4 12.8c-165.2 321.8-326.1 647.9-474.1 969.7l-2.1 4.3c-15 34.3-32.2 70.8-49.4 109.4-11.5 25.4-22.2 51.2-32.2 77.2-27.9 79.4-36.5 154.5-25.8 231.7 23.6 160.9 130.9 296.1 278.9 356.1 55.8 23.6 113.7 34.3 173.8 34.3 17.2 0 38.6-2.1 55.8-4.3 70.8-8.6 143.7-32.1 214.5-72.9 88-49.3 171.6-120.1 266-223.1 94.4 103 180.2 173.8 266 223.1 70.8 40.8 143.7 64.3 214.5 72.9 17.2 2.2 38.6 4.3 55.8 4.3 60.1 0 120.1-10.7 173.8-34.3 150.2-60.1 255.3-197.4 278.9-356.1 17.2-75 8.6-150-19.2-229.4z" fill="#e0565b"/>
+              </svg>
+            </div>
+
+            <div className="login-chip c3" style={{ '--tz': '80px' } as React.CSSProperties}>
+              <svg fill="#191E3B" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Expedia</title><path d="M19.067 0H4.933A4.94 4.94 0 0 0 0 4.933v14.134A4.932 4.932 0 0 0 4.933 24h14.134A4.932 4.932 0 0 0 24 19.067V4.933C24.01 2.213 21.797 0 19.067 0ZM7.336 19.341c0 .19-.148.337-.337.337h-2.33a.333.333 0 0 1-.337-.337v-2.33c0-.189.148-.336.337-.336H7c.19 0 .337.147.337.337zm12.121-1.486-2.308 2.298c-.169.168-.422.053-.422-.2V9.57l-6.44 6.44a.533.533 0 0 1-.421.17H8.169a.32.32 0 0 1-.338-.338v-1.697c0-.2.053-.316.169-.422l6.44-6.44H4.058c-.253 0-.369-.253-.2-.421l2.297-2.309c.137-.137.285-.232.517-.232H18.15c.854 0 1.539.686 1.539 1.54v11.478c-.01.231-.095.368-.232.516z"/></svg>
+            </div>
+
+            <div className="login-chip c4" style={{ '--tz': '150px' } as React.CSSProperties}>
+              <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 309">
+                <style type="text/css" dangerouslySetInnerHTML={{ __html: `.st0{fill:#FCB615;} .st1{fill:#ED353F;} .st2{fill:#02AF56;} .st3{fill:#00A8DF;} .st4{fill:#A14699;} .st5{fill:#595A5A;}` }} />
+                <g>
+                    <path className="st0" d="M175.85,216.88c-24.57,0-44.56,19.99-44.56,44.56S151.28,306,175.85,306c24.57,0,44.56-19.99,44.56-44.56 S200.42,216.88,175.85,216.88"/>
+                    <path className="st1" d="M51.32,216.88c-24.57,0-44.56,19.99-44.56,44.56S26.75,306,51.32,306c24.57,0,44.56-19.99,44.56-44.56 S75.89,216.88,51.32,216.88"/>
+                    <path className="st2" d="M300.38,216.88c-24.57,0-44.56,19.99-44.56,44.56S275.81,306,300.38,306c24.57,0,44.56-19.99,44.56-44.56 S324.95,216.88,300.38,216.88"/>
+                    <path className="st3" d="M549.44,216.88c-24.57,0-44.56,19.99-44.56,44.56S524.87,306,549.44,306c24.57,0,44.56-19.99,44.56-44.56 S574.01,216.88,549.44,216.88"/>
+                    <path className="st4" d="M424.91,216.88c-24.57,0-44.57,19.99-44.57,44.56c0,24.57,19.99,44.56,44.56,44.56 c24.57,0,44.56-19.99,44.56-44.56C469.47,236.87,449.49,216.88,424.91,216.88"/>
+                    <path className="st5" d="M88.47,90.61c0-20.84-15.72-36.56-36.56-36.56c-20.84,0-36.56,15.72-36.56,36.56 c0,20.83,15.72,36.56,36.56,36.56C72.74,127.17,88.47,111.44,88.47,90.61 M0.02,90.61c0-28.89,23.19-50.71,51.89-50.71 c28.89,0,51.89,21.62,51.89,50.51v44.42c0,4.52-3.15,7.66-7.86,7.66c-4.91,0-7.86-3.14-7.86-7.66v-12.97h-0.79 c-6.09,10.42-18.28,19.46-36.36,19.46C23.02,141.32,0.02,119.7,0.02,90.61"/>
+                    <path className="st5" d="M212.69,90.61c0-20.84-15.72-36.56-36.56-36.56s-36.56,15.72-36.56,36.56c0,20.83,15.72,36.56,36.56,36.56 S212.69,111.44,212.69,90.61 M144.29,174.14c-4.13-1.97-6.09-5.51-4.52-9.63c1.57-4.33,5.5-6.09,9.63-4.13 c7.08,3.34,15.92,5.7,25.35,5.7c23.39,0,37.54-13.96,37.54-37.74v-6.49h-0.79c-6.09,10.42-18.28,19.46-36.36,19.46 c-27.91,0-50.9-21.62-50.9-50.71c0-28.89,23.19-50.71,51.89-50.71c28.89,0,51.89,21.62,51.89,50.51v36.95 c0,31.84-20.44,53.26-53.85,53.26C163.95,180.62,153.73,178.66,144.29,174.14"/>
+                    <path className="st5" d="M336.91,90.61c0-20.84-15.72-36.56-36.56-36.56c-20.84,0-36.56,15.72-36.56,36.56 c0,20.83,15.72,36.56,36.56,36.56C321.19,127.17,336.91,111.44,336.91,90.61 M248.47,90.61c0-28.89,23-50.71,51.89-50.71 c28.89,0,51.89,21.81,51.89,50.71c0,28.89-23,50.71-51.89,50.71C271.46,141.32,248.47,119.5,248.47,90.61"/>
+                    <path className="st5" d="M461.13,90.61c0-20.84-15.72-36.56-36.56-36.56c-20.84,0-36.56,15.72-36.56,36.56 c0,20.83,15.72,36.56,36.56,36.56C445.41,127.17,461.13,111.44,461.13,90.61 M372.69,90.61c0-28.89,22.8-50.71,50.91-50.71 c18.08,0,30.27,9.04,36.36,19.46h0.79V7.67c0-4.52,3.15-7.67,7.86-7.67c4.91,0,7.86,3.15,7.86,7.67V90.8 c0,28.89-23,50.51-51.89,50.51C395.88,141.32,372.69,119.5,372.69,90.61"/>
+                    <path className="st5" d="M585.36,90.61c0-20.84-15.72-36.56-36.56-36.56c-20.84,0-36.56,15.72-36.56,36.56 c0,20.83,15.72,36.56,36.56,36.56C569.63,127.17,585.36,111.44,585.36,90.61 M496.91,90.61c0-28.89,23.19-50.71,51.89-50.71 c28.89,0,51.89,21.62,51.89,50.51v44.42c0,4.52-3.15,7.66-7.86,7.66c-4.91,0-7.86-3.14-7.86-7.66v-12.97h-0.79 c-6.09,10.42-18.28,19.46-36.36,19.46C519.91,141.32,496.91,119.7,496.91,90.61"/>
+                </g>
+              </svg>
+            </div>
+
+            <div className="login-chip c5" style={{ '--tz': '90px' } as React.CSSProperties}>
+              <svg fill="#EF3346" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Hotels.com</title><path d="M19.064 0H4.936a4.937 4.937 0 0 0-4.93 4.93V19.06A4.94 4.94 0 0 0 4.935 24h14.128a4.926 4.926 0 0 0 4.93-4.941V4.93A4.93 4.93 0 0 0 19.065 0zM8.55 10.63v2.329a.32.32 0 0 1-.337.337H5.884a.32.32 0 0 1-.337-.337V10.63c0-.2.137-.337.337-.337h2.34c.2 0 .336.137.336.337h-.01zm5.162 7.491a.32.32 0 0 1-.337.337h-2.328a.32.32 0 0 1-.337-.337v-2.328c0-.2.136-.337.337-.337h2.328c.19 0 .337.136.337.337v2.328zm0-5.162a.32.32 0 0 1-.337.337h-2.328a.32.32 0 0 1-.337-.337V10.63c0-.2.136-.337.337-.337h2.328c.2 0 .337.137.337.337v2.329zm5.974 4.372a.654.654 0 0 1-.22.516l-2.308 2.297c-.18.168-.432.052-.432-.2V7.28H4.062c-.253 0-.369-.264-.2-.432L6.169 4.55c.137-.147.274-.232.506-.232h11.473c.854 0 1.538.685 1.538 1.539V17.33z"/></svg>
+            </div>
+
+            <div className="login-chip c6" style={{ '--tz': '110px' } as React.CSSProperties}>
+              <svg fill="#BF0000" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Rakuten</title><path d="M23.277 21.3L3.939 24 .722 21.3h22.555zM7.6 19.276H3.939V0h6.052a6.653 6.653 0 0 1 6.65 6.646c0 2.234-1.108 4.204-2.799 5.418l5.418 7.211h-4.585l-4.486-5.979H7.6v5.98zm0-9.64h2.392a2.992 2.992 0 0 0 2.989-2.989 2.994 2.994 0 0 0-2.989-2.986H7.6v5.975z"/></svg>
+            </div>
+
+            <div className="login-chip c7" style={{ '--tz': '140px' } as React.CSSProperties}>
+              <svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1558 496"> <style dangerouslySetInnerHTML={{ __html: `.s0 { fill: #e31e25 } .s1 { fill: #ffffff } .s2 { fill: #27447c }` }} /> <g id="Layer"> <path id="Layer" className="s0" d="m1023.5 495.8c30-0.4 58.4-12.1 79-33.1 21-21 32.7-49.4 32.7-79v-270.6c0-30-11.7-58.4-32.3-79.8-21-21-49.4-33.1-79.4-33.1h-271.9c-30 0.4-58.4 12.1-79 33.1-21 21.4-32.7 49.8-32.7 79.8v271c0.4 61.5 50.2 111.3 111.7 111.7"/> <path id="Layer" className="s1" d="m946.5 263.4c-10.5 35 6.6 70.1 42.8 56-10.5 25.3-28 63.1-28 102.4 0 0 0 26.5 19.4 33.1 0 0 27.2 6.6 21.4-17.5-4.3-15.2-5.4-30.7-3.5-46.3 6.6-32.3 16.7-63.9 30-94.2 0 0 41.6-86.9 65.7-127.3 0 0 10.1-20.7-10.5-20.7-6.2 0-12.1 3.1-15.9 8.2l-58.8 104.7c-8.9 16.4-17.5 21.4-24.1 21.4-14.8 0-11.7-23.7-9.3-32.3 6.6-29.2 17.1-57.2 31.1-84.1 10.5-22.9-10.5-24.9-10.5-24.9-13.3-3.5-23.4 18.3-23.4 18.3l-23.3 47.5c-15.2 26.5-31.9 51.8-49.8 76.3 0 0-3.1 3.9-5.5 2.4-2.3-2-1.1-5.9-1.1-5.9 3.9-32.3 10.5-64.2 19.4-95.8 0.4-1.9 0.8-3.5 0.8-5.4 0.4-4.3-0.8-8.6-3.5-11.7-2.7-3.5-6.6-5.4-10.9-5.4-10.5-1.2-15.5 3.8-24.9 15.1-20.6 25.3-44.7 63.5-56.4 80.6-1.2 2-3.5 1.6-3.5-1.1 0-7.8 27.2-91.9 27.2-91.9 0 0 3.2-11.7-6.2-15.6 0 0-14.4-8.9-26 8.6l-56.1 76.3c-4.2 5.8-6.6 3.9-6.6 3.9v-5.1l9-49.8c7-38.2-6.3-40.1-14.8-41.7-6.2 0-12.9 2-18.3 5.5-17.5 8.5-30.7 43.2-30.7 43.2 0 0-3.9 12.4 4.6 17.5 2.8 1.6 5.9 2.7 9 2.3 12.4-0.7 14.8-23.7 23.7-23.7 1.6 0 1.6 1.9 1.6 2.3l-28.8 121.1c-2 7 1.1 14.4 7 18.3 3.9 2.3 8.2 2.7 12.4 2 3.9-1.2 7.4-3.9 9.8-7.4l10.5-16.4c15.1-26.9 43.1-65.4 45.9-65.4 1.1 0 1.5 0 1.5 1.2l-10.5 71.2c-1.1 6.2 2.4 12.9 8.2 15.6 5.4 1.9 11.3 1.5 16.3-1.2 5.9-4.7 10.9-10.5 14.4-17.1 5.9-9.4 33.9-42.4 51-72.8 1.2-2 2.3 0 1.9 1.2-3.5 15.9-6.2 58.4-6.6 68.9-0.8 20.6 15.2 22.9 15.6 22.9 10.5 0.8 20.6-3.9 26.4-12.4"/> <path id="Layer" fillRule="evenodd" className="s2" d="m109.3 310.5h-31.1v-69.7c0.4-7.8-1.2-15.6-4.7-22.2-3.5-5.1-9.7-8.2-16-7.4-5.4 0-10.5 1.2-14.7 3.9-4.7 3.1-8.6 7.4-11.3 12.1v83.3h-31.1v-126.5h17.5l11.6 17.1c3.1-2.7 6.3-5.1 9.4-7.4 3.1-2 6.2-3.5 9.7-5.1q5.2-2.3 10.5-3.5c3.5-0.8 7.4-1.1 11.3-1.1 4.3 0 8.5 0.3 12.4 1.5 3.1 1.2 6.3 2.3 9.4 4.3 2.3 1.9 4.6 4.3 6.6 6.6 2.3 3.1 3.9 5.9 5.4 9 2.4-2.4 5.1-5.1 8.2-7.4 3.1-2.4 6.6-4.7 10.5-6.6q5.3-3.6 11.7-5.9c4.6-1.2 9.3-1.9 14.4-1.9 6.2 0 12 1.5 17.5 4.2 5 3.2 9.3 7.1 12 11.7 3.1 5.9 5.5 11.7 6.6 18.3 1.6 7.4 2.4 14.8 2.4 22.6v70.1h-31.5v-69.7c0.7-7.8-0.8-15.6-4.7-22.2-3.5-5.1-9.3-8.2-15.6-7.4-5 0-10.1 1.2-14.7 3.9-4.7 3.1-9 7-11.7 12.1m179.7 69.3c-4.3 4.3-9.7 7.8-15.2 10.1-7.3 2.7-15.1 4.3-22.9 3.9-5.5 0.4-11.3-0.8-16.3-2.7q-7.1-3-12.9-8.2-5.2-5.9-8.2-12.9c-1.9-5-2.7-10.5-2.7-15.9 0-23.4 18.3-38.6 47.5-38.6h31.1v-7c0-4.6-2.7-8.5-6.6-10.5-6.2-2.7-13.2-4.3-20.2-3.9-7.8 0-15.6 1.2-23 2.7q-8.7 2.4-17.5 5.9l-3.5-26.1c1.9-1.2 4.7-1.9 8.2-3.1 3.1-1.2 7-2 10.5-3.1 3.5-0.8 8.1-1.6 12.8-2.4 4.7-0.7 9.7-0.7 14.8-0.7 14.4-1.2 29.2 3.5 40.1 12.8 9.7 10.1 14.4 23.8 13.6 37.4v76.3h-22.2zm0-43.6h-27.6c-5.8-0.4-11.3 1.1-16.4 4.3-3.1 3.1-5 7.4-5 12 0 4.3 1.5 8.2 4.7 11.3 3.5 2.7 8.1 4.3 12.8 3.9 3.5 0 7-0.4 10.5-1.5 3.1-0.8 6.2-2 8.9-3.5q4.1-3 7.1-5.9c2.3-2.3 3.8-4.7 5.4-7zm125.3-7.8l57.2 65h-38.9l-53-64.2v64.2h-30.7v-173.2h30.7v109l47.1-63.8h37.8zm124.8 38.1c4.7 0 9.8-0.4 14.4-1.6 4.3-0.7 8.6-1.9 12.5-3.5 3.5-1.1 7-2.7 10.1-4.6 1.5-0.8 3.1-2 4.7-3.1l5.8 27.6c-6.6 3.5-13.6 6.6-21 9-8.6 2.3-17.5 3.5-26.5 3.5-9.7 0-19.4-1.6-28.8-4.7-7.4-2.7-14.7-7-20.6-12.9-5.8-5.4-10.1-12.4-12.8-19.8-3.5-7.8-5.1-16.4-5.5-25.3 0-8.2 1.2-16.4 3.9-24.2 2.8-7.7 6.6-14.4 12.1-20.6 5-5.8 11.7-10.5 19.1-13.6 16.7-6.6 35.7-6.6 52.5 0 7 2.7 12.8 7.4 17.9 12.8 4.6 5.5 8.1 11.7 10.5 18.3 1.9 7 3.1 14.4 3.1 21.8 0 2 0 4.3 0 6.6-0.4 2.4-0.8 4.7-1.2 6.7h-86q0.6 6.4 3.5 11.6c1.6 3.5 4.3 6.7 7.4 9 3.1 2.7 6.6 4.7 10.9 5.4q6.4 2.4 14 2.4c0 0 0-0.8 0-0.8zm-5.8-71.2c-3.9 0-7.8 0.3-11.3 1.5-3.1 0.8-6.2 2.4-8.5 4.3-2.8 1.6-4.7 3.9-6.3 6.6-1.5 2.7-2.7 5.5-3.5 8.6h54.9c0-2.7-0.4-5.5-1.6-8.2-0.8-2.3-2.7-4.7-4.6-6.6-2.4-2-5.1-3.5-7.8-4.7-3.9-1.2-7.8-1.9-11.3-1.5zm632.2-10.2l41.2-49.8h9.3v31.5h35.4v27.3h-35.4v52.2c0 2.7 0.4 5.8 1.2 8.9q1.2 2.9 3.5 5.9c1.6 1.1 3.5 2.3 5.5 2.7 1.9 0.8 3.9 1.1 6.2 1.1 3.5 0 7-0.3 10.1-1.5 3.1-0.4 5.8-1.6 8.6-2.7v27.6q-4.7 2.3-10.6 3.5c-10.8 2.3-22.1 2-32.6-1.2-5.1-1.5-9.4-4.2-13.3-7.7-3.1-3.5-5.8-7.8-7.3-12.5-1.6-5.1-2.8-10.9-2.4-16.4v-59.1h-20.2zm138.9 8.1c4.6-7.7 10.5-14.4 17.9-19.4 6.2-4.7 14-7 22.2-6.6q3.5-0.6 7 0l4.2 0.7c0 0-0.7 7-5.4 28.8-2.3-0.3-4.7-0.7-7-0.3-5.5-0.4-10.5 0.7-15.6 2.7-4.6 1.9-8.5 5-11.6 8.9-3.2 3.9-5.9 8.6-7.4 13.7q-2.4 9.3-2.4 18.7v53.3h-31.1v-126.5h19.5zm199.5-26.1c8.6-0.4 16.8 1.5 24.1 5 6.7 3.5 12.1 8.2 16.8 14.4 4.3 6.3 7.8 13.3 9.7 20.7 1.9 7.8 3.1 15.9 3.1 23.7 0 8.2-1.2 16.4-3.5 24.2-1.9 7.4-5.4 14-10.1 19.8-4.7 5.9-10.1 10.5-16.7 13.6-7 3.6-15.2 5.1-23 5.1-7.8 0-15.2-1.2-22.2-3.9-5.8-2.7-11.2-6.2-15.5-11.3v65.8h-31.1v-177.1h18.2l12.1 15.2c4.7-4.7 10.5-8.6 17.1-11.7 6.6-2.4 13.6-3.9 20.6-3.5zm-8.5 27.6c-3.5-0.4-7 0.4-10.1 1.6-3.1 1.1-5.9 2.7-8.6 4.6-2.3 1.6-4.3 3.9-6.2 6.3-1.6 2.3-3.1 4.6-3.9 7.4v35.8c1.2 2.3 2.7 4.3 4.7 6.2 1.9 2 3.9 3.5 6.2 5.1q4.1 2.3 8.2 3.5c7.7 1.9 15.9 1.5 23.3-1.2 3.5-1.9 7-4.3 9.3-7.4 2.8-3.1 4.7-7 5.9-10.9 1.1-4.7 1.9-9.7 2.3-14.8 0-4.6-0.8-9.7-2.3-14.8q-1.8-6.4-5.9-11.7c-2.7-3.1-5.8-5.8-9.7-7.4-3.9-1.9-7.8-2.7-12.1-2.7zm-107.7-79.8c4.3 0 8.5 2 11.3 5.1 3.1 3.1 5 7 4.6 11.3 0 8.9-7 16.3-15.9 16.3-9 0-16-7.4-16-16.3 0-9 7-16 16-16zm-16 52.2h31.2v126.5h-31.2z"/> </g> </svg>
+            </div>
+
+          </div>
+        </div>
+
+        <div className="absolute bottom-8 left-10 right-10 z-10 flex items-center justify-between">
+          <div className="max-w-[340px]">
+            <h2 className="text-xl font-semibold tracking-tight leading-snug text-slate-900 mb-2">One hub for every channel.</h2>
+            <p className="text-slate-700 text-[13.5px] leading-relaxed">Sync rates, availability and reservations across all your OTAs in real time — no double bookings, no manual updates.</p>
+          </div>
+          <div className="flex gap-6">
+            <div><div className="font-mono text-lg font-semibold text-slate-900 tracking-tight">120+</div><div className="text-[11px] text-slate-700 mt-0.5">Channels</div></div>
+            <div><div className="font-mono text-lg font-semibold text-slate-900 tracking-tight">99.9%</div><div className="text-[11px] text-slate-700 mt-0.5">Uptime</div></div>
+          </div>
+        </div>
       </div>
 
       {/* ── Right panel — form ── */}
-      <div className="flex flex-1 flex-col bg-white">
-        {/* language selector */}
-        <div className="flex justify-end px-8 pt-6">
-          <button
-            type="button"
-            className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 transition-colors"
-          >
+      <div className="login-panel">
+        <div className="login-panel-top">
+          <button className="login-lang">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"/></svg>
             English
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="mt-px">
-              <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: '13px', height: '13px' }}><path d="M6 9l6 6 6-6"/></svg>
           </button>
         </div>
 
-        {/* centred form area */}
-        <div className="flex flex-1 flex-col items-center justify-center px-8 pb-16">
-          <div className="w-full max-w-sm">
-            <CMLogo />
-            <h1 className="text-2xl font-bold text-center text-slate-800 mb-1">Sign In</h1>
-            <p className="text-sm text-center text-slate-500 mb-8">
-              Welcome back. You&apos;ve been missed!
-            </p>
+        <div className="login-form-wrap">
+          <div className="w-full max-w-[372px]">
             <LoginForm />
           </div>
         </div>

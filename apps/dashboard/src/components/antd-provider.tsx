@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
-import { ConfigProvider, theme as antdTheme } from "antd";
+import { ConfigProvider, theme as antdTheme, App } from "antd";
 
 export type ThemeMode = "light" | "dark" | "system";
 
@@ -97,6 +97,8 @@ export function AntdProvider({ children }: { children: React.ReactNode }) {
               siderBg: isDark ? "#0b1322" : "#ffffff",
               headerBg: isDark ? "rgba(9,14,26,0.7)" : "rgba(255,255,255,0.7)",
               bodyBg: currentTokens.colorBgLayout,
+              triggerBg: isDark ? "#0b1322" : "#ffffff",
+              triggerColor: currentTokens.colorTextSecondary,
             },
             Menu: {
               darkItemBg: "transparent",
@@ -123,9 +125,11 @@ export function AntdProvider({ children }: { children: React.ReactNode }) {
           },
         }}
       >
-        <div style={{ background: currentTokens.colorBgBase, minHeight: "100vh", color: currentTokens.colorTextBase }}>
-          {children}
-        </div>
+        <App>
+          <div style={{ background: currentTokens.colorBgBase, minHeight: "100vh", color: currentTokens.colorTextBase }}>
+            {children}
+          </div>
+        </App>
       </ConfigProvider>
     </ThemeContext.Provider>
   );
