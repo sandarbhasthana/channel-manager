@@ -17,6 +17,7 @@ import (
 	"github.com/channel-manager/channel-manager/gen/go/channel/v1/channelv1connect"
 	"github.com/channel-manager/channel-manager/gen/go/inventory/v1/inventoryv1connect"
 	"github.com/channel-manager/channel-manager/gen/go/pms/v1/pmsv1connect"
+	"github.com/channel-manager/channel-manager/gen/go/pricing/v1/pricingv1connect"
 	"github.com/channel-manager/channel-manager/platform/auth"
 	"github.com/channel-manager/channel-manager/platform/config"
 	"github.com/channel-manager/channel-manager/platform/db"
@@ -48,6 +49,7 @@ import (
 	resevents "github.com/channel-manager/channel-manager/services/reservations/adapters/events"
 	respostgres "github.com/channel-manager/channel-manager/services/reservations/adapters/postgres"
 	resusecases "github.com/channel-manager/channel-manager/services/reservations/usecases"
+	pricingconnect "github.com/channel-manager/channel-manager/services/pricing/adapters/connect"
 )
 
 func main() {
@@ -175,6 +177,9 @@ func main() {
 	resRepo := respostgres.NewRepository(pool)
 	resSvc := resusecases.NewReservationService(resRepo, resevents.NoopPublisher{})
 
+	// ── Pricing service ────────────────────────────────────────────────────────
+	pricingHandler := pricingconnect.NewHandler()
+
 	// ── PMS outbound integration (REST + API key auth) ─────────────────────────
 	envSecrets, err := platformintegration.LoadEnvSecretsFromJSON(cfg.Integration.SecretsJSON)
 	must(err, "load integration secrets")
@@ -206,6 +211,9 @@ func main() {
 	pmsRPCPath, pmsRPCHandler := pmsv1connect.NewPmsServiceHandler(pmsHandler, interceptor)
 	rpcMux.Handle(pmsRPCPath, pmsRPCHandler)
 
+	pricingRPCPath, pricingRPCHandler := pricingv1connect.NewPricingServiceHandler(pricingHandler, interceptor)
+	rpcMux.Handle(pricingRPCPath, pricingRPCHandler)
+
 	// ── HTTP mux — public + protected ────────────────────────────────────────
 	protected := http.NewServeMux()
 	protected.Handle("GET /me", auth.MeHandler(store))
@@ -226,6 +234,7 @@ func main() {
 	protected.Handle(connRPCPath, rpcMux)
 	protected.Handle(chanRPCPath, rpcMux)
 	protected.Handle(pmsRPCPath, rpcMux)
+	protected.Handle(pricingRPCPath, rpcMux)
 
 	mux.Handle("/", auth.NewMiddleware(verifier, store, wos)(protected))
 

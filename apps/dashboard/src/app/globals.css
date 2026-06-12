@@ -15,6 +15,16 @@ html, body {
   padding: 0;
 }
 
+:root {
+  --cal-grid-line: #e2e8f0;
+  --cal-grid-line-soft: #e2e8f0;
+}
+
+.dark {
+  --cal-grid-line: #1e2c49;
+  --cal-grid-line-soft: #1e2c49;
+}
+
 /* Theme Toggle View Transitions */
 ::view-transition-old(root),
 ::view-transition-new(root) {

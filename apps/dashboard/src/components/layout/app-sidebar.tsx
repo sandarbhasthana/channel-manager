@@ -120,7 +120,7 @@ const navItems = (collapsed: boolean, isDark: boolean): MenuProps['items'] => [
     type: "group",
     label: collapsed ? <Divider isDark={isDark} /> : groupLabel("Inventory"),
     children: [
-      { key: "/dashboard/inventory", icon: <CalendarOutlined />, label: "Calendar" },
+      { key: "/dashboard/calendar", icon: <CalendarOutlined />, label: "Calendar" },
       { key: "/dashboard/room-rates", icon: <TagsOutlined />, label: "Rooms & Rates" },
       { key: "/dashboard/properties", icon: <HomeOutlined />, label: "Properties" },
     ],

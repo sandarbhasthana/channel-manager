@@ -44,6 +44,14 @@ export function AntdProvider({ children }: { children: React.ReactNode }) {
 
   const isDark = mode === "dark" || (mode === "system" && systemIsDark);
 
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [isDark]);
+
   // Dark theme maps exactly to reference variables
   const darkTokens = {
     colorPrimary: "#2563eb",

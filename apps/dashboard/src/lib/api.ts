@@ -276,6 +276,21 @@ export async function listBookings(propertyId: string, status?: string): Promise
   }
 }
 
+export async function updateBooking(propertyId: string, bookingId: string, data: any): Promise<PmsBooking> {
+  try {
+    const res = await rpc<{ booking: PmsBooking }>("/pms.v1.PmsService/UpdateBooking", {
+      property_id: propertyId,
+      booking_id: bookingId,
+      ...data
+    });
+    return res.booking;
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("Error updating booking:", err);
+    throw err;
+  }
+}
+
 export async function deleteBooking(propertyId: string, bookingId: string): Promise<boolean> {
   try {
     await rpc("/pms.v1.PmsService/DeleteBooking", {
@@ -286,6 +301,63 @@ export async function deleteBooking(propertyId: string, bookingId: string): Prom
   } catch (err) {
     unstable_rethrow(err);
     console.error("Error deleting booking:", err);
+    throw err;
+  }
+}
+
+// ── Pricing Service (Rates) ──────────────────────────────────────────────────
+
+export interface RatePoint {
+  property_id?: string;
+  propertyId?: string;
+  room_type_id?: string;
+  roomTypeId?: string;
+  rate_plan_id?: string;
+  ratePlanId?: string;
+  date: {
+    year: number;
+    month: number;
+    day: number;
+  };
+  amount: {
+    currency_code: string;
+    units: number;
+    nanos: number;
+  };
+}
+
+export async function getRates(propertyId: string, startDate: string, endDate: string): Promise<RatePoint[]> {
+  try {
+    const startParts = startDate.split("-").map(Number);
+    const endParts = endDate.split("-").map(Number);
+    const data = await rpc<{ points: RatePoint[] }>("/pricing.v1.PricingService/GetRates", {
+      property_id: propertyId,
+      room_type_id: "",
+      rate_plan_id: "",
+      range: {
+        start: { year: startParts[0], month: startParts[1], day: startParts[2] },
+        end: { year: endParts[0], month: endParts[1], day: endParts[2] }
+      }
+    });
+    return data.points || [];
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("Error fetching rates:", err);
+    return [];
+  }
+}
+
+export async function bulkUpsertRates(points: RatePoint[]): Promise<boolean> {
+  try {
+    await rpc("/pricing.v1.PricingService/BulkUpsertRates", {
+      points,
+      idempotency_key: { key: `upsert-rates-${Date.now()}` },
+      audit: { actor_id: "system", action: "bulk_upsert_rates", reason: "calendar update" }
+    });
+    return true;
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("Error upserting rates:", err);
     throw err;
   }
 }
