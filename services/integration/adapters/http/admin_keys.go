@@ -76,7 +76,7 @@ func requireAdmin(r *http.Request, w http.ResponseWriter) bool {
 		jsonError(w, "unauthorized", http.StatusUnauthorized)
 		return false
 	}
-	if tc.Role != "owner" && tc.Role != "admin" {
+	if tc.Role != platformauth.RoleOwner && tc.Role != platformauth.RoleAdmin {
 		jsonError(w, "forbidden", http.StatusForbidden)
 		return false
 	}

@@ -91,9 +91,26 @@ func (s *Store) UpsertUser(ctx context.Context, u *workos.User, localOrgID, role
 	}
 
 	// Upsert membership — RLS requires setting app.current_org_id.
-	if role == "" {
-		role = "member"
-	}
+	//
+	// An empty role means "caller does not know the role" — which is the case
+	// on the login path, where the callback has no membership information. It
+	// must therefore seed 'member' on insert but leave an existing role alone,
+	// otherwise every sign-in would silently demote an owner. The membership
+	// webhook is the authority on role changes.
+	return s.upsertMembership(ctx, localOrgID, u.ID, role)
+}
+
+// UpsertMembership creates or updates a user's membership of an organization.
+//
+// role may be empty, meaning "do not change an existing role"; a new row is
+// seeded as 'member'. A non-empty role must already be normalised — see
+// NormalizeRole — because tenancy.memberships has a CHECK constraint and an
+// unrecognised WorkOS slug would fail the insert.
+func (s *Store) UpsertMembership(ctx context.Context, localOrgID, userID, role string) error {
+	return s.upsertMembership(ctx, localOrgID, userID, role)
+}
+
+func (s *Store) upsertMembership(ctx context.Context, localOrgID, userID, role string) error {
 	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("identity: begin tx: %w", err)
@@ -106,14 +123,64 @@ func (s *Store) UpsertUser(ctx context.Context, u *workos.User, localOrgID, role
 	}
 	if _, err = tx.Exec(ctx,
 		`INSERT INTO tenancy.memberships (org_id, user_id, role)
-		 VALUES ($1::uuid, $2, $3)
+		 VALUES ($1::uuid, $2, COALESCE(NULLIF($3, ''), 'member'))
 		 ON CONFLICT (org_id, user_id) DO UPDATE
-		     SET role = EXCLUDED.role, updated_at = now()`,
-		localOrgID, u.ID, role,
+		     SET role = CASE WHEN $3 = '' THEN memberships.role ELSE EXCLUDED.role END,
+		         updated_at = now()`,
+		localOrgID, userID, role,
 	); err != nil {
 		return fmt.Errorf("identity: upsert membership: %w", err)
 	}
 	return tx.Commit(ctx)
+}
+
+// DeleteMembership removes a user from an organization, revoking local access.
+// Deleting a membership that does not exist is not an error.
+func (s *Store) DeleteMembership(ctx context.Context, localOrgID, userID string) error {
+	tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("identity: begin tx: %w", err)
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	if _, err = tx.Exec(ctx,
+		"SELECT set_config('app.current_org_id', $1, true)", localOrgID,
+	); err != nil {
+		return fmt.Errorf("identity: set tenant: %w", err)
+	}
+	if _, err = tx.Exec(ctx,
+		`DELETE FROM tenancy.memberships WHERE org_id = $1::uuid AND user_id = $2`,
+		localOrgID, userID,
+	); err != nil {
+		return fmt.Errorf("identity: delete membership: %w", err)
+	}
+	return tx.Commit(ctx)
+}
+
+// UserExists reports whether a WorkOS user has been mirrored locally.
+//
+// tenancy.memberships.user_id has a foreign key onto tenancy.users, so a
+// membership event that arrives before its user event cannot be persisted.
+func (s *Store) UserExists(ctx context.Context, userID string) (bool, error) {
+	var exists bool
+	if err := s.pool.QueryRow(ctx,
+		`SELECT EXISTS (SELECT 1 FROM tenancy.users WHERE id = $1)`, userID,
+	).Scan(&exists); err != nil {
+		return false, fmt.Errorf("identity: user exists %q: %w", userID, err)
+	}
+	return exists, nil
+}
+
+// NormalizeRole maps a WorkOS role slug onto a role this platform grants
+// permissions to, defaulting to RoleMember.
+//
+// Two reasons this is not a passthrough. tenancy.memberships has a CHECK
+// constraint, so an arbitrary slug fails the insert. And an unrecognised slug
+// should degrade to read-only rather than lock a legitimate member out.
+func NormalizeRole(slug string) string {
+	if KnownRole(slug) {
+		return slug
+	}
+	return RoleMember
 }
 
 // buildFullName concatenates first and last names.

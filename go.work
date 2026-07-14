@@ -12,6 +12,7 @@ use (
 	./platform/integration
 	./platform/observability
 	./services/audit
+	./services/bookingengine
 	./services/channel
 	./services/integration
 	./services/inventory
@@ -19,4 +20,5 @@ use (
 	./services/pms
 	./services/pricing
 	./services/reservations
+	./services/storefront
 )

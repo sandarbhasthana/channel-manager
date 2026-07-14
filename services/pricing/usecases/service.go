@@ -1,6 +1,9 @@
 package usecases
 
 import (
+	"context"
+
+	"github.com/channel-manager/channel-manager/services/pricing/domain"
 	"github.com/channel-manager/channel-manager/services/pricing/ports"
 )
 
@@ -17,3 +20,9 @@ func NewPricingService(repo ports.RateRepository, publisher ports.RateEventPubli
 		publisher: publisher,
 	}
 }
+
+// BulkUpsertRates saves a batch of rate days.
+func (s *PricingService) BulkUpsertRates(ctx context.Context, days []domain.RateDay) error {
+	return s.repo.SaveBatch(ctx, days)
+}
+

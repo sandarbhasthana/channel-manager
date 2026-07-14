@@ -18,6 +18,8 @@ import (
 	pmsdomain "github.com/channel-manager/channel-manager/services/pms/domain"
 	resdomain "github.com/channel-manager/channel-manager/services/reservations/domain"
 	resusecases "github.com/channel-manager/channel-manager/services/reservations/usecases"
+	pricingdomain "github.com/channel-manager/channel-manager/services/pricing/domain"
+	pricingusecases "github.com/channel-manager/channel-manager/services/pricing/usecases"
 )
 
 // Service orchestrates PMS-facing outbound integration APIs.
@@ -28,6 +30,7 @@ type Service struct {
 	inv      *invusecases.InventoryService
 	res      *resusecases.ReservationService
 	pms      *pmsusecases.PmsService
+	pricing  *pricingusecases.PricingService
 	log      *slog.Logger
 }
 
@@ -39,6 +42,7 @@ func NewService(
 	inv *invusecases.InventoryService,
 	res *resusecases.ReservationService,
 	pms *pmsusecases.PmsService,
+	pricing *pricingusecases.PricingService,
 ) *Service {
 	return &Service{
 		props:    props,
@@ -47,6 +51,7 @@ func NewService(
 		inv:      inv,
 		res:      res,
 		pms:      pms,
+		pricing:  pricing,
 		log:      slog.Default().With("service", "integration"),
 	}
 }
@@ -86,26 +91,28 @@ func (s *Service) PropertyHealth(ctx context.Context, propertyID string) (map[st
 
 // Dispatch runs a property-scoped action from the POST body.
 func (s *Service) Dispatch(ctx context.Context, propertyID, action string, body map[string]any) (any, error) {
-	if _, err := s.loadProperty(ctx, propertyID); err != nil {
+	prop, err := s.loadProperty(ctx, propertyID)
+	if err != nil {
 		return nil, err
 	}
+	// Use prop.ID (the internal UUID) for all subsequent calls instead of the incoming propertyID
 	switch action {
 	case domain.ActionListChannels:
-		return s.listChannels(ctx, propertyID)
+		return s.listChannels(ctx, prop.ID)
 	case domain.ActionGetInventory:
-		return s.getInventory(ctx, propertyID, body)
+		return s.getInventory(ctx, prop.ID, body)
 	case domain.ActionGetRates:
 		return map[string]any{"rates": []any{}}, nil
 	case domain.ActionListReservations:
-		return s.listReservations(ctx, propertyID)
+		return s.listReservations(ctx, prop.ID)
 	case domain.ActionFetchChannelReservations:
-		return s.fetchChannelReservations(ctx, propertyID, body)
+		return s.fetchChannelReservations(ctx, prop.ID, prop.ExternalID, body)
 	case domain.ActionPushAvailability:
-		return s.pushAvailability(ctx, propertyID, body)
+		return s.pushAvailability(ctx, prop.ID, body)
 	case domain.ActionPushRates:
-		return s.pushRates(ctx, propertyID, body)
+		return s.pushRates(ctx, prop.ID, body)
 	case domain.ActionGetSyncJobs:
-		return s.getSyncJobs(ctx, propertyID, body)
+		return s.getSyncJobs(ctx, prop.ID, body)
 	default:
 		return nil, fmt.Errorf("unknown action %q", action)
 	}
@@ -170,14 +177,18 @@ func (s *Service) OrgDispatch(ctx context.Context, action string, body map[strin
 }
 
 func (s *Service) loadProperty(ctx context.Context, propertyID string) (struct {
-	ID, Name, DefaultCurrency string
+	ID, Name, DefaultCurrency, ExternalID string
 }, error) {
 	prop, err := s.props.GetByID(ctx, propertyID)
 	if err != nil {
-		return struct{ ID, Name, DefaultCurrency string }{}, fmt.Errorf("property not found: %w", err)
+		// Fallback to searching by ExternalID (which is the PMS property ID)
+		prop, err = s.props.GetByExternalID(ctx, "", propertyID)
+		if err != nil {
+			return struct{ ID, Name, DefaultCurrency, ExternalID string }{}, fmt.Errorf("property not found by ID or ExternalID: %w", err)
+		}
 	}
-	return struct{ ID, Name, DefaultCurrency string }{
-		ID: prop.ID, Name: prop.Name, DefaultCurrency: prop.DefaultCurrency,
+	return struct{ ID, Name, DefaultCurrency, ExternalID string }{
+		ID: prop.ID, Name: prop.Name, DefaultCurrency: prop.DefaultCurrency, ExternalID: prop.ExternalID,
 	}, nil
 }
 
@@ -246,7 +257,7 @@ func (s *Service) listReservations(ctx context.Context, propertyID string) (map[
 	return map[string]any{"reservations": rows}, nil
 }
 
-func (s *Service) fetchChannelReservations(ctx context.Context, propertyID string, body map[string]any) (map[string]any, error) {
+func (s *Service) fetchChannelReservations(ctx context.Context, propertyID string, externalPropertyID string, body map[string]any) (map[string]any, error) {
 	since := time.Now().AddDate(0, 0, -30)
 	if v, ok := body["since"].(string); ok && v != "" {
 		t, err := time.Parse("2006-01-02", v)
@@ -279,7 +290,9 @@ func (s *Service) fetchChannelReservations(ctx context.Context, propertyID strin
 		for _, f := range fetched {
 			res := &resdomain.Reservation{
 				PropertyID:            propertyID,
+				ExternalPropertyID:    externalPropertyID,
 				ChannelID:             ch.ConnectionID,
+				RoomTypeID:            f.RoomTypeExternalID, // Maps to cmRoomTypeId in PMS
 				GuestName:             f.GuestName,
 				CheckIn:               f.CheckIn,
 				CheckOut:              f.CheckOut,
@@ -351,11 +364,113 @@ func (s *Service) pushAvailability(ctx context.Context, propertyID string, body 
 }
 
 func (s *Service) pushRates(ctx context.Context, propertyID string, body map[string]any) (map[string]any, error) {
-	_ = propertyID
-	_ = body
+	rates, ok := body["rates"].([]any)
+	if !ok || len(rates) == 0 {
+		return nil, errors.New("rates payload is required and must be an array")
+	}
+
+	var rateDays []pricingdomain.RateDay
+	var updates []chdomain.RateUpdate
+
+	for _, rAny := range rates {
+		rm, ok := rAny.(map[string]any)
+		if !ok {
+			continue
+		}
+		
+		roomTypeID, _ := rm["room_type_id"].(string)
+		
+		daysAny, ok := rm["days"].([]any)
+		if !ok {
+			continue
+		}
+		
+		for _, dAny := range daysAny {
+			dm, ok := dAny.(map[string]any)
+			if !ok {
+				continue
+			}
+			
+			dateStr, _ := dm["date"].(string)
+			date, err := time.Parse("2006-01-02", dateStr)
+			if err != nil {
+				continue
+			}
+			
+			price, _ := dm["price"].(float64)
+			
+			// We store this rate internally.
+			//
+			// OrgID is deliberately unset: the repository takes the tenant from
+			// the context, and a non-empty value that disagrees is rejected as a
+			// cross-org batch. It previously read "system", which is not a UUID,
+			// so this write could never have succeeded. It went unnoticed because
+			// the BulkUpsertRates error below is logged and swallowed.
+			//
+			// RatePlanID is likewise resolved by the repository from (org_id, code).
+			rateDays = append(rateDays, pricingdomain.RateDay{
+				PropertyID: propertyID,
+				RoomTypeID: roomTypeID,
+				Date:       date,
+				BaseRate:   price,
+				Currency:   "USD",
+			})
+			
+			// We prepare this update for the channel adapters
+			updates = append(updates, chdomain.RateUpdate{
+				PropertyID: propertyID,
+				RoomTypeID: roomTypeID,
+				RatePlanID: "default",
+				Date:       date,
+				BaseRate:   price,
+				Currency:   "USD",
+			})
+		}
+	}
+
+	// 1. Persist to CM's canonical store first. CM owns rates (D3), so a failed
+	// write must surface as an error rather than be logged and swallowed — and
+	// must not fan out to OTAs a price CM has not recorded (canonical-first,
+	// the same ordering as the storefront saga, D6).
+	ratesSaved := 0
+	if len(rateDays) > 0 {
+		if s.pricing == nil {
+			return nil, errors.New("pricing service is not configured")
+		}
+		if err := s.pricing.BulkUpsertRates(ctx, rateDays); err != nil {
+			return nil, fmt.Errorf("save rates: %w", err)
+		}
+		ratesSaved = len(rateDays)
+	}
+
+	// 2. Dispatch PushRates to OTA adapters
+	channels, err := s.channels.ListChannels(ctx, propertyID)
+	if err != nil {
+		return nil, err
+	}
+	var pushed, failed int
+	var errorsOut []string
+	for _, ch := range channels {
+		if ch.Status != "active" {
+			continue
+		}
+		if err := s.channels.PushRates(ctx, ch.ConnectionID, updates); err != nil {
+			if errors.Is(err, chdomain.ErrNotImplemented) {
+				errorsOut = append(errorsOut, fmt.Sprintf("%s: OTA rate push not implemented", ch.Provider))
+			} else {
+				errorsOut = append(errorsOut, fmt.Sprintf("%s: %v", ch.Provider, err))
+			}
+			failed++
+			continue
+		}
+		pushed++
+	}
+
 	return map[string]any{
-		"status":  "skipped",
-		"message": "pricing service not yet wired; push_rates is a no-op",
+		"channels_pushed": pushed,
+		"channels_failed": failed,
+		"errors":          errorsOut,
+		"rates_saved":     ratesSaved,
 	}, nil
 }
 

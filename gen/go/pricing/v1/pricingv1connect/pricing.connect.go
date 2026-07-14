@@ -44,6 +44,18 @@ const (
 	// PricingServiceBulkUpsertRatesProcedure is the fully-qualified name of the PricingService's
 	// BulkUpsertRates RPC.
 	PricingServiceBulkUpsertRatesProcedure = "/pricing.v1.PricingService/BulkUpsertRates"
+	// PricingServiceListPromoCodesProcedure is the fully-qualified name of the PricingService's
+	// ListPromoCodes RPC.
+	PricingServiceListPromoCodesProcedure = "/pricing.v1.PricingService/ListPromoCodes"
+	// PricingServiceCreatePromoCodeProcedure is the fully-qualified name of the PricingService's
+	// CreatePromoCode RPC.
+	PricingServiceCreatePromoCodeProcedure = "/pricing.v1.PricingService/CreatePromoCode"
+	// PricingServiceUpdatePromoCodeProcedure is the fully-qualified name of the PricingService's
+	// UpdatePromoCode RPC.
+	PricingServiceUpdatePromoCodeProcedure = "/pricing.v1.PricingService/UpdatePromoCode"
+	// PricingServiceDeletePromoCodeProcedure is the fully-qualified name of the PricingService's
+	// DeletePromoCode RPC.
+	PricingServiceDeletePromoCodeProcedure = "/pricing.v1.PricingService/DeletePromoCode"
 )
 
 // PricingServiceClient is a client for the pricing.v1.PricingService service.
@@ -51,6 +63,12 @@ type PricingServiceClient interface {
 	ListRatePlans(context.Context, *connect.Request[v1.ListRatePlansRequest]) (*connect.Response[v1.ListRatePlansResponse], error)
 	GetRates(context.Context, *connect.Request[v1.GetRatesRequest]) (*connect.Response[v1.GetRatesResponse], error)
 	BulkUpsertRates(context.Context, *connect.Request[v1.BulkUpsertRatesRequest]) (*connect.Response[v1.BulkUpsertRatesResponse], error)
+	// Promo code management (coupons). Channel Manager owns promo definitions and
+	// the redemption counter for every tenant.
+	ListPromoCodes(context.Context, *connect.Request[v1.ListPromoCodesRequest]) (*connect.Response[v1.ListPromoCodesResponse], error)
+	CreatePromoCode(context.Context, *connect.Request[v1.CreatePromoCodeRequest]) (*connect.Response[v1.CreatePromoCodeResponse], error)
+	UpdatePromoCode(context.Context, *connect.Request[v1.UpdatePromoCodeRequest]) (*connect.Response[v1.UpdatePromoCodeResponse], error)
+	DeletePromoCode(context.Context, *connect.Request[v1.DeletePromoCodeRequest]) (*connect.Response[v1.DeletePromoCodeResponse], error)
 }
 
 // NewPricingServiceClient constructs a client for the pricing.v1.PricingService service. By
@@ -82,6 +100,30 @@ func NewPricingServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(pricingServiceMethods.ByName("BulkUpsertRates")),
 			connect.WithClientOptions(opts...),
 		),
+		listPromoCodes: connect.NewClient[v1.ListPromoCodesRequest, v1.ListPromoCodesResponse](
+			httpClient,
+			baseURL+PricingServiceListPromoCodesProcedure,
+			connect.WithSchema(pricingServiceMethods.ByName("ListPromoCodes")),
+			connect.WithClientOptions(opts...),
+		),
+		createPromoCode: connect.NewClient[v1.CreatePromoCodeRequest, v1.CreatePromoCodeResponse](
+			httpClient,
+			baseURL+PricingServiceCreatePromoCodeProcedure,
+			connect.WithSchema(pricingServiceMethods.ByName("CreatePromoCode")),
+			connect.WithClientOptions(opts...),
+		),
+		updatePromoCode: connect.NewClient[v1.UpdatePromoCodeRequest, v1.UpdatePromoCodeResponse](
+			httpClient,
+			baseURL+PricingServiceUpdatePromoCodeProcedure,
+			connect.WithSchema(pricingServiceMethods.ByName("UpdatePromoCode")),
+			connect.WithClientOptions(opts...),
+		),
+		deletePromoCode: connect.NewClient[v1.DeletePromoCodeRequest, v1.DeletePromoCodeResponse](
+			httpClient,
+			baseURL+PricingServiceDeletePromoCodeProcedure,
+			connect.WithSchema(pricingServiceMethods.ByName("DeletePromoCode")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -90,6 +132,10 @@ type pricingServiceClient struct {
 	listRatePlans   *connect.Client[v1.ListRatePlansRequest, v1.ListRatePlansResponse]
 	getRates        *connect.Client[v1.GetRatesRequest, v1.GetRatesResponse]
 	bulkUpsertRates *connect.Client[v1.BulkUpsertRatesRequest, v1.BulkUpsertRatesResponse]
+	listPromoCodes  *connect.Client[v1.ListPromoCodesRequest, v1.ListPromoCodesResponse]
+	createPromoCode *connect.Client[v1.CreatePromoCodeRequest, v1.CreatePromoCodeResponse]
+	updatePromoCode *connect.Client[v1.UpdatePromoCodeRequest, v1.UpdatePromoCodeResponse]
+	deletePromoCode *connect.Client[v1.DeletePromoCodeRequest, v1.DeletePromoCodeResponse]
 }
 
 // ListRatePlans calls pricing.v1.PricingService.ListRatePlans.
@@ -107,11 +153,37 @@ func (c *pricingServiceClient) BulkUpsertRates(ctx context.Context, req *connect
 	return c.bulkUpsertRates.CallUnary(ctx, req)
 }
 
+// ListPromoCodes calls pricing.v1.PricingService.ListPromoCodes.
+func (c *pricingServiceClient) ListPromoCodes(ctx context.Context, req *connect.Request[v1.ListPromoCodesRequest]) (*connect.Response[v1.ListPromoCodesResponse], error) {
+	return c.listPromoCodes.CallUnary(ctx, req)
+}
+
+// CreatePromoCode calls pricing.v1.PricingService.CreatePromoCode.
+func (c *pricingServiceClient) CreatePromoCode(ctx context.Context, req *connect.Request[v1.CreatePromoCodeRequest]) (*connect.Response[v1.CreatePromoCodeResponse], error) {
+	return c.createPromoCode.CallUnary(ctx, req)
+}
+
+// UpdatePromoCode calls pricing.v1.PricingService.UpdatePromoCode.
+func (c *pricingServiceClient) UpdatePromoCode(ctx context.Context, req *connect.Request[v1.UpdatePromoCodeRequest]) (*connect.Response[v1.UpdatePromoCodeResponse], error) {
+	return c.updatePromoCode.CallUnary(ctx, req)
+}
+
+// DeletePromoCode calls pricing.v1.PricingService.DeletePromoCode.
+func (c *pricingServiceClient) DeletePromoCode(ctx context.Context, req *connect.Request[v1.DeletePromoCodeRequest]) (*connect.Response[v1.DeletePromoCodeResponse], error) {
+	return c.deletePromoCode.CallUnary(ctx, req)
+}
+
 // PricingServiceHandler is an implementation of the pricing.v1.PricingService service.
 type PricingServiceHandler interface {
 	ListRatePlans(context.Context, *connect.Request[v1.ListRatePlansRequest]) (*connect.Response[v1.ListRatePlansResponse], error)
 	GetRates(context.Context, *connect.Request[v1.GetRatesRequest]) (*connect.Response[v1.GetRatesResponse], error)
 	BulkUpsertRates(context.Context, *connect.Request[v1.BulkUpsertRatesRequest]) (*connect.Response[v1.BulkUpsertRatesResponse], error)
+	// Promo code management (coupons). Channel Manager owns promo definitions and
+	// the redemption counter for every tenant.
+	ListPromoCodes(context.Context, *connect.Request[v1.ListPromoCodesRequest]) (*connect.Response[v1.ListPromoCodesResponse], error)
+	CreatePromoCode(context.Context, *connect.Request[v1.CreatePromoCodeRequest]) (*connect.Response[v1.CreatePromoCodeResponse], error)
+	UpdatePromoCode(context.Context, *connect.Request[v1.UpdatePromoCodeRequest]) (*connect.Response[v1.UpdatePromoCodeResponse], error)
+	DeletePromoCode(context.Context, *connect.Request[v1.DeletePromoCodeRequest]) (*connect.Response[v1.DeletePromoCodeResponse], error)
 }
 
 // NewPricingServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -139,6 +211,30 @@ func NewPricingServiceHandler(svc PricingServiceHandler, opts ...connect.Handler
 		connect.WithSchema(pricingServiceMethods.ByName("BulkUpsertRates")),
 		connect.WithHandlerOptions(opts...),
 	)
+	pricingServiceListPromoCodesHandler := connect.NewUnaryHandler(
+		PricingServiceListPromoCodesProcedure,
+		svc.ListPromoCodes,
+		connect.WithSchema(pricingServiceMethods.ByName("ListPromoCodes")),
+		connect.WithHandlerOptions(opts...),
+	)
+	pricingServiceCreatePromoCodeHandler := connect.NewUnaryHandler(
+		PricingServiceCreatePromoCodeProcedure,
+		svc.CreatePromoCode,
+		connect.WithSchema(pricingServiceMethods.ByName("CreatePromoCode")),
+		connect.WithHandlerOptions(opts...),
+	)
+	pricingServiceUpdatePromoCodeHandler := connect.NewUnaryHandler(
+		PricingServiceUpdatePromoCodeProcedure,
+		svc.UpdatePromoCode,
+		connect.WithSchema(pricingServiceMethods.ByName("UpdatePromoCode")),
+		connect.WithHandlerOptions(opts...),
+	)
+	pricingServiceDeletePromoCodeHandler := connect.NewUnaryHandler(
+		PricingServiceDeletePromoCodeProcedure,
+		svc.DeletePromoCode,
+		connect.WithSchema(pricingServiceMethods.ByName("DeletePromoCode")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/pricing.v1.PricingService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case PricingServiceListRatePlansProcedure:
@@ -147,6 +243,14 @@ func NewPricingServiceHandler(svc PricingServiceHandler, opts ...connect.Handler
 			pricingServiceGetRatesHandler.ServeHTTP(w, r)
 		case PricingServiceBulkUpsertRatesProcedure:
 			pricingServiceBulkUpsertRatesHandler.ServeHTTP(w, r)
+		case PricingServiceListPromoCodesProcedure:
+			pricingServiceListPromoCodesHandler.ServeHTTP(w, r)
+		case PricingServiceCreatePromoCodeProcedure:
+			pricingServiceCreatePromoCodeHandler.ServeHTTP(w, r)
+		case PricingServiceUpdatePromoCodeProcedure:
+			pricingServiceUpdatePromoCodeHandler.ServeHTTP(w, r)
+		case PricingServiceDeletePromoCodeProcedure:
+			pricingServiceDeletePromoCodeHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -166,4 +270,20 @@ func (UnimplementedPricingServiceHandler) GetRates(context.Context, *connect.Req
 
 func (UnimplementedPricingServiceHandler) BulkUpsertRates(context.Context, *connect.Request[v1.BulkUpsertRatesRequest]) (*connect.Response[v1.BulkUpsertRatesResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pricing.v1.PricingService.BulkUpsertRates is not implemented"))
+}
+
+func (UnimplementedPricingServiceHandler) ListPromoCodes(context.Context, *connect.Request[v1.ListPromoCodesRequest]) (*connect.Response[v1.ListPromoCodesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pricing.v1.PricingService.ListPromoCodes is not implemented"))
+}
+
+func (UnimplementedPricingServiceHandler) CreatePromoCode(context.Context, *connect.Request[v1.CreatePromoCodeRequest]) (*connect.Response[v1.CreatePromoCodeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pricing.v1.PricingService.CreatePromoCode is not implemented"))
+}
+
+func (UnimplementedPricingServiceHandler) UpdatePromoCode(context.Context, *connect.Request[v1.UpdatePromoCodeRequest]) (*connect.Response[v1.UpdatePromoCodeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pricing.v1.PricingService.UpdatePromoCode is not implemented"))
+}
+
+func (UnimplementedPricingServiceHandler) DeletePromoCode(context.Context, *connect.Request[v1.DeletePromoCodeRequest]) (*connect.Response[v1.DeletePromoCodeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("pricing.v1.PricingService.DeletePromoCode is not implemented"))
 }

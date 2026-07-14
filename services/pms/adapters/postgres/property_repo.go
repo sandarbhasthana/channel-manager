@@ -125,6 +125,51 @@ func (r *PropertyRepository) GetByID(ctx context.Context, id string) (domain.Pro
 	return result, nil
 }
 
+// BookingEngineEnabled reports whether the direct sales channel is on for a
+// property. Hand-written rather than added to the sqlc query set: it is a
+// single boolean read the storefront needs, and threading a new column through
+// the generated Property model would touch far more than this.
+func (r *PropertyRepository) BookingEngineEnabled(ctx context.Context, id string) (bool, error) {
+	tc, err := platformauth.FromContext(ctx)
+	if err != nil {
+		return false, fmt.Errorf("pms/prop_repo: %w", err)
+	}
+	var enabled bool
+	err = r.pool.WithTenant(ctx, tc.OrgID, func(ctx context.Context, tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `
+			SELECT booking_engine_enabled FROM pms.properties
+			 WHERE org_id = $1::uuid AND id = $2::uuid`,
+			tc.OrgID, id).Scan(&enabled)
+	})
+	if err != nil {
+		return false, fmt.Errorf("pms/prop_repo: booking engine enabled: %w", err)
+	}
+	return enabled, nil
+}
+
+// GetChannelConfig reads a property's booking-engine routing config. The
+// storefront exposes this to the booking engine (which reads route/percent to
+// decide where to send its stay actions). Hand-written for the same reason as
+// BookingEngineEnabled.
+func (r *PropertyRepository) GetChannelConfig(ctx context.Context, id string) (domain.ChannelConfig, error) {
+	tc, err := platformauth.FromContext(ctx)
+	if err != nil {
+		return domain.ChannelConfig{}, fmt.Errorf("pms/prop_repo: %w", err)
+	}
+	var cfg domain.ChannelConfig
+	err = r.pool.WithTenant(ctx, tc.OrgID, func(ctx context.Context, tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `
+			SELECT booking_engine_enabled, booking_route, booking_route_percent
+			  FROM pms.properties
+			 WHERE org_id = $1::uuid AND id = $2::uuid`,
+			tc.OrgID, id).Scan(&cfg.Enabled, &cfg.Route, &cfg.Percent)
+	})
+	if err != nil {
+		return domain.ChannelConfig{}, fmt.Errorf("pms/prop_repo: get channel config: %w", err)
+	}
+	return cfg, nil
+}
+
 func (r *PropertyRepository) GetByExternalID(ctx context.Context, connectionID, externalID string) (domain.Property, error) {
 	tc, err := platformauth.FromContext(ctx)
 	if err != nil {

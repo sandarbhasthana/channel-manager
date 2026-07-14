@@ -14,11 +14,17 @@ import (
 //  1. Extracts and verifies the Bearer JWT — first from the Authorization header,
 //     then from the "access_token" HttpOnly cookie set by CallbackHandler.
 //  2. Resolves the WorkOS org_id claim to the local UUID (via the identity Store).
-//  3. Attaches a TenantContext to the request context for downstream handlers.
+//  3. Ensures the user's role is bound to Casbin policy for that org.
+//  4. Attaches a TenantContext to the request context for downstream handlers.
+//
+// Step 3 is what makes RBAC self-healing: a user who signs in with a role has
+// their `p` and `g` rules materialised before any procedure is enforced, so a
+// newly created org is never authorised against an empty policy set. The binder
+// memoises, so this costs a map load once the rules exist.
 //
 // RLS (SET LOCAL app.current_org_id) is applied at the DB layer inside
 // platform/db.Pool.WithTenant; this middleware only sets the Go context.
-func NewMiddleware(v *Verifier, s *Store, wos *workos.Client) func(http.Handler) http.Handler {
+func NewMiddleware(v *Verifier, s *Store, wos *workos.Client, binder *RoleBinder) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Prefer the Authorization header; fall back to the HttpOnly cookie.
@@ -87,6 +93,15 @@ func NewMiddleware(v *Verifier, s *Store, wos *workos.Client) func(http.Handler)
 			if orgID == "org_01KQC7BBQNPDKZ07NJ597EYRTX" || orgID == os.Getenv("WORKOS_ORG_ID") {
 				// Local dev fallback: elevate to admin to avoid local WorkOS RBAC snags
 				role = "admin"
+			}
+
+			// Materialise the role's policy in this org before enforcement runs.
+			// A failure here would silently deny every procedure, so it is fatal
+			// to the request rather than logged and ignored.
+			if err := binder.Ensure(claims.Subject(), role, localOrgID); err != nil {
+				slog.Error("auth.middleware: ensure role bindings failed", "err", err)
+				http.Error(w, "internal error", http.StatusInternalServerError)
+				return
 			}
 
 			ctx := WithTenantContext(r.Context(), TenantContext{

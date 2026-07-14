@@ -1,0 +1,98 @@
+// Package ports declares the outbound interfaces the storefront depends on.
+package ports
+
+import (
+	"context"
+
+	pmsdomain "github.com/channel-manager/channel-manager/services/pms/domain"
+	pricingdomain "github.com/channel-manager/channel-manager/services/pricing/domain"
+	resdomain "github.com/channel-manager/channel-manager/services/reservations/domain"
+	"github.com/channel-manager/channel-manager/services/storefront/domain"
+)
+
+// PropertyLookup resolves a property by internal id or PMS external id.
+// Narrower than pms/ports.PropertyRepository: the storefront only reads.
+type PropertyLookup interface {
+	GetByID(ctx context.Context, id string) (pmsdomain.Property, error)
+	GetByExternalID(ctx context.Context, connectionID, externalID string) (pmsdomain.Property, error)
+	// BookingEngineEnabled reports whether the direct sales channel is on for a
+	// property. The storefront refuses to quote or create bookings when it is off.
+	BookingEngineEnabled(ctx context.Context, id string) (bool, error)
+	// GetChannelConfig returns the property's booking-engine configuration
+	// (enabled + route + percent), which the booking engine reads to decide
+	// where to route its own stay actions.
+	GetChannelConfig(ctx context.Context, id string) (pmsdomain.ChannelConfig, error)
+}
+
+// PmsGateway is the subset of the PMS service the storefront calls.
+// *pms/usecases.PmsService satisfies this.
+type PmsGateway interface {
+	SearchAvailability(ctx context.Context, propertyID string, q pmsdomain.AvailabilityQuery) ([]pmsdomain.AvailabilityOffer, error)
+	GetQuote(ctx context.Context, propertyID string, q pmsdomain.QuoteQuery) (*pmsdomain.Quote, error)
+	CreateBooking(ctx context.Context, propertyID string, in pmsdomain.CreateBookingInput) (*pmsdomain.PmsBooking, error)
+	GetBooking(ctx context.Context, propertyID, bookingID string) (*pmsdomain.PmsBooking, error)
+	CancelBooking(ctx context.Context, propertyID, bookingID, reason string) (*pmsdomain.CancelBookingResult, error)
+}
+
+// ReservationWriter is the subset of the reservations service the storefront
+// calls. *reservations/usecases.ReservationService satisfies this.
+type ReservationWriter interface {
+	IngestReservation(ctx context.Context, res *resdomain.Reservation, idempotencyKey string) (string, bool, error)
+	CancelReservation(ctx context.Context, id string) (*resdomain.Reservation, error)
+}
+
+// PromoGateway is the subset of the pricing service the storefront calls.
+// *pricing/usecases.PromoService satisfies this.
+//
+// Lookup does not consume a redemption; Redeem does, atomically. The booking
+// engine evaluates discounts against Lookup and commits with Redeem.
+type PromoGateway interface {
+	Lookup(ctx context.Context, code, propertyID string) (pricingdomain.LookupResult, error)
+	Redeem(ctx context.Context, code, propertyID string) (pricingdomain.PromoCode, error)
+	ReleaseRedemption(ctx context.Context, code string) error
+}
+
+// HoldStore persists short-lived soft holds placed at get_quote time.
+//
+// Implementations must expire holds automatically once Hold.ExpiresAt passes,
+// so an abandoned checkout never permanently withholds inventory.
+type HoldStore interface {
+	// Place stores h until it expires.
+	Place(ctx context.Context, h domain.Hold) error
+	// Get returns the hold for token, or domain.ErrHoldNotFound.
+	Get(ctx context.Context, token string) (domain.Hold, error)
+	// Release removes the hold for token. Releasing an unknown token is a no-op.
+	Release(ctx context.Context, token string) error
+	// ActiveForProperty returns all unexpired holds for a property. Used to
+	// subtract in-flight direct checkouts from PMS-reported availability.
+	ActiveForProperty(ctx context.Context, propertyID string) ([]domain.Hold, error)
+}
+
+// IdempotencyStore deduplicates create_booking retries.
+type IdempotencyStore interface {
+	// Exists reports whether key was already processed.
+	Exists(ctx context.Context, key string) (bool, error)
+	// Mark records key as processed.
+	Mark(ctx context.Context, key string) error
+}
+
+// AuditEvent is one auditable storefront mutation.
+//
+// The storefront deliberately does not model an actor type: every caller on
+// this ingress authenticates with an org-scoped integration API key, never a
+// user session. The adapter fills that in.
+type AuditEvent struct {
+	OrgID        string
+	Action       string
+	ResourceType string
+	ResourceID   string
+	Metadata     map[string]any
+}
+
+// AuditRecorder appends to the audit trail.
+//
+// Recording must never fail a guest's booking, so this returns nothing:
+// implementations log their own errors. A nil AuditRecorder disables auditing.
+type AuditRecorder interface {
+	Record(ctx context.Context, e AuditEvent)
+}

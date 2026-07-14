@@ -379,6 +379,22 @@ func (s *PmsService) PropertyHealth(ctx context.Context, propertyID string) (*do
 	return engine.PropertyHealth(ctx, prop.ExternalID)
 }
 
+// SearchAvailability proxies search_availability to the PMS and returns the
+// bookable offers. IngestAvailability writes the same upstream response into
+// canonical inventory; this method exposes the offers (with pricing) to
+// callers that need to render them, such as the storefront.
+func (s *PmsService) SearchAvailability(ctx context.Context, propertyID string, q domain.AvailabilityQuery) ([]domain.AvailabilityOffer, error) {
+	prop, err := s.props.GetByID(ctx, propertyID)
+	if err != nil {
+		return nil, err
+	}
+	engine, _, err := s.engineForConnection(ctx, prop.ConnectionID)
+	if err != nil {
+		return nil, err
+	}
+	return engine.SearchAvailability(ctx, prop.ExternalID, q)
+}
+
 // GetQuote proxies get_quote to the PMS.
 func (s *PmsService) GetQuote(ctx context.Context, propertyID string, q domain.QuoteQuery) (*domain.Quote, error) {
 	prop, err := s.props.GetByID(ctx, propertyID)

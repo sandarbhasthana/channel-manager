@@ -18,12 +18,17 @@ var casbinModelText string
 //
 // Auto-save is enabled (the default) so AddPolicy / RemovePolicy calls on
 // the returned enforcer are immediately reflected in the database.
-func NewEnforcer(pool *pgxpool.Pool) (*casbin.Enforcer, error) {
+//
+// A SyncedEnforcer, not a plain Enforcer: the policy model is both read
+// (Enforce, in the Connect-RPC interceptor) and written (RoleBinder.Ensure, in
+// the HTTP middleware) from concurrent request goroutines. A plain
+// *casbin.Enforcer is not safe for that and races on the underlying model maps.
+func NewEnforcer(pool *pgxpool.Pool) (*casbin.SyncedEnforcer, error) {
 	m, err := model.NewModelFromString(casbinModelText)
 	if err != nil {
 		return nil, fmt.Errorf("auth: parse casbin model: %w", err)
 	}
-	e, err := casbin.NewEnforcer(m, NewPGAdapter(pool))
+	e, err := casbin.NewSyncedEnforcer(m, NewPGAdapter(pool))
 	if err != nil {
 		return nil, fmt.Errorf("auth: new enforcer: %w", err)
 	}

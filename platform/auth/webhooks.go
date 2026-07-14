@@ -124,17 +124,44 @@ func (h *WebhookHandler) handleMembership(w http.ResponseWriter, r *http.Request
 	}
 	localOrgID, err := h.store.ResolveOrgID(r.Context(), d.OrganizationID)
 	if err != nil {
-		slog.WarnContext(r.Context(), "webhook: org not mirrored yet, skipping membership", "org", d.OrganizationID)
-		return // not an error — org webhook should arrive first
+		slog.WarnContext(r.Context(), "webhook: org not mirrored yet, asking for redelivery", "org", d.OrganizationID)
+		http.Error(w, "org not mirrored yet", http.StatusServiceUnavailable)
+		return
 	}
-	role := d.Role.Slug
-	if role == "" {
-		role = "member"
-	}
-	// For deleted memberships, set role to a sentinel so callers can handle it.
+
 	if event.Event == "organization_membership.deleted" {
-		role = "__deleted__"
+		if err := h.store.DeleteMembership(r.Context(), localOrgID, d.UserID); err != nil {
+			slog.ErrorContext(r.Context(), "webhook: delete membership failed", "err", err, "user", d.UserID)
+			http.Error(w, "delete membership failed", http.StatusInternalServerError)
+			return
+		}
+		slog.InfoContext(r.Context(), "webhook: membership deleted", "org", localOrgID, "user", d.UserID)
+		return
 	}
+
+	// memberships.user_id references tenancy.users, so a membership event that
+	// overtakes its user.created event cannot be persisted yet. Fail the
+	// delivery so WorkOS redelivers, rather than silently dropping the role.
+	mirrored, err := h.store.UserExists(r.Context(), d.UserID)
+	if err != nil {
+		slog.ErrorContext(r.Context(), "webhook: user lookup failed", "err", err, "user", d.UserID)
+		http.Error(w, "user lookup failed", http.StatusInternalServerError)
+		return
+	}
+	if !mirrored {
+		slog.WarnContext(r.Context(), "webhook: user not mirrored yet, asking for redelivery", "user", d.UserID)
+		http.Error(w, "user not mirrored yet", http.StatusServiceUnavailable)
+		return
+	}
+
+	role := NormalizeRole(d.Role.Slug)
+	if err := h.store.UpsertMembership(r.Context(), localOrgID, d.UserID, role); err != nil {
+		slog.ErrorContext(r.Context(), "webhook: upsert membership failed", "err", err, "user", d.UserID)
+		http.Error(w, "upsert membership failed", http.StatusInternalServerError)
+		return
+	}
+
 	slog.InfoContext(r.Context(), "webhook: membership event processed",
-		"event", event.Event, "org", localOrgID, "user", d.UserID, "role", role)
+		"event", event.Event, "org", localOrgID, "user", d.UserID,
+		"slug", d.Role.Slug, "role", role)
 }

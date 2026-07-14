@@ -5,6 +5,7 @@ go 1.25.0
 require (
 	connectrpc.com/connect v1.19.2
 	github.com/channel-manager/channel-manager/gen/go v0.0.0-00010101000000-000000000000
+	github.com/channel-manager/channel-manager/services/audit v0.0.0-00010101000000-000000000000
 	github.com/channel-manager/channel-manager/platform/auth v0.0.0-00010101000000-000000000000
 	github.com/channel-manager/channel-manager/platform/config v0.0.0-00010101000000-000000000000
 	github.com/channel-manager/channel-manager/platform/db v0.0.0-00010101000000-000000000000
@@ -16,6 +17,7 @@ require (
 	github.com/channel-manager/channel-manager/services/inventory v0.0.0-00010101000000-000000000000
 	github.com/channel-manager/channel-manager/services/pms v0.0.0-00010101000000-000000000000
 	github.com/channel-manager/channel-manager/services/reservations v0.0.0-00010101000000-000000000000
+	github.com/channel-manager/channel-manager/services/storefront v0.0.0-00010101000000-000000000000
 	github.com/redis/go-redis/v9 v9.7.3
 	github.com/workos/workos-go/v7 v7.1.0
 )
@@ -75,9 +77,11 @@ replace (
 	github.com/channel-manager/channel-manager/platform/events => ../../platform/events
 	github.com/channel-manager/channel-manager/platform/integration => ../../platform/integration
 	github.com/channel-manager/channel-manager/platform/observability => ../../platform/observability
+	github.com/channel-manager/channel-manager/services/audit => ../../services/audit
 	github.com/channel-manager/channel-manager/services/channel => ../../services/channel
 	github.com/channel-manager/channel-manager/services/integration => ../../services/integration
 	github.com/channel-manager/channel-manager/services/inventory => ../../services/inventory
 	github.com/channel-manager/channel-manager/services/pms => ../../services/pms
 	github.com/channel-manager/channel-manager/services/reservations => ../../services/reservations
+	github.com/channel-manager/channel-manager/services/storefront => ../../services/storefront
 )

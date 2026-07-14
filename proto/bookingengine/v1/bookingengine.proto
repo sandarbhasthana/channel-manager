@@ -1,0 +1,86 @@
+// Booking Engine service — the direct (own-website) sales channel, managed
+// from inside the Channel Manager dashboard (one WorkOS org, one Casbin RBAC).
+//
+// This service is read-only over reservations: direct-channel bookings are
+// written by the storefront ingress, not here. The one mutation is the
+// direct-channel on/off switch, which gates whether the storefront will quote
+// and accept new direct bookings for a property.
+syntax = "proto3";
+
+package bookingengine.v1;
+
+import "common/v1/types.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/channel-manager/channel-manager/gen/go/bookingengine/v1;bookingenginev1";
+
+// DirectReservation is a booking that originated from the storefront (the
+// property's own website) rather than an OTA. It is a read model for the
+// dashboard, not the canonical reservation record.
+message DirectReservation {
+  string id = 1;
+  string property_id = 2;
+  string confirmation_code = 3;
+  string guest_name = 4;
+  common.v1.CalendarDate check_in = 5;
+  common.v1.CalendarDate check_out = 6;
+  // pending | confirmed | modified | cancelled | no_show | checked_in | checked_out
+  string status = 7;
+  common.v1.Money total = 8;
+  google.protobuf.Timestamp booked_at = 9;
+}
+
+// BookingEngineSettings is the per-property configuration of the direct
+// channel. Deliberately minimal today; it is the natural home for future
+// storefront settings (min stay, booking cutoff, etc.).
+message BookingEngineSettings {
+  string property_id = 1;
+  // When false, the storefront refuses to quote or create direct bookings for
+  // this property. Existing reservations are unaffected.
+  bool direct_channel_enabled = 2;
+  // Where the booking engine routes stay actions: "pms" or "cm" (Phase 4).
+  string booking_route = 3;
+  // Canary ramp (0–100) for the "cm" route.
+  int32 booking_route_percent = 4;
+}
+
+service BookingEngineService {
+  // ListDirectReservations returns direct-channel bookings for a property,
+  // most recent first.
+  rpc ListDirectReservations(ListDirectReservationsRequest) returns (ListDirectReservationsResponse);
+  // GetSettings returns the property's booking-engine configuration.
+  rpc GetSettings(GetSettingsRequest) returns (GetSettingsResponse);
+  // UpdateSettings writes the booking-engine configuration for a property: the
+  // direct-channel switch and the booking route/percentage. Managed from the CM
+  // dashboard.
+  rpc UpdateSettings(UpdateSettingsRequest) returns (UpdateSettingsResponse);
+}
+
+message ListDirectReservationsRequest {
+  string property_id = 1;
+  common.v1.PageRequest page = 2;
+}
+
+message ListDirectReservationsResponse {
+  repeated DirectReservation reservations = 1;
+  common.v1.PageResponse page = 2;
+}
+
+message GetSettingsRequest {
+  string property_id = 1;
+}
+
+message GetSettingsResponse {
+  BookingEngineSettings settings = 1;
+}
+
+message UpdateSettingsRequest {
+  string property_id = 1;
+  bool direct_channel_enabled = 2;
+  string booking_route = 3;
+  int32 booking_route_percent = 4;
+}
+
+message UpdateSettingsResponse {
+  BookingEngineSettings settings = 1;
+}

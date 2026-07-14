@@ -12,6 +12,7 @@ import {
   FolderOutlined,
   TeamOutlined,
   ApiOutlined,
+  GlobalOutlined,
   SyncOutlined,
 } from "@ant-design/icons";
 import { useTheme } from "../antd-provider";
@@ -140,6 +141,7 @@ const navItems = (collapsed: boolean, isDark: boolean): MenuProps['items'] => [
           </span>
         ),
       },
+      { key: "/dashboard/booking-engine", icon: <GlobalOutlined />, label: "Booking Engine" },
     ],
   },
   {

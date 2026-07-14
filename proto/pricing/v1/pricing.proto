@@ -32,11 +32,56 @@ message RatePoint {
   google.protobuf.Timestamp updated_at = 6;
 }
 
+// PromoCode is a discount code owned by the organization. property_id empty
+// means it applies org-wide. max_uses 0 means unlimited.
+message PromoCode {
+  string id = 1;
+  string property_id = 2;
+  string code = 3;
+  string description = 4;
+  double discount_pct = 5;
+  int32 max_uses = 6;
+  int32 uses = 7;
+  google.protobuf.Timestamp valid_from = 8;
+  google.protobuf.Timestamp valid_until = 9;
+  bool is_active = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
 service PricingService {
   rpc ListRatePlans(ListRatePlansRequest) returns (ListRatePlansResponse);
   rpc GetRates(GetRatesRequest) returns (GetRatesResponse);
   rpc BulkUpsertRates(BulkUpsertRatesRequest) returns (BulkUpsertRatesResponse);
+
+  // Promo code management (coupons). Channel Manager owns promo definitions and
+  // the redemption counter for every tenant.
+  rpc ListPromoCodes(ListPromoCodesRequest) returns (ListPromoCodesResponse);
+  rpc CreatePromoCode(CreatePromoCodeRequest) returns (CreatePromoCodeResponse);
+  rpc UpdatePromoCode(UpdatePromoCodeRequest) returns (UpdatePromoCodeResponse);
+  rpc DeletePromoCode(DeletePromoCodeRequest) returns (DeletePromoCodeResponse);
 }
+
+message ListPromoCodesRequest {}
+message ListPromoCodesResponse {
+  repeated PromoCode promo_codes = 1;
+}
+message CreatePromoCodeRequest {
+  PromoCode promo_code = 1;
+}
+message CreatePromoCodeResponse {
+  PromoCode promo_code = 1;
+}
+message UpdatePromoCodeRequest {
+  PromoCode promo_code = 1;
+}
+message UpdatePromoCodeResponse {
+  PromoCode promo_code = 1;
+}
+message DeletePromoCodeRequest {
+  string id = 1;
+}
+message DeletePromoCodeResponse {}
 
 message ListRatePlansRequest {
   string property_id = 1;

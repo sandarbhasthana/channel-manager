@@ -256,7 +256,7 @@ export function CalendarRatePriceModal({
       open={open}
       onCancel={onClose}
       footer={<div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={onClose} disabled={isUpdating}>
+            <Button variant="outlined" onClick={onClose} disabled={isUpdating}>
               Cancel
             </Button>
             <Button
@@ -274,7 +274,7 @@ export function CalendarRatePriceModal({
               </div>
               <Tooltip title="Close">
                   <Button
-                    variant="outline"
+                    variant="outlined"
                     size="small"
                     onClick={onClose}
                     className="h-8 w-8 p-0 border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-all duration-200 hover:rotate-90"
@@ -302,7 +302,7 @@ export function CalendarRatePriceModal({
             <div>
               <div className="flex items-center justify-between mb-3">
                 <label className="text-base font-medium">Room Types</label>
-                <Button type="button" variant="outline" size="small" onClick={selectAllRoomTypes}>
+                <Button type="default" variant="outlined" size="small" onClick={selectAllRoomTypes}>
                   {selectedRoomTypes.length === roomTypes.length ? "Deselect All" : "Select All"}
                 </Button>
               </div>
@@ -349,7 +349,7 @@ export function CalendarRatePriceModal({
             <div>
               <div className="flex items-center justify-between mb-3">
                 <label className="text-base font-medium">Apply To Days</label>
-                <Button type="button" variant="outline" size="small" onClick={handleSelectAllDays}>
+                <Button type="default" variant="outlined" size="small" onClick={handleSelectAllDays}>
                   {selectedDays.length === 7 ? "Deselect All" : "Select All"}
                 </Button>
               </div>

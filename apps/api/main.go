@@ -14,6 +14,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	workos "github.com/workos/workos-go/v7"
 
+	"github.com/channel-manager/channel-manager/gen/go/bookingengine/v1/bookingenginev1connect"
 	"github.com/channel-manager/channel-manager/gen/go/channel/v1/channelv1connect"
 	"github.com/channel-manager/channel-manager/gen/go/inventory/v1/inventoryv1connect"
 	"github.com/channel-manager/channel-manager/gen/go/pms/v1/pmsv1connect"
@@ -49,7 +50,18 @@ import (
 	resevents "github.com/channel-manager/channel-manager/services/reservations/adapters/events"
 	respostgres "github.com/channel-manager/channel-manager/services/reservations/adapters/postgres"
 	resusecases "github.com/channel-manager/channel-manager/services/reservations/usecases"
+	bookingengineconnect "github.com/channel-manager/channel-manager/services/bookingengine/adapters/connect"
+	bookingenginepostgres "github.com/channel-manager/channel-manager/services/bookingengine/adapters/postgres"
+	bookingengineusecases "github.com/channel-manager/channel-manager/services/bookingengine/usecases"
 	pricingconnect "github.com/channel-manager/channel-manager/services/pricing/adapters/connect"
+	pricingpostgres "github.com/channel-manager/channel-manager/services/pricing/adapters/postgres"
+	pricingusecases "github.com/channel-manager/channel-manager/services/pricing/usecases"
+	auditpostgres "github.com/channel-manager/channel-manager/services/audit/adapters/postgres"
+	auditusecases "github.com/channel-manager/channel-manager/services/audit/usecases"
+	storefrontaudit "github.com/channel-manager/channel-manager/services/storefront/adapters/audit"
+	storefronthttp "github.com/channel-manager/channel-manager/services/storefront/adapters/http"
+	storefrontredis "github.com/channel-manager/channel-manager/services/storefront/adapters/redis"
+	storefrontusecases "github.com/channel-manager/channel-manager/services/storefront/usecases"
 )
 
 func main() {
@@ -100,6 +112,8 @@ func main() {
 	// ── Casbin enforcer ───────────────────────────────────────────────────────
 	enforcer, err := auth.NewEnforcer(pool.Inner())
 	must(err, "init casbin enforcer")
+	// Binds a signed-in user's role to policy on first sight, per org.
+	roleBinder := auth.NewRoleBinder(enforcer)
 
 	// ── HTTP mux ──────────────────────────────────────────────────────────────
 	mux := http.NewServeMux()
@@ -175,17 +189,36 @@ func main() {
 
 	// ── Reservations service ────────────────────────────────────────────────────
 	resRepo := respostgres.NewRepository(pool)
-	resSvc := resusecases.NewReservationService(resRepo, resevents.NoopPublisher{})
+	webhookUrl := os.Getenv("WEBHOOK_BASE_URL")
+	if webhookUrl == "" {
+		webhookUrl = "http://localhost:4001/api/webhooks/channel-manager"
+	}
+	resPublisher := resevents.NewWebhookPublisher(webhookUrl)
+	resSvc := resusecases.NewReservationService(resRepo, resPublisher)
 
 	// ── Pricing service ────────────────────────────────────────────────────────
-	pricingHandler := pricingconnect.NewHandler()
+	pricingRepo := pricingpostgres.NewRepository(pool)
+	pricingSvc := pricingusecases.NewPricingService(pricingRepo, nil)
+
+	// Booking engine: read-only dashboard view over direct-channel reservations,
+	// plus the per-property direct-channel on/off switch.
+	bookingEngineRepo := bookingenginepostgres.NewRepository(pool)
+	bookingEngineSvc := bookingengineusecases.NewService(bookingEngineRepo)
+	bookingEngineHandler := bookingengineconnect.NewHandler(bookingEngineSvc)
+
+	// Promo codes: Channel Manager owns the definitions and the redemption
+	// counter. The booking engine reads them through the storefront ingress; the
+	// dashboard manages them (coupons) via the PricingService promo procedures.
+	promoRepo := pricingpostgres.NewPromoRepository(pool)
+	promoSvc := pricingusecases.NewPromoService(promoRepo, nil)
+	pricingHandler := pricingconnect.NewHandler(pricingSvc, promoSvc)
 
 	// ── PMS outbound integration (REST + API key auth) ─────────────────────────
 	envSecrets, err := platformintegration.LoadEnvSecretsFromJSON(cfg.Integration.SecretsJSON)
 	must(err, "load integration secrets")
 	intKeyStore := platformintegration.NewKeyStore(pool)
 	intAuth := platformintegration.NewAuthenticator(envSecrets, intKeyStore)
-	intSvc := integrationusecases.NewService(pmsPropRepo, chanSvc, syncJobRepo, invSvc, resSvc, pmsSvc)
+	intSvc := integrationusecases.NewService(pmsPropRepo, chanSvc, syncJobRepo, invSvc, resSvc, pmsSvc, pricingSvc)
 	intHandler := integrationhttp.NewHandler(intSvc)
 	adminKeysHandler := integrationhttp.NewAdminKeysHandler(intKeyStore)
 
@@ -193,6 +226,20 @@ func main() {
 	mux.Handle("POST /api/integrations/pms", intAuth.Middleware(http.HandlerFunc(intHandler.OrgDispatch)))
 	mux.Handle("GET /api/integrations/pms/{propertyId}", intAuth.Middleware(http.HandlerFunc(intHandler.PropertyHealth)))
 	mux.Handle("POST /api/integrations/pms/{propertyId}", intAuth.Middleware(http.HandlerFunc(intHandler.Dispatch)))
+
+	// ── Audit service (append-only trail) ─────────────────────────────────────
+	auditRepo := auditpostgres.NewRepository(pool)
+	auditSvc := auditusecases.NewAuditService(auditRepo)
+
+	// ── Storefront ingress (guest-facing booking engines, REST + API key auth) ─
+	sfHolds := storefrontredis.NewHoldStore(redisClient)
+	sfIdem := storefrontredis.NewIdempotencyStore(redisClient)
+	sfAudit := storefrontaudit.NewRecorder(auditSvc)
+	sfSvc := storefrontusecases.NewService(pmsPropRepo, pmsSvc, resSvc, promoSvc, sfHolds, sfIdem, sfAudit, 0)
+	sfHandler := storefronthttp.NewHandler(sfSvc)
+
+	mux.Handle("GET /api/storefront/v1/health", intAuth.Middleware(http.HandlerFunc(sfHandler.Health)))
+	mux.Handle("POST /api/storefront/v1/{propertyId}", intAuth.Middleware(http.HandlerFunc(sfHandler.Dispatch)))
 
 	// ── Connect-RPC interceptor (auth-gated) ──────────────────────────────────
 	interceptor := connect.WithInterceptors(auth.NewUnaryInterceptor(enforcer))
@@ -213,6 +260,9 @@ func main() {
 
 	pricingRPCPath, pricingRPCHandler := pricingv1connect.NewPricingServiceHandler(pricingHandler, interceptor)
 	rpcMux.Handle(pricingRPCPath, pricingRPCHandler)
+
+	bookingEngineRPCPath, bookingEngineRPCHandler := bookingenginev1connect.NewBookingEngineServiceHandler(bookingEngineHandler, interceptor)
+	rpcMux.Handle(bookingEngineRPCPath, bookingEngineRPCHandler)
 
 	// ── HTTP mux — public + protected ────────────────────────────────────────
 	protected := http.NewServeMux()
@@ -236,7 +286,7 @@ func main() {
 	protected.Handle(pmsRPCPath, rpcMux)
 	protected.Handle(pricingRPCPath, rpcMux)
 
-	mux.Handle("/", auth.NewMiddleware(verifier, store, wos)(protected))
+	mux.Handle("/", auth.NewMiddleware(verifier, store, wos, roleBinder)(protected))
 
 	port := os.Getenv("PORT")
 	if port == "" {

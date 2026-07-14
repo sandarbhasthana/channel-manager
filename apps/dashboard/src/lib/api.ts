@@ -361,3 +361,161 @@ export async function bulkUpsertRates(points: RatePoint[]): Promise<boolean> {
     throw err;
   }
 }
+
+// ── BookingEngineService ────────────────────────────────────────────────────
+//
+// The direct (own-website) sales channel. Field casing follows Connect's JSON
+// codec: responses are camelCase, and int64 (Money.amountMinor) arrives as a
+// string. CalendarDate is { year, month, day }; timestamps are RFC3339 strings.
+
+export interface DirectReservation {
+  id: string;
+  propertyId: string;
+  confirmationCode: string;
+  guestName: string;
+  checkIn?: { year: number; month: number; day: number };
+  checkOut?: { year: number; month: number; day: number };
+  status: string;
+  total?: { amountMinor: string; currency: string };
+  bookedAt: string;
+}
+
+export interface BookingEngineSettings {
+  propertyId: string;
+  directChannelEnabled: boolean;
+  // "pms" | "cm" — where the booking engine routes stay actions (Phase 4).
+  bookingRoute?: string;
+  // 0–100 canary ramp for the "cm" route.
+  bookingRoutePercent?: number;
+}
+
+export async function listDirectReservations(
+  propertyId: string,
+  pageToken = ""
+): Promise<{ reservations: DirectReservation[]; nextPageToken: string }> {
+  try {
+    const data = await rpc<{ reservations?: DirectReservation[]; page?: { nextPageToken?: string } }>(
+      "/bookingengine.v1.BookingEngineService/ListDirectReservations",
+      { property_id: propertyId, page: { page_size: 50, page_token: pageToken } }
+    );
+    return {
+      reservations: data.reservations ?? [],
+      nextPageToken: data.page?.nextPageToken ?? "",
+    };
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("Error listing direct reservations:", err);
+    return { reservations: [], nextPageToken: "" };
+  }
+}
+
+export async function getBookingEngineSettings(propertyId: string): Promise<BookingEngineSettings | null> {
+  try {
+    const data = await rpc<{ settings: BookingEngineSettings }>(
+      "/bookingengine.v1.BookingEngineService/GetSettings",
+      { property_id: propertyId }
+    );
+    return data.settings ?? null;
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("Error fetching booking-engine settings:", err);
+    return null;
+  }
+}
+
+export async function updateBookingEngineSettings(input: {
+  propertyId: string;
+  directChannelEnabled: boolean;
+  bookingRoute: string;
+  bookingRoutePercent: number;
+}): Promise<BookingEngineSettings> {
+  const data = await rpc<{ settings: BookingEngineSettings }>(
+    "/bookingengine.v1.BookingEngineService/UpdateSettings",
+    {
+      property_id: input.propertyId,
+      direct_channel_enabled: input.directChannelEnabled,
+      booking_route: input.bookingRoute,
+      booking_route_percent: input.bookingRoutePercent,
+    }
+  );
+  return data.settings;
+}
+
+// ── Promo codes (coupons) ───────────────────────────────────────────────────
+// CM owns promo definitions and the redemption counter. Responses are camelCase
+// (protojson default); max_uses 0 means unlimited.
+
+export interface PromoCode {
+  id: string;
+  propertyId?: string;
+  code: string;
+  description?: string;
+  discountPct: number;
+  maxUses?: number; // 0 / absent = unlimited
+  uses?: number;
+  validFrom?: string;
+  validUntil?: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PromoCodeInput {
+  id?: string;
+  propertyId?: string;
+  code: string;
+  description?: string;
+  discountPct: number;
+  maxUses?: number;
+  validFrom?: string;
+  validUntil?: string;
+  isActive: boolean;
+}
+
+function toPromoWire(input: PromoCodeInput): Record<string, unknown> {
+  return {
+    id: input.id,
+    property_id: input.propertyId ?? "",
+    code: input.code,
+    description: input.description ?? "",
+    discount_pct: input.discountPct,
+    max_uses: input.maxUses ?? 0,
+    valid_from: input.validFrom,
+    valid_until: input.validUntil,
+    is_active: input.isActive,
+  };
+}
+
+export async function listPromoCodes(): Promise<PromoCode[]> {
+  try {
+    const data = await rpc<{ promoCodes?: PromoCode[] }>(
+      "/pricing.v1.PricingService/ListPromoCodes",
+      {}
+    );
+    return data.promoCodes ?? [];
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("Error listing promo codes:", err);
+    return [];
+  }
+}
+
+export async function createPromoCode(input: PromoCodeInput): Promise<PromoCode> {
+  const data = await rpc<{ promoCode: PromoCode }>(
+    "/pricing.v1.PricingService/CreatePromoCode",
+    { promo_code: toPromoWire(input) }
+  );
+  return data.promoCode;
+}
+
+export async function updatePromoCode(input: PromoCodeInput): Promise<PromoCode> {
+  const data = await rpc<{ promoCode: PromoCode }>(
+    "/pricing.v1.PricingService/UpdatePromoCode",
+    { promo_code: toPromoWire(input) }
+  );
+  return data.promoCode;
+}
+
+export async function deletePromoCode(id: string): Promise<void> {
+  await rpc("/pricing.v1.PricingService/DeletePromoCode", { id });
+}

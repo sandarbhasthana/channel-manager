@@ -213,6 +213,476 @@ func (x *RatePoint) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+// PromoCode is a discount code owned by the organization. property_id empty
+// means it applies org-wide. max_uses 0 means unlimited.
+type PromoCode struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	PropertyId    string                 `protobuf:"bytes,2,opt,name=property_id,json=propertyId,proto3" json:"property_id,omitempty"`
+	Code          string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
+	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	DiscountPct   float64                `protobuf:"fixed64,5,opt,name=discount_pct,json=discountPct,proto3" json:"discount_pct,omitempty"`
+	MaxUses       int32                  `protobuf:"varint,6,opt,name=max_uses,json=maxUses,proto3" json:"max_uses,omitempty"`
+	Uses          int32                  `protobuf:"varint,7,opt,name=uses,proto3" json:"uses,omitempty"`
+	ValidFrom     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=valid_from,json=validFrom,proto3" json:"valid_from,omitempty"`
+	ValidUntil    *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=valid_until,json=validUntil,proto3" json:"valid_until,omitempty"`
+	IsActive      bool                   `protobuf:"varint,10,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PromoCode) Reset() {
+	*x = PromoCode{}
+	mi := &file_pricing_v1_pricing_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PromoCode) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PromoCode) ProtoMessage() {}
+
+func (x *PromoCode) ProtoReflect() protoreflect.Message {
+	mi := &file_pricing_v1_pricing_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PromoCode.ProtoReflect.Descriptor instead.
+func (*PromoCode) Descriptor() ([]byte, []int) {
+	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *PromoCode) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PromoCode) GetPropertyId() string {
+	if x != nil {
+		return x.PropertyId
+	}
+	return ""
+}
+
+func (x *PromoCode) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *PromoCode) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *PromoCode) GetDiscountPct() float64 {
+	if x != nil {
+		return x.DiscountPct
+	}
+	return 0
+}
+
+func (x *PromoCode) GetMaxUses() int32 {
+	if x != nil {
+		return x.MaxUses
+	}
+	return 0
+}
+
+func (x *PromoCode) GetUses() int32 {
+	if x != nil {
+		return x.Uses
+	}
+	return 0
+}
+
+func (x *PromoCode) GetValidFrom() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ValidFrom
+	}
+	return nil
+}
+
+func (x *PromoCode) GetValidUntil() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ValidUntil
+	}
+	return nil
+}
+
+func (x *PromoCode) GetIsActive() bool {
+	if x != nil {
+		return x.IsActive
+	}
+	return false
+}
+
+func (x *PromoCode) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *PromoCode) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+type ListPromoCodesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPromoCodesRequest) Reset() {
+	*x = ListPromoCodesRequest{}
+	mi := &file_pricing_v1_pricing_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPromoCodesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPromoCodesRequest) ProtoMessage() {}
+
+func (x *ListPromoCodesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pricing_v1_pricing_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPromoCodesRequest.ProtoReflect.Descriptor instead.
+func (*ListPromoCodesRequest) Descriptor() ([]byte, []int) {
+	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{3}
+}
+
+type ListPromoCodesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PromoCodes    []*PromoCode           `protobuf:"bytes,1,rep,name=promo_codes,json=promoCodes,proto3" json:"promo_codes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPromoCodesResponse) Reset() {
+	*x = ListPromoCodesResponse{}
+	mi := &file_pricing_v1_pricing_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPromoCodesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPromoCodesResponse) ProtoMessage() {}
+
+func (x *ListPromoCodesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pricing_v1_pricing_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPromoCodesResponse.ProtoReflect.Descriptor instead.
+func (*ListPromoCodesResponse) Descriptor() ([]byte, []int) {
+	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ListPromoCodesResponse) GetPromoCodes() []*PromoCode {
+	if x != nil {
+		return x.PromoCodes
+	}
+	return nil
+}
+
+type CreatePromoCodeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PromoCode     *PromoCode             `protobuf:"bytes,1,opt,name=promo_code,json=promoCode,proto3" json:"promo_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreatePromoCodeRequest) Reset() {
+	*x = CreatePromoCodeRequest{}
+	mi := &file_pricing_v1_pricing_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreatePromoCodeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreatePromoCodeRequest) ProtoMessage() {}
+
+func (x *CreatePromoCodeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pricing_v1_pricing_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreatePromoCodeRequest.ProtoReflect.Descriptor instead.
+func (*CreatePromoCodeRequest) Descriptor() ([]byte, []int) {
+	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *CreatePromoCodeRequest) GetPromoCode() *PromoCode {
+	if x != nil {
+		return x.PromoCode
+	}
+	return nil
+}
+
+type CreatePromoCodeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PromoCode     *PromoCode             `protobuf:"bytes,1,opt,name=promo_code,json=promoCode,proto3" json:"promo_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreatePromoCodeResponse) Reset() {
+	*x = CreatePromoCodeResponse{}
+	mi := &file_pricing_v1_pricing_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreatePromoCodeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreatePromoCodeResponse) ProtoMessage() {}
+
+func (x *CreatePromoCodeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pricing_v1_pricing_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreatePromoCodeResponse.ProtoReflect.Descriptor instead.
+func (*CreatePromoCodeResponse) Descriptor() ([]byte, []int) {
+	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *CreatePromoCodeResponse) GetPromoCode() *PromoCode {
+	if x != nil {
+		return x.PromoCode
+	}
+	return nil
+}
+
+type UpdatePromoCodeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PromoCode     *PromoCode             `protobuf:"bytes,1,opt,name=promo_code,json=promoCode,proto3" json:"promo_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdatePromoCodeRequest) Reset() {
+	*x = UpdatePromoCodeRequest{}
+	mi := &file_pricing_v1_pricing_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdatePromoCodeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatePromoCodeRequest) ProtoMessage() {}
+
+func (x *UpdatePromoCodeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pricing_v1_pricing_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdatePromoCodeRequest.ProtoReflect.Descriptor instead.
+func (*UpdatePromoCodeRequest) Descriptor() ([]byte, []int) {
+	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *UpdatePromoCodeRequest) GetPromoCode() *PromoCode {
+	if x != nil {
+		return x.PromoCode
+	}
+	return nil
+}
+
+type UpdatePromoCodeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PromoCode     *PromoCode             `protobuf:"bytes,1,opt,name=promo_code,json=promoCode,proto3" json:"promo_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdatePromoCodeResponse) Reset() {
+	*x = UpdatePromoCodeResponse{}
+	mi := &file_pricing_v1_pricing_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdatePromoCodeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatePromoCodeResponse) ProtoMessage() {}
+
+func (x *UpdatePromoCodeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pricing_v1_pricing_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdatePromoCodeResponse.ProtoReflect.Descriptor instead.
+func (*UpdatePromoCodeResponse) Descriptor() ([]byte, []int) {
+	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *UpdatePromoCodeResponse) GetPromoCode() *PromoCode {
+	if x != nil {
+		return x.PromoCode
+	}
+	return nil
+}
+
+type DeletePromoCodeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeletePromoCodeRequest) Reset() {
+	*x = DeletePromoCodeRequest{}
+	mi := &file_pricing_v1_pricing_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeletePromoCodeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeletePromoCodeRequest) ProtoMessage() {}
+
+func (x *DeletePromoCodeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pricing_v1_pricing_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeletePromoCodeRequest.ProtoReflect.Descriptor instead.
+func (*DeletePromoCodeRequest) Descriptor() ([]byte, []int) {
+	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *DeletePromoCodeRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type DeletePromoCodeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeletePromoCodeResponse) Reset() {
+	*x = DeletePromoCodeResponse{}
+	mi := &file_pricing_v1_pricing_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeletePromoCodeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeletePromoCodeResponse) ProtoMessage() {}
+
+func (x *DeletePromoCodeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pricing_v1_pricing_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeletePromoCodeResponse.ProtoReflect.Descriptor instead.
+func (*DeletePromoCodeResponse) Descriptor() ([]byte, []int) {
+	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{10}
+}
+
 type ListRatePlansRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PropertyId    string                 `protobuf:"bytes,1,opt,name=property_id,json=propertyId,proto3" json:"property_id,omitempty"`
@@ -223,7 +693,7 @@ type ListRatePlansRequest struct {
 
 func (x *ListRatePlansRequest) Reset() {
 	*x = ListRatePlansRequest{}
-	mi := &file_pricing_v1_pricing_proto_msgTypes[2]
+	mi := &file_pricing_v1_pricing_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -235,7 +705,7 @@ func (x *ListRatePlansRequest) String() string {
 func (*ListRatePlansRequest) ProtoMessage() {}
 
 func (x *ListRatePlansRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pricing_v1_pricing_proto_msgTypes[2]
+	mi := &file_pricing_v1_pricing_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -248,7 +718,7 @@ func (x *ListRatePlansRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRatePlansRequest.ProtoReflect.Descriptor instead.
 func (*ListRatePlansRequest) Descriptor() ([]byte, []int) {
-	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{2}
+	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ListRatePlansRequest) GetPropertyId() string {
@@ -275,7 +745,7 @@ type ListRatePlansResponse struct {
 
 func (x *ListRatePlansResponse) Reset() {
 	*x = ListRatePlansResponse{}
-	mi := &file_pricing_v1_pricing_proto_msgTypes[3]
+	mi := &file_pricing_v1_pricing_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -287,7 +757,7 @@ func (x *ListRatePlansResponse) String() string {
 func (*ListRatePlansResponse) ProtoMessage() {}
 
 func (x *ListRatePlansResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pricing_v1_pricing_proto_msgTypes[3]
+	mi := &file_pricing_v1_pricing_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -300,7 +770,7 @@ func (x *ListRatePlansResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRatePlansResponse.ProtoReflect.Descriptor instead.
 func (*ListRatePlansResponse) Descriptor() ([]byte, []int) {
-	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{3}
+	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListRatePlansResponse) GetPlans() []*RatePlan {
@@ -329,7 +799,7 @@ type GetRatesRequest struct {
 
 func (x *GetRatesRequest) Reset() {
 	*x = GetRatesRequest{}
-	mi := &file_pricing_v1_pricing_proto_msgTypes[4]
+	mi := &file_pricing_v1_pricing_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -341,7 +811,7 @@ func (x *GetRatesRequest) String() string {
 func (*GetRatesRequest) ProtoMessage() {}
 
 func (x *GetRatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pricing_v1_pricing_proto_msgTypes[4]
+	mi := &file_pricing_v1_pricing_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -354,7 +824,7 @@ func (x *GetRatesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRatesRequest.ProtoReflect.Descriptor instead.
 func (*GetRatesRequest) Descriptor() ([]byte, []int) {
-	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{4}
+	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetRatesRequest) GetPropertyId() string {
@@ -394,7 +864,7 @@ type GetRatesResponse struct {
 
 func (x *GetRatesResponse) Reset() {
 	*x = GetRatesResponse{}
-	mi := &file_pricing_v1_pricing_proto_msgTypes[5]
+	mi := &file_pricing_v1_pricing_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -406,7 +876,7 @@ func (x *GetRatesResponse) String() string {
 func (*GetRatesResponse) ProtoMessage() {}
 
 func (x *GetRatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pricing_v1_pricing_proto_msgTypes[5]
+	mi := &file_pricing_v1_pricing_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -419,7 +889,7 @@ func (x *GetRatesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRatesResponse.ProtoReflect.Descriptor instead.
 func (*GetRatesResponse) Descriptor() ([]byte, []int) {
-	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{5}
+	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetRatesResponse) GetPoints() []*RatePoint {
@@ -440,7 +910,7 @@ type BulkUpsertRatesRequest struct {
 
 func (x *BulkUpsertRatesRequest) Reset() {
 	*x = BulkUpsertRatesRequest{}
-	mi := &file_pricing_v1_pricing_proto_msgTypes[6]
+	mi := &file_pricing_v1_pricing_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -452,7 +922,7 @@ func (x *BulkUpsertRatesRequest) String() string {
 func (*BulkUpsertRatesRequest) ProtoMessage() {}
 
 func (x *BulkUpsertRatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_pricing_v1_pricing_proto_msgTypes[6]
+	mi := &file_pricing_v1_pricing_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -465,7 +935,7 @@ func (x *BulkUpsertRatesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BulkUpsertRatesRequest.ProtoReflect.Descriptor instead.
 func (*BulkUpsertRatesRequest) Descriptor() ([]byte, []int) {
-	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{6}
+	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *BulkUpsertRatesRequest) GetPoints() []*RatePoint {
@@ -499,7 +969,7 @@ type BulkUpsertRatesResponse struct {
 
 func (x *BulkUpsertRatesResponse) Reset() {
 	*x = BulkUpsertRatesResponse{}
-	mi := &file_pricing_v1_pricing_proto_msgTypes[7]
+	mi := &file_pricing_v1_pricing_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -511,7 +981,7 @@ func (x *BulkUpsertRatesResponse) String() string {
 func (*BulkUpsertRatesResponse) ProtoMessage() {}
 
 func (x *BulkUpsertRatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_pricing_v1_pricing_proto_msgTypes[7]
+	mi := &file_pricing_v1_pricing_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -524,7 +994,7 @@ func (x *BulkUpsertRatesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BulkUpsertRatesResponse.ProtoReflect.Descriptor instead.
 func (*BulkUpsertRatesResponse) Descriptor() ([]byte, []int) {
-	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{7}
+	return file_pricing_v1_pricing_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *BulkUpsertRatesResponse) GetRowsAffected() int32 {
@@ -569,7 +1039,45 @@ const file_pricing_v1_pricing_proto_rawDesc = "" +
 	"\x04date\x18\x04 \x01(\v2\x17.common.v1.CalendarDateR\x04date\x12(\n" +
 	"\x06amount\x18\x05 \x01(\v2\x10.common.v1.MoneyR\x06amount\x129\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"c\n" +
+	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xcf\x03\n" +
+	"\tPromoCode\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1f\n" +
+	"\vproperty_id\x18\x02 \x01(\tR\n" +
+	"propertyId\x12\x12\n" +
+	"\x04code\x18\x03 \x01(\tR\x04code\x12 \n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\x12!\n" +
+	"\fdiscount_pct\x18\x05 \x01(\x01R\vdiscountPct\x12\x19\n" +
+	"\bmax_uses\x18\x06 \x01(\x05R\amaxUses\x12\x12\n" +
+	"\x04uses\x18\a \x01(\x05R\x04uses\x129\n" +
+	"\n" +
+	"valid_from\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tvalidFrom\x12;\n" +
+	"\vvalid_until\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"validUntil\x12\x1b\n" +
+	"\tis_active\x18\n" +
+	" \x01(\bR\bisActive\x129\n" +
+	"\n" +
+	"created_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x17\n" +
+	"\x15ListPromoCodesRequest\"P\n" +
+	"\x16ListPromoCodesResponse\x126\n" +
+	"\vpromo_codes\x18\x01 \x03(\v2\x15.pricing.v1.PromoCodeR\n" +
+	"promoCodes\"N\n" +
+	"\x16CreatePromoCodeRequest\x124\n" +
+	"\n" +
+	"promo_code\x18\x01 \x01(\v2\x15.pricing.v1.PromoCodeR\tpromoCode\"O\n" +
+	"\x17CreatePromoCodeResponse\x124\n" +
+	"\n" +
+	"promo_code\x18\x01 \x01(\v2\x15.pricing.v1.PromoCodeR\tpromoCode\"N\n" +
+	"\x16UpdatePromoCodeRequest\x124\n" +
+	"\n" +
+	"promo_code\x18\x01 \x01(\v2\x15.pricing.v1.PromoCodeR\tpromoCode\"O\n" +
+	"\x17UpdatePromoCodeResponse\x124\n" +
+	"\n" +
+	"promo_code\x18\x01 \x01(\v2\x15.pricing.v1.PromoCodeR\tpromoCode\"(\n" +
+	"\x16DeletePromoCodeRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\x19\n" +
+	"\x17DeletePromoCodeResponse\"c\n" +
 	"\x14ListRatePlansRequest\x12\x1f\n" +
 	"\vproperty_id\x18\x01 \x01(\tR\n" +
 	"propertyId\x12*\n" +
@@ -593,11 +1101,15 @@ const file_pricing_v1_pricing_proto_rawDesc = "" +
 	"\x05audit\x18\x03 \x01(\v2\x18.common.v1.AuditMetadataR\x05audit\"Y\n" +
 	"\x17BulkUpsertRatesResponse\x12#\n" +
 	"\rrows_affected\x18\x01 \x01(\x05R\frowsAffected\x12\x19\n" +
-	"\bevent_id\x18\x02 \x01(\tR\aeventId2\x89\x02\n" +
+	"\bevent_id\x18\x02 \x01(\tR\aeventId2\xf6\x04\n" +
 	"\x0ePricingService\x12T\n" +
 	"\rListRatePlans\x12 .pricing.v1.ListRatePlansRequest\x1a!.pricing.v1.ListRatePlansResponse\x12E\n" +
 	"\bGetRates\x12\x1b.pricing.v1.GetRatesRequest\x1a\x1c.pricing.v1.GetRatesResponse\x12Z\n" +
-	"\x0fBulkUpsertRates\x12\".pricing.v1.BulkUpsertRatesRequest\x1a#.pricing.v1.BulkUpsertRatesResponseBHZFgithub.com/channel-manager/channel-manager/gen/go/pricing/v1;pricingv1b\x06proto3"
+	"\x0fBulkUpsertRates\x12\".pricing.v1.BulkUpsertRatesRequest\x1a#.pricing.v1.BulkUpsertRatesResponse\x12W\n" +
+	"\x0eListPromoCodes\x12!.pricing.v1.ListPromoCodesRequest\x1a\".pricing.v1.ListPromoCodesResponse\x12Z\n" +
+	"\x0fCreatePromoCode\x12\".pricing.v1.CreatePromoCodeRequest\x1a#.pricing.v1.CreatePromoCodeResponse\x12Z\n" +
+	"\x0fUpdatePromoCode\x12\".pricing.v1.UpdatePromoCodeRequest\x1a#.pricing.v1.UpdatePromoCodeResponse\x12Z\n" +
+	"\x0fDeletePromoCode\x12\".pricing.v1.DeletePromoCodeRequest\x1a#.pricing.v1.DeletePromoCodeResponseBHZFgithub.com/channel-manager/channel-manager/gen/go/pricing/v1;pricingv1b\x06proto3"
 
 var (
 	file_pricing_v1_pricing_proto_rawDescOnce sync.Once
@@ -611,50 +1123,76 @@ func file_pricing_v1_pricing_proto_rawDescGZIP() []byte {
 	return file_pricing_v1_pricing_proto_rawDescData
 }
 
-var file_pricing_v1_pricing_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_pricing_v1_pricing_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_pricing_v1_pricing_proto_goTypes = []any{
 	(*RatePlan)(nil),                // 0: pricing.v1.RatePlan
 	(*RatePoint)(nil),               // 1: pricing.v1.RatePoint
-	(*ListRatePlansRequest)(nil),    // 2: pricing.v1.ListRatePlansRequest
-	(*ListRatePlansResponse)(nil),   // 3: pricing.v1.ListRatePlansResponse
-	(*GetRatesRequest)(nil),         // 4: pricing.v1.GetRatesRequest
-	(*GetRatesResponse)(nil),        // 5: pricing.v1.GetRatesResponse
-	(*BulkUpsertRatesRequest)(nil),  // 6: pricing.v1.BulkUpsertRatesRequest
-	(*BulkUpsertRatesResponse)(nil), // 7: pricing.v1.BulkUpsertRatesResponse
-	(*timestamppb.Timestamp)(nil),   // 8: google.protobuf.Timestamp
-	(*v1.CalendarDate)(nil),         // 9: common.v1.CalendarDate
-	(*v1.Money)(nil),                // 10: common.v1.Money
-	(*v1.PageRequest)(nil),          // 11: common.v1.PageRequest
-	(*v1.PageResponse)(nil),         // 12: common.v1.PageResponse
-	(*v1.DateRange)(nil),            // 13: common.v1.DateRange
-	(*v1.IdempotencyKey)(nil),       // 14: common.v1.IdempotencyKey
-	(*v1.AuditMetadata)(nil),        // 15: common.v1.AuditMetadata
+	(*PromoCode)(nil),               // 2: pricing.v1.PromoCode
+	(*ListPromoCodesRequest)(nil),   // 3: pricing.v1.ListPromoCodesRequest
+	(*ListPromoCodesResponse)(nil),  // 4: pricing.v1.ListPromoCodesResponse
+	(*CreatePromoCodeRequest)(nil),  // 5: pricing.v1.CreatePromoCodeRequest
+	(*CreatePromoCodeResponse)(nil), // 6: pricing.v1.CreatePromoCodeResponse
+	(*UpdatePromoCodeRequest)(nil),  // 7: pricing.v1.UpdatePromoCodeRequest
+	(*UpdatePromoCodeResponse)(nil), // 8: pricing.v1.UpdatePromoCodeResponse
+	(*DeletePromoCodeRequest)(nil),  // 9: pricing.v1.DeletePromoCodeRequest
+	(*DeletePromoCodeResponse)(nil), // 10: pricing.v1.DeletePromoCodeResponse
+	(*ListRatePlansRequest)(nil),    // 11: pricing.v1.ListRatePlansRequest
+	(*ListRatePlansResponse)(nil),   // 12: pricing.v1.ListRatePlansResponse
+	(*GetRatesRequest)(nil),         // 13: pricing.v1.GetRatesRequest
+	(*GetRatesResponse)(nil),        // 14: pricing.v1.GetRatesResponse
+	(*BulkUpsertRatesRequest)(nil),  // 15: pricing.v1.BulkUpsertRatesRequest
+	(*BulkUpsertRatesResponse)(nil), // 16: pricing.v1.BulkUpsertRatesResponse
+	(*timestamppb.Timestamp)(nil),   // 17: google.protobuf.Timestamp
+	(*v1.CalendarDate)(nil),         // 18: common.v1.CalendarDate
+	(*v1.Money)(nil),                // 19: common.v1.Money
+	(*v1.PageRequest)(nil),          // 20: common.v1.PageRequest
+	(*v1.PageResponse)(nil),         // 21: common.v1.PageResponse
+	(*v1.DateRange)(nil),            // 22: common.v1.DateRange
+	(*v1.IdempotencyKey)(nil),       // 23: common.v1.IdempotencyKey
+	(*v1.AuditMetadata)(nil),        // 24: common.v1.AuditMetadata
 }
 var file_pricing_v1_pricing_proto_depIdxs = []int32{
-	8,  // 0: pricing.v1.RatePlan.created_at:type_name -> google.protobuf.Timestamp
-	8,  // 1: pricing.v1.RatePlan.updated_at:type_name -> google.protobuf.Timestamp
-	9,  // 2: pricing.v1.RatePoint.date:type_name -> common.v1.CalendarDate
-	10, // 3: pricing.v1.RatePoint.amount:type_name -> common.v1.Money
-	8,  // 4: pricing.v1.RatePoint.updated_at:type_name -> google.protobuf.Timestamp
-	11, // 5: pricing.v1.ListRatePlansRequest.page:type_name -> common.v1.PageRequest
-	0,  // 6: pricing.v1.ListRatePlansResponse.plans:type_name -> pricing.v1.RatePlan
-	12, // 7: pricing.v1.ListRatePlansResponse.page:type_name -> common.v1.PageResponse
-	13, // 8: pricing.v1.GetRatesRequest.range:type_name -> common.v1.DateRange
-	1,  // 9: pricing.v1.GetRatesResponse.points:type_name -> pricing.v1.RatePoint
-	1,  // 10: pricing.v1.BulkUpsertRatesRequest.points:type_name -> pricing.v1.RatePoint
-	14, // 11: pricing.v1.BulkUpsertRatesRequest.idempotency_key:type_name -> common.v1.IdempotencyKey
-	15, // 12: pricing.v1.BulkUpsertRatesRequest.audit:type_name -> common.v1.AuditMetadata
-	2,  // 13: pricing.v1.PricingService.ListRatePlans:input_type -> pricing.v1.ListRatePlansRequest
-	4,  // 14: pricing.v1.PricingService.GetRates:input_type -> pricing.v1.GetRatesRequest
-	6,  // 15: pricing.v1.PricingService.BulkUpsertRates:input_type -> pricing.v1.BulkUpsertRatesRequest
-	3,  // 16: pricing.v1.PricingService.ListRatePlans:output_type -> pricing.v1.ListRatePlansResponse
-	5,  // 17: pricing.v1.PricingService.GetRates:output_type -> pricing.v1.GetRatesResponse
-	7,  // 18: pricing.v1.PricingService.BulkUpsertRates:output_type -> pricing.v1.BulkUpsertRatesResponse
-	16, // [16:19] is the sub-list for method output_type
-	13, // [13:16] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	17, // 0: pricing.v1.RatePlan.created_at:type_name -> google.protobuf.Timestamp
+	17, // 1: pricing.v1.RatePlan.updated_at:type_name -> google.protobuf.Timestamp
+	18, // 2: pricing.v1.RatePoint.date:type_name -> common.v1.CalendarDate
+	19, // 3: pricing.v1.RatePoint.amount:type_name -> common.v1.Money
+	17, // 4: pricing.v1.RatePoint.updated_at:type_name -> google.protobuf.Timestamp
+	17, // 5: pricing.v1.PromoCode.valid_from:type_name -> google.protobuf.Timestamp
+	17, // 6: pricing.v1.PromoCode.valid_until:type_name -> google.protobuf.Timestamp
+	17, // 7: pricing.v1.PromoCode.created_at:type_name -> google.protobuf.Timestamp
+	17, // 8: pricing.v1.PromoCode.updated_at:type_name -> google.protobuf.Timestamp
+	2,  // 9: pricing.v1.ListPromoCodesResponse.promo_codes:type_name -> pricing.v1.PromoCode
+	2,  // 10: pricing.v1.CreatePromoCodeRequest.promo_code:type_name -> pricing.v1.PromoCode
+	2,  // 11: pricing.v1.CreatePromoCodeResponse.promo_code:type_name -> pricing.v1.PromoCode
+	2,  // 12: pricing.v1.UpdatePromoCodeRequest.promo_code:type_name -> pricing.v1.PromoCode
+	2,  // 13: pricing.v1.UpdatePromoCodeResponse.promo_code:type_name -> pricing.v1.PromoCode
+	20, // 14: pricing.v1.ListRatePlansRequest.page:type_name -> common.v1.PageRequest
+	0,  // 15: pricing.v1.ListRatePlansResponse.plans:type_name -> pricing.v1.RatePlan
+	21, // 16: pricing.v1.ListRatePlansResponse.page:type_name -> common.v1.PageResponse
+	22, // 17: pricing.v1.GetRatesRequest.range:type_name -> common.v1.DateRange
+	1,  // 18: pricing.v1.GetRatesResponse.points:type_name -> pricing.v1.RatePoint
+	1,  // 19: pricing.v1.BulkUpsertRatesRequest.points:type_name -> pricing.v1.RatePoint
+	23, // 20: pricing.v1.BulkUpsertRatesRequest.idempotency_key:type_name -> common.v1.IdempotencyKey
+	24, // 21: pricing.v1.BulkUpsertRatesRequest.audit:type_name -> common.v1.AuditMetadata
+	11, // 22: pricing.v1.PricingService.ListRatePlans:input_type -> pricing.v1.ListRatePlansRequest
+	13, // 23: pricing.v1.PricingService.GetRates:input_type -> pricing.v1.GetRatesRequest
+	15, // 24: pricing.v1.PricingService.BulkUpsertRates:input_type -> pricing.v1.BulkUpsertRatesRequest
+	3,  // 25: pricing.v1.PricingService.ListPromoCodes:input_type -> pricing.v1.ListPromoCodesRequest
+	5,  // 26: pricing.v1.PricingService.CreatePromoCode:input_type -> pricing.v1.CreatePromoCodeRequest
+	7,  // 27: pricing.v1.PricingService.UpdatePromoCode:input_type -> pricing.v1.UpdatePromoCodeRequest
+	9,  // 28: pricing.v1.PricingService.DeletePromoCode:input_type -> pricing.v1.DeletePromoCodeRequest
+	12, // 29: pricing.v1.PricingService.ListRatePlans:output_type -> pricing.v1.ListRatePlansResponse
+	14, // 30: pricing.v1.PricingService.GetRates:output_type -> pricing.v1.GetRatesResponse
+	16, // 31: pricing.v1.PricingService.BulkUpsertRates:output_type -> pricing.v1.BulkUpsertRatesResponse
+	4,  // 32: pricing.v1.PricingService.ListPromoCodes:output_type -> pricing.v1.ListPromoCodesResponse
+	6,  // 33: pricing.v1.PricingService.CreatePromoCode:output_type -> pricing.v1.CreatePromoCodeResponse
+	8,  // 34: pricing.v1.PricingService.UpdatePromoCode:output_type -> pricing.v1.UpdatePromoCodeResponse
+	10, // 35: pricing.v1.PricingService.DeletePromoCode:output_type -> pricing.v1.DeletePromoCodeResponse
+	29, // [29:36] is the sub-list for method output_type
+	22, // [22:29] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_pricing_v1_pricing_proto_init() }
@@ -668,7 +1206,7 @@ func file_pricing_v1_pricing_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pricing_v1_pricing_proto_rawDesc), len(file_pricing_v1_pricing_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

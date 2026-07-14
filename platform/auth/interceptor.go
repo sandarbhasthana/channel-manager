@@ -14,7 +14,10 @@ import (
 //  2. Enforces RBAC via Casbin (sub=userID, dom=orgID, obj=procedure, act=read|write).
 //
 // Unauthenticated procedures should be mounted without this interceptor.
-func NewUnaryInterceptor(e *casbin.Enforcer) connect.UnaryInterceptorFunc {
+//
+// Takes a SyncedEnforcer: Enforce runs concurrently with the policy writes the
+// HTTP middleware performs via RoleBinder.
+func NewUnaryInterceptor(e *casbin.SyncedEnforcer) connect.UnaryInterceptorFunc {
 	return connect.UnaryInterceptorFunc(func(next connect.UnaryFunc) connect.UnaryFunc {
 		return connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
 			tc, err := FromContext(ctx)
@@ -23,16 +26,20 @@ func NewUnaryInterceptor(e *casbin.Enforcer) connect.UnaryInterceptorFunc {
 			}
 
 			// RBAC enforcement: (sub=userID, dom=orgID, obj=procedure, act=read|write).
-			if tc.Role != "admin" {
-				procedure := req.Spec().Procedure
-				action := actionFromProcedure(procedure)
-				allowed, err := e.Enforce(tc.UserID, tc.OrgID, procedure, action)
-				if err != nil {
-					return nil, connect.NewError(connect.CodeInternal, errors.New("authorization check failed"))
-				}
-				if !allowed {
-					return nil, connect.NewError(connect.CodePermissionDenied, errors.New("access denied"))
-				}
+			//
+			// Every role goes through Casbin, admins included. There is no
+			// bypass: an admin is permitted because policy grants it "/*" on
+			// both actions, not because the interceptor skips the check. That
+			// keeps one place — rolePermissions — answering "what may this role
+			// do", and makes an empty policy set fail closed instead of open.
+			procedure := req.Spec().Procedure
+			action := actionFromProcedure(procedure)
+			allowed, err := e.Enforce(tc.UserID, tc.OrgID, procedure, action)
+			if err != nil {
+				return nil, connect.NewError(connect.CodeInternal, errors.New("authorization check failed"))
+			}
+			if !allowed {
+				return nil, connect.NewError(connect.CodePermissionDenied, errors.New("access denied"))
 			}
 
 			return next(ctx, req)

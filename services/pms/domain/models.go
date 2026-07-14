@@ -53,6 +53,15 @@ type Property struct {
 	UpdatedAt          time.Time
 }
 
+// ChannelConfig is a property's booking-engine configuration, which the booking
+// engine reads to decide where to route its stay actions. Route is "pms" or
+// "cm"; Percent is the 0–100 canary ramp for the "cm" route.
+type ChannelConfig struct {
+	Enabled bool
+	Route   string
+	Percent int
+}
+
 // PropertySearchFilter filters search_properties.
 type PropertySearchFilter struct {
 	City    string
