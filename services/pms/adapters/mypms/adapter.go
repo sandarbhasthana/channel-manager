@@ -177,10 +177,11 @@ func (a *Adapter) SearchAvailability(ctx context.Context, externalPropertyID str
 		if rtID == "" {
 			rtID = r.RoomType
 		}
+		// The PMS search endpoint returns only bookable rooms and omits a
+		// per-room is_available flag, so a room present in the response is
+		// available by definition. Default the unit count to one physical room.
 		avail := r.AvailableQty
-		if !r.Available && avail == 0 {
-			avail = 0
-		} else if r.Available && avail == 0 {
+		if avail <= 0 {
 			avail = 1
 		}
 		out = append(out, domain.AvailabilityOffer{
@@ -188,7 +189,7 @@ func (a *Adapter) SearchAvailability(ctx context.Context, externalPropertyID str
 			RoomTypeID:     rtID,
 			RoomTypeName:   firstNonEmpty(r.RoomTypeName, r.RoomType),
 			AvailableUnits: avail,
-			IsAvailable:    r.Available,
+			IsAvailable:    true,
 			PricePerNight:  r.PricePerNight,
 			TotalPrice:     r.TotalPrice,
 			Currency:       r.Currency,
@@ -245,8 +246,9 @@ func (a *Adapter) GetQuote(ctx context.Context, externalPropertyID string, q dom
 
 func (a *Adapter) CreateBooking(ctx context.Context, externalPropertyID string, in domain.CreateBookingInput) (*domain.PmsBooking, error) {
 	resp, err := a.client.CreateBooking(ctx, externalPropertyID, CreateBookingRequest{
-		RoomID:    in.RoomID,
-		Checkin:   in.Checkin.Format("2006-01-02"),
+		RoomID:     in.RoomID,
+		RoomTypeID: in.RoomTypeID,
+		Checkin:    in.Checkin.Format("2006-01-02"),
 		Checkout:  in.Checkout.Format("2006-01-02"),
 		GuestName: in.GuestName,
 		Email:     in.Email,

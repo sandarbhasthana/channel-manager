@@ -143,12 +143,15 @@ func main() {
 	// ── In-process event bus ─────────────────────────────────────────────────
 	var bus platformevents.EventBus = inproc.New()
 
-	// ── Redis (idempotency store) ─────────────────────────────────────────────
-	redisAddr := os.Getenv("REDIS_ADDR")
-	if redisAddr == "" {
-		redisAddr = "localhost:6379"
-	}
-	redisClient := redis.NewClient(&redis.Options{Addr: redisAddr})
+	// ── Redis (holds + idempotency store) ─────────────────────────────────────
+	// Use the full Redis config so a password-protected Redis (requirepass)
+	// authenticates; previously only Addr was set, so a secured Redis returned
+	// "NOAUTH Authentication required" on the storefront's hold lookups.
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     cfg.Redis.Addr,
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
+	})
 
 	// ── Inventory service ─────────────────────────────────────────────────────
 	invRepo := inventorypostgres.NewRepository(pool)
@@ -285,6 +288,7 @@ func main() {
 	protected.Handle(chanRPCPath, rpcMux)
 	protected.Handle(pmsRPCPath, rpcMux)
 	protected.Handle(pricingRPCPath, rpcMux)
+	protected.Handle(bookingEngineRPCPath, rpcMux)
 
 	mux.Handle("/", auth.NewMiddleware(verifier, store, wos, roleBinder)(protected))
 

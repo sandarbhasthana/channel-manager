@@ -122,24 +122,36 @@ type AvailabilityRoom struct {
 
 // SearchAvailabilityResponse wraps availability results.
 type SearchAvailabilityResponse struct {
-	Rooms []AvailabilityRoom `json:"rooms"`
-	Data  json.RawMessage    `json:"data"`
+	Rooms          []AvailabilityRoom `json:"rooms"`
+	AvailableRooms []AvailabilityRoom `json:"available_rooms"`
+	Data           json.RawMessage    `json:"data"`
 }
 
 func (r *SearchAvailabilityResponse) RoomsList() []AvailabilityRoom {
 	if len(r.Rooms) > 0 {
 		return r.Rooms
 	}
+	if len(r.AvailableRooms) > 0 {
+		return r.AvailableRooms
+	}
 	if len(r.Data) > 0 {
-		var arr []AvailabilityRoom
-		if err := json.Unmarshal(r.Data, &arr); err == nil {
-			return arr
-		}
+		// The PMS booking webhook nests the list under data.available_rooms;
+		// tolerate data.rooms and a bare data array too.
 		var nested struct {
-			Rooms []AvailabilityRoom `json:"rooms"`
+			Rooms          []AvailabilityRoom `json:"rooms"`
+			AvailableRooms []AvailabilityRoom `json:"available_rooms"`
 		}
-		if err := json.Unmarshal(r.Data, &nested); err == nil && len(nested.Rooms) > 0 {
-			return nested.Rooms
+		if err := json.Unmarshal(r.Data, &nested); err == nil {
+			if len(nested.AvailableRooms) > 0 {
+				return nested.AvailableRooms
+			}
+			if len(nested.Rooms) > 0 {
+				return nested.Rooms
+			}
+		}
+		var arr []AvailabilityRoom
+		if err := json.Unmarshal(r.Data, &arr); err == nil && len(arr) > 0 {
+			return arr
 		}
 	}
 	return nil
@@ -266,9 +278,10 @@ type Quote struct {
 
 // CreateBookingRequest is the body for action create_booking.
 type CreateBookingRequest struct {
-	Action    string `json:"action"`
-	RoomID    string `json:"room_id"`
-	Checkin   string `json:"checkin"`
+	Action     string `json:"action"`
+	RoomID     string `json:"room_id"`
+	RoomTypeID string `json:"room_type_id,omitempty"`
+	Checkin    string `json:"checkin"`
 	Checkout  string `json:"checkout"`
 	GuestName string `json:"guest_name"`
 	Email     string `json:"email,omitempty"`

@@ -163,6 +163,7 @@ type Quote struct {
 // CreateBookingInput parameters for create_booking.
 type CreateBookingInput struct {
 	RoomID    string
+	RoomTypeID string
 	Checkin   time.Time
 	Checkout  time.Time
 	GuestName string

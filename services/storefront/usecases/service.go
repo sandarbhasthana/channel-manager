@@ -471,7 +471,15 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 	if err != nil {
 		return nil, err
 	}
+	// A booking must carry a total. The booking engine derives it server-side;
+	// silently persisting a zero (the old behaviour) hides revenue and is G2.
+	totalAmount := floatOr(body["total_amount"], 0)
+	if totalAmount <= 0 {
+		return nil, errors.New("total_amount is required and must be greater than zero")
+	}
+
 	roomID, _ := body["room_id"].(string)
+	roomTypeID, _ := body["room_type_id"].(string)
 
 	// A hold is optional but strongly preferred: it is what makes the
 	// last-room race safe. When present it also authoritatively supplies the room.
@@ -486,9 +494,15 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 			return nil, errors.New("hold does not belong to this property")
 		}
 		roomID = hold.RoomID
+		if hold.RoomTypeID != "" {
+			roomTypeID = hold.RoomTypeID
+		}
 	}
-	if roomID == "" {
-		return nil, errors.New("room_id or hold_token is required")
+	// A booking identifies its inventory by a specific room, a room type, or a
+	// hold that supplies the room. CM never mints a room number for a preference
+	// booking (D6): room assignment is the PMS's concern.
+	if roomID == "" && roomTypeID == "" {
+		return nil, errors.New("room_id, room_type_id, or hold_token is required")
 	}
 
 	guestName, _ := body["guest_name"].(string)
@@ -500,10 +514,11 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 	notes, _ := body["notes"].(string)
 
 	pmsBooking, err := s.pms.CreateBooking(ctx, prop.ID, pmsdomain.CreateBookingInput{
-		RoomID:    roomID,
-		Checkin:   checkin,
-		Checkout:  checkout,
-		GuestName: guestName,
+		RoomID:     roomID,
+		RoomTypeID: roomTypeID,
+		Checkin:    checkin,
+		Checkout:   checkout,
+		GuestName:  guestName,
 		Email:     email,
 		Phone:     phone,
 		Adults:    intOr(body["adults"], 1),
@@ -586,11 +601,18 @@ func (s *Service) persistReservation(
 		"payment_status": pmsBooking.PaymentStatus,
 	})
 
+	// Prefer the hold's room type; otherwise the caller supplies it directly for
+	// a preference booking that never placed a hold.
+	roomTypeID := hold.RoomTypeID
+	if roomTypeID == "" {
+		roomTypeID, _ = body["room_type_id"].(string)
+	}
+
 	res := &resdomain.Reservation{
 		OrgID:                 tc.OrgID,
 		PropertyID:            prop.ID,
 		ExternalPropertyID:    prop.ExternalID,
-		RoomTypeID:            hold.RoomTypeID,
+		RoomTypeID:            roomTypeID,
 		GuestName:             pmsBooking.GuestName,
 		CheckIn:               checkin,
 		CheckOut:              checkout,

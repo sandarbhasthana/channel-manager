@@ -482,3 +482,49 @@ func TestNilAuditRecorder_DoesNotPanic(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+// A booking that identifies only a room type (a preference booking: no room
+// number and no hold) is accepted and forwards the room type to the PMS. This
+// is G1 -- the old code hard-rejected it and the guest silently lost the booking.
+func TestCreateBooking_RoomTypeOnly_Succeeds(t *testing.T) {
+	h := newHarness()
+	body := createBody(map[string]any{"room_type_id": "rt-deluxe"})
+	delete(body, "room_id")
+
+	out, err := dispatch(t, h, domain.ActionCreateBooking, body)
+	if err != nil {
+		t.Fatalf("room-type-only booking must succeed, got: %v", err)
+	}
+	if h.pms.createCalls != 1 {
+		t.Fatalf("expected the PMS to be called once, got %d", h.pms.createCalls)
+	}
+	if h.pms.createdInput.RoomID != "" {
+		t.Errorf("a preference booking must not carry a room id, got %q", h.pms.createdInput.RoomID)
+	}
+	if h.pms.createdInput.RoomTypeID != "rt-deluxe" {
+		t.Errorf("expected room type forwarded to the PMS, got %q", h.pms.createdInput.RoomTypeID)
+	}
+	if h.res.ingested.RoomTypeID != "rt-deluxe" {
+		t.Errorf("canonical reservation should record the room type, got %q", h.res.ingested.RoomTypeID)
+	}
+	if _, present := out["reconciliation_pending"]; present {
+		t.Error("reconciliation_pending must be absent on success")
+	}
+}
+
+// A create with no total is refused rather than silently persisted as zero (G2).
+func TestCreateBooking_NoTotal_Rejected(t *testing.T) {
+	h := newHarness()
+	body := createBody(nil)
+	delete(body, "total_amount")
+
+	if _, err := dispatch(t, h, domain.ActionCreateBooking, body); err == nil {
+		t.Fatal("expected rejection when total_amount is absent")
+	}
+	if h.pms.createCalls != 0 {
+		t.Error("PMS must not be called when the total is missing")
+	}
+	if h.res.ingestCalls != 0 {
+		t.Error("no reservation may be written when the total is missing")
+	}
+}
