@@ -13,7 +13,7 @@ coverage.html
 # ── Editor / OS ──────────────────────────────────────────────────────────────
 .DS_Store
 .idea/
-.vscode/*
+# .vscode/
 !.vscode/settings.json
 !.vscode/extensions.json
 
@@ -27,3 +27,6 @@ node_modules/
 # ── Build / generated artifacts that we DO commit ────────────────────────────
 # gen/go is intentionally committed — it is the protobuf contract surface
 # consumed by all Go modules in the workspace.
+
+apps/dashboard/.next/
+.claude/

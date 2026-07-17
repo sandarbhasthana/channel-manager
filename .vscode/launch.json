@@ -1,0 +1,40 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API (Go)",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/apps/api",
+      "cwd": "${workspaceFolder}/apps/api",
+      "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "PORT": "8080"
+      }
+    },
+    {
+      "name": "Sync Worker (Go)",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/apps/sync-worker",
+      "cwd": "${workspaceFolder}/apps/sync-worker",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "name": "Dashboard (Next.js)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "pnpm dev",
+      "cwd": "${workspaceFolder}/apps/dashboard"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack (API + Dashboard)",
+      "configurations": ["API (Go)", "Dashboard (Next.js)"],
+      "stopAll": true
+    }
+  ]
+}
