@@ -125,7 +125,7 @@ func main() {
 
 	// Public auth routes.
 	mux.Handle("GET /auth/login", auth.LoginHandler(wos, cfg.Auth.WorkOSClientID, cfg.Auth.WorkOSRedirectURI))
-	mux.Handle("GET /auth/callback", auth.CallbackHandler(wos, store))
+	mux.Handle("GET /auth/callback", auth.CallbackHandler(wos, store, cfg.Auth.WorkOSOrganizationID))
 	mux.Handle("POST /auth/webhook", auth.NewWebhookHandler(cfg.Auth.WorkOSWebhookSecret, store))
 
 	// Password login — cross-origin fetch from the dashboard (CORS required).
@@ -133,7 +133,7 @@ func main() {
 	if dashboardOrigin == "" {
 		dashboardOrigin = "http://localhost:3000"
 	}
-	passwordHandler := withCORS(dashboardOrigin, auth.PasswordLoginHandler(wos, store))
+	passwordHandler := withCORS(dashboardOrigin, auth.PasswordLoginHandler(wos, store, cfg.Auth.WorkOSOrganizationID))
 	mux.Handle("POST /auth/password", passwordHandler)
 	mux.HandleFunc("OPTIONS /auth/password", func(w http.ResponseWriter, r *http.Request) {
 		setCORSHeaders(w, dashboardOrigin)
@@ -290,7 +290,7 @@ func main() {
 	protected.Handle(pricingRPCPath, rpcMux)
 	protected.Handle(bookingEngineRPCPath, rpcMux)
 
-	mux.Handle("/", auth.NewMiddleware(verifier, store, wos, roleBinder)(protected))
+	mux.Handle("/", auth.NewMiddleware(verifier, store, wos, roleBinder, cfg.Auth.WorkOSOrganizationID)(protected))
 
 	port := os.Getenv("PORT")
 	if port == "" {

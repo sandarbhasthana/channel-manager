@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"os"
 
 	"github.com/jackc/pgx/v5"
 	workos "github.com/workos/workos-go/v7"
@@ -24,7 +23,7 @@ import (
 //
 // RLS (SET LOCAL app.current_org_id) is applied at the DB layer inside
 // platform/db.Pool.WithTenant; this middleware only sets the Go context.
-func NewMiddleware(v *Verifier, s *Store, wos *workos.Client, binder *RoleBinder) func(http.Handler) http.Handler {
+func NewMiddleware(v *Verifier, s *Store, wos *workos.Client, binder *RoleBinder, defaultOrganizationID string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Prefer the Authorization header; fall back to the HttpOnly cookie.
@@ -67,8 +66,9 @@ func NewMiddleware(v *Verifier, s *Store, wos *workos.Client, binder *RoleBinder
 
 			orgID := claims.OrganizationID
 			if orgID == "" {
-				// Local dev fallback for Password login
-				orgID = os.Getenv("WORKOS_ORG_ID")
+				// Password and legacy social-login tokens may lack org_id. Bind them
+				// to the deployment's explicitly configured tenant.
+				orgID = defaultOrganizationID
 			}
 
 			if orgID == "" {
@@ -90,7 +90,7 @@ func NewMiddleware(v *Verifier, s *Store, wos *workos.Client, binder *RoleBinder
 			}
 
 			role := claims.Role
-			if orgID == "org_01KQC7BBQNPDKZ07NJ597EYRTX" || orgID == os.Getenv("WORKOS_ORG_ID") {
+			if defaultOrganizationID != "" && orgID == defaultOrganizationID {
 				// Local dev fallback: elevate to admin to avoid local WorkOS RBAC snags
 				role = "admin"
 			}

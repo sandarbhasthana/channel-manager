@@ -58,8 +58,8 @@ type NATSConfig struct {
 type AuthConfig struct {
 	// Provider is a free-form tag (e.g. "workos") used by tooling. Optional.
 	Provider string
-	// Issuer is the expected `iss` claim. For WorkOS this is
-	// "https://api.workos.com".
+	// Issuer is the exact expected `iss` claim. WorkOS User Management tokens
+	// use https://api.workos.com/user_management/<client_id>.
 	Issuer string
 	// JWKSURL is the URL of the IdP's JSON Web Key Set. For WorkOS this is
 	// derived from the client id: https://api.workos.com/sso/jwks/<client_id>.
@@ -73,6 +73,10 @@ type AuthConfig struct {
 	WorkOSClientID       string
 	WorkOSCookiePassword string
 	WorkOSRedirectURI    string
+	// WorkOSOrganizationID pins browser sessions to the tenant used by this
+	// deployment. Without it, social OAuth can return a user-level token with no
+	// org_id, which is unusable by the tenant-scoped API.
+	WorkOSOrganizationID string
 	// WorkOSWebhookSecret is the signing secret WorkOS uses to sign
 	// webhook payloads. Required to verify incoming webhooks; the
 	// handler rejects requests whose HMAC does not match.
@@ -90,6 +94,11 @@ type ObservabilityConfig struct {
 func Load() (*AppConfig, error) {
 	dbPort, _ := strconv.Atoi(getEnv("DB_PORT", "5432"))
 	redisDB, _ := strconv.Atoi(getEnv("REDIS_DB", "0"))
+	workOSClientID := getEnv("WORKOS_CLIENT_ID", "")
+	workOSIssuer := ""
+	if workOSClientID != "" {
+		workOSIssuer = "https://api.workos.com/user_management/" + workOSClientID
+	}
 
 	cfg := &AppConfig{
 		DB: DBConfig{
@@ -112,12 +121,13 @@ func Load() (*AppConfig, error) {
 		},
 		Auth: AuthConfig{
 			Provider:             getEnv("AUTH_PROVIDER", "workos"),
-			Issuer:               getEnv("AUTH_ISSUER", "https://api.workos.com"),
+			Issuer:               getEnv("AUTH_ISSUER", workOSIssuer),
 			JWKSURL:              getEnv("AUTH_JWKS_URL", ""),
 			WorkOSAPIKey:         getEnv("WORKOS_API_KEY", ""),
-			WorkOSClientID:       getEnv("WORKOS_CLIENT_ID", ""),
+			WorkOSClientID:       workOSClientID,
 			WorkOSCookiePassword: getEnv("WORKOS_COOKIE_PASSWORD", ""),
 			WorkOSRedirectURI:    getEnv("WORKOS_REDIRECT_URI", "http://localhost:8080/auth/callback"),
+			WorkOSOrganizationID: getEnv("WORKOS_ORG_ID", ""),
 			WorkOSWebhookSecret:  getEnv("WORKOS_WEBHOOK_SECRET", ""),
 		},
 		Integration: IntegrationConfig{

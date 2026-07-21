@@ -59,8 +59,9 @@ func setAuthCookies(w http.ResponseWriter, accessToken, refreshToken string) {
 }
 
 // syncIdentity upserts the WorkOS org and user into the local tenancy mirror.
-// Returns the local org UUID (empty when no org is present in the response).
-func syncIdentity(r *http.Request, wos *workos.Client, store *Store, orgID *string, user *workos.User) string {
+// User-level sessions without an org are attached to the deployment's
+// configured default tenant, which is provisioned locally on first login.
+func syncIdentity(r *http.Request, wos *workos.Client, store *Store, orgID *string, user *workos.User, defaultOrganizationID string) string {
 	var localOrgID string
 	if orgID != nil && *orgID != "" {
 		org, err := wos.Organizations().Get(r.Context(), *orgID)
@@ -68,6 +69,12 @@ func syncIdentity(r *http.Request, wos *workos.Client, store *Store, orgID *stri
 			slog.WarnContext(r.Context(), "auth: fetch org failed", "err", err)
 		} else {
 			localOrgID, _ = store.UpsertOrg(r.Context(), org.ID, org.Name)
+		}
+	} else if defaultOrganizationID != "" {
+		var err error
+		localOrgID, err = store.UpsertOrg(r.Context(), defaultOrganizationID, "Default Organization")
+		if err != nil {
+			slog.ErrorContext(r.Context(), "auth: provision default org failed", "err", err)
 		}
 	}
 	if user != nil {
@@ -81,7 +88,7 @@ func syncIdentity(r *http.Request, wos *workos.Client, store *Store, orgID *stri
 // CallbackHandler handles the OAuth code exchange, syncs the WorkOS identity
 // into the local tenancy schema, and stores the tokens as HttpOnly cookies.
 // The browser is then redirected to /me so clients can verify their session.
-func CallbackHandler(wos *workos.Client, store *Store) http.HandlerFunc {
+func CallbackHandler(wos *workos.Client, store *Store, defaultOrganizationID string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")
 		if code == "" {
@@ -98,7 +105,7 @@ func CallbackHandler(wos *workos.Client, store *Store) http.HandlerFunc {
 			return
 		}
 
-		syncIdentity(r, wos, store, resp.OrganizationID, resp.User)
+		syncIdentity(r, wos, store, resp.OrganizationID, resp.User, defaultOrganizationID)
 		setAuthCookies(w, resp.AccessToken, resp.RefreshToken)
 
 		// Redirect to dashboard after successful auth (for local dev).
@@ -120,7 +127,7 @@ type passwordLoginRequest struct {
 // PasswordLoginHandler authenticates a user with email and password via WorkOS
 // User Management. On success it sets HttpOnly cookies and returns {"ok":true}.
 // On failure it returns 401 with {"error":"..."}.
-func PasswordLoginHandler(wos *workos.Client, store *Store) http.HandlerFunc {
+func PasswordLoginHandler(wos *workos.Client, store *Store, defaultOrganizationID string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req passwordLoginRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Email == "" || req.Password == "" {
@@ -144,7 +151,7 @@ func PasswordLoginHandler(wos *workos.Client, store *Store) http.HandlerFunc {
 			return
 		}
 
-		syncIdentity(r, wos, store, resp.OrganizationID, resp.User)
+		syncIdentity(r, wos, store, resp.OrganizationID, resp.User, defaultOrganizationID)
 		setAuthCookies(w, resp.AccessToken, resp.RefreshToken)
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
