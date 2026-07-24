@@ -1,0 +1,10 @@
+.git
+.gocache
+.codex-tmp
+.pnpm-store
+node_modules
+apps/dashboard/.next
+*.log
+*.exe
+.env
+.env.*

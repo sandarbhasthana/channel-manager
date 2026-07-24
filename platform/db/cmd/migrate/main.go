@@ -12,13 +12,16 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/channel-manager/channel-manager/platform/config"
 	"github.com/channel-manager/channel-manager/platform/db"
+	"github.com/jackc/pgx/v5"
 )
 
 func main() {
@@ -114,7 +117,37 @@ func runUp(args []string) {
 			die("up %s: %v", s, err)
 		}
 	}
+	syncRuntimeRole()
 	fmt.Println("✓ all migrations applied")
+}
+
+// syncRuntimeRole replaces the development-only password created by the
+// tenancy migration with the deployment secret. The API connects as this
+// restricted role so PostgreSQL RLS remains enforced in production.
+func syncRuntimeRole() {
+	password := os.Getenv("APP_DB_PASSWORD")
+	if password == "" {
+		return
+	}
+	cfg, err := config.Load()
+	if err != nil {
+		die("load config for runtime role: %v", err)
+	}
+	adminURL := db.Config{
+		Host: cfg.DB.Host, Port: cfg.DB.Port, DBName: cfg.DB.DBName,
+		User: cfg.DB.User, Password: cfg.DB.Password, SSLMode: cfg.DB.SSLMode,
+	}.URL()
+	conn, err := pgx.Connect(context.Background(), adminURL)
+	if err != nil {
+		die("connect for runtime role: %v", err)
+	}
+	defer conn.Close(context.Background())
+
+	role := pgx.Identifier{cfg.DB.RuntimeUser}.Sanitize()
+	passwordLiteral := "'" + strings.ReplaceAll(password, "'", "''") + "'"
+	if _, err := conn.Exec(context.Background(), "ALTER ROLE "+role+" WITH LOGIN PASSWORD "+passwordLiteral); err != nil {
+		die("synchronize runtime role: %v", err)
+	}
 }
 
 func runDown(args []string) {
