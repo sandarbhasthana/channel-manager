@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000",
+    "dev": "node --env-file=../../.env scripts/next-with-web-port.mjs dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node --env-file=../../.env scripts/next-with-web-port.mjs start",
     "lint": "next lint"
   },
   "dependencies": {

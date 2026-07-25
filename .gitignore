@@ -31,3 +31,4 @@ node_modules/
 apps/dashboard/.next/
 .claude/
 .gocache/
+.codex-tmp/
