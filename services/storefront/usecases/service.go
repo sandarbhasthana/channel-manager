@@ -144,6 +144,8 @@ func (s *Service) Dispatch(ctx context.Context, propertyID, action string, body 
 		return s.releasePromo(ctx, prop, body)
 	case domain.ActionGetChannelConfig:
 		return s.getChannelConfig(ctx, prop)
+	case domain.ActionRecordDirectReservation:
+		return s.recordDirectReservation(ctx, prop, body)
 	default:
 		return nil, fmt.Errorf("unknown action %q", action)
 	}
@@ -623,7 +625,7 @@ func (s *Service) persistReservation(
 		RawPayload:            meta,
 	}
 
-	id, _, err := s.res.IngestReservation(ctx, res, idemKey)
+	id, _, err := s.res.RecordReservation(ctx, res, idemKey)
 	if err != nil {
 		if errors.Is(err, resusecases.ErrDuplicateRequest) {
 			// Another in-flight attempt already recorded this reservation.
@@ -634,6 +636,81 @@ func (s *Service) persistReservation(
 		return "", true
 	}
 	return id, false
+}
+
+// recordDirectReservation mirrors a booking the engine already created at the
+// PMS (booking_route=pms) into the canonical reservations store, tagged
+// source="direct", so it appears in the CM Booking Engine view. It creates NO
+// PMS booking — the PMS already owns the stay — unlike createBooking, whose PMS
+// call this deliberately omits.
+//
+// Deliberately NOT gated by requireBookingEngine: the booking has already
+// happened, so it must be recorded for visibility whether or not the direct
+// channel is currently switched on. Idempotent via the caller's key: a repeat
+// is a no-op, never a duplicate row.
+func (s *Service) recordDirectReservation(ctx context.Context, prop property, body map[string]any) (map[string]any, error) {
+	tc, err := platformauth.FromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("storefront: record direct reservation: %w", err)
+	}
+
+	checkin, checkout, err := parseDateRange(body)
+	if err != nil {
+		return nil, err
+	}
+
+	totalAmount := floatOr(body["total_amount"], 0)
+	if totalAmount <= 0 {
+		return nil, errors.New("total_amount is required and must be greater than zero")
+	}
+
+	guestName, _ := body["guest_name"].(string)
+	if guestName == "" {
+		guestName, _ = body["name"].(string)
+	}
+
+	pmsBookingID := stringOr(body["pms_booking_id"])
+	idemKey, _ := body["idempotency_key"].(string)
+
+	meta, _ := json.Marshal(map[string]any{
+		"source":         domain.DirectChannel,
+		"pms_booking_id": pmsBookingID,
+		"payment_status": stringOr(body["payment_status"]),
+	})
+
+	res := &resdomain.Reservation{
+		OrgID:                 tc.OrgID,
+		PropertyID:            prop.ID,
+		ExternalPropertyID:    prop.ExternalID,
+		RoomTypeID:            stringOr(body["room_type_id"]),
+		GuestName:             guestName,
+		CheckIn:               checkin,
+		CheckOut:              checkout,
+		Status:                "confirmed",
+		TotalAmount:           totalAmount,
+		Currency:              currencyOr(stringOr(body["currency"]), prop.DefaultCurrency),
+		ChannelConfirmationID: pmsBookingID,
+		RawPayload:            meta,
+	}
+
+	id, _, err := s.res.RecordReservation(ctx, res, idemKey)
+	if err != nil {
+		// Mirroring a booking we already recorded is a no-op, not an error: the
+		// booking engine may retry the mirror after a network blip.
+		if errors.Is(err, resusecases.ErrDuplicateRequest) {
+			return map[string]any{"recorded": false, "duplicate": true}, nil
+		}
+		return nil, fmt.Errorf("storefront: record direct reservation: %w", err)
+	}
+
+	s.recordAudit(ctx, "storefront.booking.record_direct", "reservation", id, map[string]any{
+		"property_id":    prop.ID,
+		"reservation_id": id,
+		"pms_booking_id": pmsBookingID,
+		"total_amount":   totalAmount,
+	})
+
+	return map[string]any{"reservation_id": id, "recorded": true}, nil
 }
 
 func (s *Service) getBooking(ctx context.Context, prop property, body map[string]any) (map[string]any, error) {

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import {
-  Typography, Card, Table, Flex, Space, Switch, Tag, Empty, App, Segmented, InputNumber, Button,
+  Typography, Card, Table, Flex, Space, Switch, Tag, Empty, App, Segmented, Button,
 } from "antd";
 import { GlobalOutlined } from "@ant-design/icons";
 import { usePropertyContext } from "../../../components/property-provider";
@@ -45,7 +45,6 @@ export default function BookingEnginePage() {
   const [reservations, setReservations] = useState<DirectReservation[]>([]);
   const [enabled, setEnabled] = useState(true);
   const [route, setRoute] = useState<"pms" | "cm">("pms");
-  const [routePercent, setRoutePercent] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -64,7 +63,6 @@ export default function BookingEnginePage() {
         if (settings) {
           setEnabled(settings.directChannelEnabled);
           setRoute(settings.bookingRoute === "cm" ? "cm" : "pms");
-          setRoutePercent(settings.bookingRoutePercent ?? 0);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -84,11 +82,13 @@ export default function BookingEnginePage() {
         propertyId: activeProperty.id,
         directChannelEnabled: enabled,
         bookingRoute: route,
-        bookingRoutePercent: route === "cm" ? routePercent : 0,
+        // Canary ramp is retired from the UI: choosing Channel Manager routes
+        // 100% of new bookings through CM. The mirror keeps every direct booking
+        // visible in CM regardless of route.
+        bookingRoutePercent: route === "cm" ? 100 : 0,
       });
       setEnabled(settings.directChannelEnabled);
       setRoute(settings.bookingRoute === "cm" ? "cm" : "pms");
-      setRoutePercent(settings.bookingRoutePercent ?? 0);
       message.success("Booking engine settings saved");
     } catch (err) {
       message.error((err as Error).message || "Failed to save settings");
@@ -190,26 +190,6 @@ export default function BookingEnginePage() {
               ]}
             />
           </Flex>
-
-          {route === "cm" && (
-            <Flex justify="space-between" align="center">
-              <div>
-                <Text style={{ fontSize: 14, fontWeight: 600 }}>Canary ramp</Text>
-                <div>
-                  <Text type="secondary" style={{ fontSize: 13 }}>
-                    Percentage of new bookings routed through the Channel Manager (0–100).
-                  </Text>
-                </div>
-              </div>
-              <InputNumber
-                min={0}
-                max={100}
-                value={routePercent}
-                onChange={(v) => setRoutePercent(Math.max(0, Math.min(100, Number(v) || 0)))}
-                style={{ width: 100 }}
-              />
-            </Flex>
-          )}
 
           <Flex justify="flex-end">
             <Button type="primary" loading={saving} disabled={!activeProperty} onClick={save} style={{ borderRadius: 10 }}>

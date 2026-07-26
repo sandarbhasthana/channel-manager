@@ -144,6 +144,17 @@ func (f *fakeRes) IngestReservation(_ context.Context, res *resdomain.Reservatio
 	return "reservation-1", true, nil
 }
 
+// RecordReservation is the non-publishing persist the storefront now uses for
+// direct bookings; for the fakes it behaves identically to IngestReservation.
+func (f *fakeRes) RecordReservation(_ context.Context, res *resdomain.Reservation, _ string) (string, bool, error) {
+	f.ingestCalls++
+	if f.ingestErr != nil {
+		return "", false, f.ingestErr
+	}
+	f.ingested = res
+	return "reservation-1", true, nil
+}
+
 func (f *fakeRes) CancelReservation(_ context.Context, id string) (*resdomain.Reservation, error) {
 	f.cancelCalls++
 	f.cancelledIDs = append(f.cancelledIDs, id)

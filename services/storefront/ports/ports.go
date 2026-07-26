@@ -37,7 +37,11 @@ type PmsGateway interface {
 // ReservationWriter is the subset of the reservations service the storefront
 // calls. *reservations/usecases.ReservationService satisfies this.
 type ReservationWriter interface {
-	IngestReservation(ctx context.Context, res *resdomain.Reservation, idempotencyKey string) (string, bool, error)
+	// RecordReservation persists a canonical reservation for a booking that
+	// already exists in the PMS (a direct booking made through the storefront).
+	// It does NOT publish reservation.created back to the PMS — the PMS already
+	// has the booking, so propagating it would create a duplicate reservation.
+	RecordReservation(ctx context.Context, res *resdomain.Reservation, idempotencyKey string) (string, bool, error)
 	CancelReservation(ctx context.Context, id string) (*resdomain.Reservation, error)
 }
 
