@@ -56,15 +56,26 @@ func (r *InMemorySecretResolver) Resolve(_ context.Context, ref string) (map[str
 	creds, ok := r.store[ref]
 	if !ok {
 		// Fallback for local development so it survives restarts without losing credentials
-		return map[string]string{
-			"base_url": "http://localhost:4001",
+		return applyPMSCredentialOverrides(map[string]string{
+			"base_url":     "http://localhost:4001",
 			"bearer_token": "dev-pms-integration-token",
-			"token": "dev-pms-integration-token",
-		}, nil
+			"token":        "dev-pms-integration-token",
+		}), nil
 	}
 	out := make(map[string]string, len(creds))
 	for k, v := range creds {
 		out[k] = v
 	}
-	return out, nil
+	return applyPMSCredentialOverrides(out), nil
+}
+
+func applyPMSCredentialOverrides(creds map[string]string) map[string]string {
+	if baseURL := os.Getenv("PMS_BASE_URL"); baseURL != "" {
+		creds["base_url"] = baseURL
+	}
+	if token := os.Getenv("PMS_BEARER_TOKEN"); token != "" {
+		creds["bearer_token"] = token
+		creds["token"] = token
+	}
+	return creds
 }
