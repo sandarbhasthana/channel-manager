@@ -321,12 +321,15 @@ func (s *Service) searchAvailability(ctx context.Context, prop property, body ma
 	if err != nil {
 		return nil, err
 	}
+	adults := intOr(body["adults"], 1)
+	children := intOr(body["children"], 0)
+	requestedRooms := intOr(body["rooms"], 1)
 	offers, err := s.pms.SearchAvailability(ctx, prop.ID, pmsdomain.AvailabilityQuery{
 		Checkin:  checkin,
 		Checkout: checkout,
-		Adults:   intOr(body["adults"], 1),
-		Children: intOr(body["children"], 0),
-		Rooms:    intOr(body["rooms"], 1),
+		Adults:   adults,
+		Children: children,
+		Rooms:    requestedRooms,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("storefront: search availability: %w", err)
@@ -353,7 +356,24 @@ func (s *Service) searchAvailability(ctx context.Context, prop property, body ma
 			"capacity":        o.Capacity,
 		})
 	}
-	return map[string]any{"available_rooms": rooms}, nil
+	publicPropertyID := prop.ExternalID
+	if publicPropertyID == "" {
+		publicPropertyID = prop.ID
+	}
+	return map[string]any{
+		"source":                      "CHANNEL_MANAGER",
+		"property_id":                 publicPropertyID,
+		"channel_manager_property_id": prop.ID,
+		"property_name":               prop.Name,
+		"checkin":                     checkin.Format("2006-01-02"),
+		"checkout":                    checkout.Format("2006-01-02"),
+		"adults":                      adults,
+		"children":                    children,
+		"requested_rooms":             requestedRooms,
+		"can_accommodate":             len(rooms) >= requestedRooms,
+		"available_rooms":             rooms,
+		"total_available":             len(rooms),
+	}, nil
 }
 
 // heldRooms returns the set of room ids soft-held over the requested stay.
@@ -519,11 +539,11 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 		Checkin:    checkin,
 		Checkout:   checkout,
 		GuestName:  guestName,
-		Email:     email,
-		Phone:     phone,
-		Adults:    intOr(body["adults"], 1),
-		Children:  intOr(body["children"], 0),
-		Notes:     notes,
+		Email:      email,
+		Phone:      phone,
+		Adults:     intOr(body["adults"], 1),
+		Children:   intOr(body["children"], 0),
+		Notes:      notes,
 	})
 	if err != nil {
 		// The PMS refused the stay: free the room for the next guest.

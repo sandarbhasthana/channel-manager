@@ -223,6 +223,12 @@ func TestSearchAvailability_ExcludesHeldRooms(t *testing.T) {
 	if rooms[0]["room_id"] != "room-102" {
 		t.Errorf("held room should be excluded, got %v", rooms[0]["room_id"])
 	}
+	if out["source"] != "CHANNEL_MANAGER" || out["property_id"] != testExtPropID {
+		t.Fatalf("scope metadata = %#v", out)
+	}
+	if out["can_accommodate"] != true || out["total_available"] != 1 {
+		t.Fatalf("availability summary = %#v", out)
+	}
 }
 
 // A hold on non-overlapping dates must not suppress the room.
