@@ -22,6 +22,12 @@ type PropertyLookup interface {
 	// (enabled + route + percent), which the booking engine reads to decide
 	// where to route its own stay actions.
 	GetChannelConfig(ctx context.Context, id string) (pmsdomain.ChannelConfig, error)
+	// ListListings returns the caller org's active properties with their
+	// booking-engine config. A booking engine calls this to discover which
+	// properties it may sell and which one is the org default; it cannot use
+	// GetChannelConfig for that, since that needs a property id it does not yet
+	// have.
+	ListListings(ctx context.Context) ([]pmsdomain.PropertyListing, error)
 }
 
 // PmsGateway is the subset of the PMS service the storefront calls.

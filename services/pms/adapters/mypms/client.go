@@ -101,12 +101,22 @@ func (c *Client) GetRoomDetails(ctx context.Context, propertyID, roomID, roomTyp
 // GetQuote calls POST .../{propertyId} with action get_quote.
 func (c *Client) GetQuote(ctx context.Context, propertyID string, req GetQuoteRequest) (*Quote, error) {
 	req.Action = ActionGetQuote
-	var out Quote
 	path := fmt.Sprintf("/api/webhooks/bookings/%s", propertyID)
-	if err := c.do(ctx, http.MethodPost, path, req, &out); err != nil {
+	raw, err := c.doBytes(ctx, http.MethodPost, path, req)
+	if err != nil {
 		return nil, err
 	}
-	return &out, nil
+	// The PMS wraps successful action responses in {"data": {...}} (same as
+	// create_booking). Unwrap it; fall back to a flat body for forward-compat.
+	var wrapped GetQuoteResponse
+	if err := json.Unmarshal(raw, &wrapped); err == nil && wrapped.Data.RoomID != "" {
+		return &wrapped.Data, nil
+	}
+	var direct Quote
+	if err := json.Unmarshal(raw, &direct); err != nil {
+		return nil, fmt.Errorf("mypms: decode quote: %w", err)
+	}
+	return &direct, nil
 }
 
 // CreateBooking calls POST .../{propertyId} with action create_booking.
@@ -218,8 +228,6 @@ func (c *Client) doBytes(ctx context.Context, method, path string, body any) ([]
 	if err != nil {
 		return nil, fmt.Errorf("mypms: read body: %w", err)
 	}
-
-	fmt.Println("MYPMS RAW BODY:", string(raw))
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		msg := strings.TrimSpace(string(raw))

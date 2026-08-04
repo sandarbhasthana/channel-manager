@@ -271,10 +271,12 @@ func (s *PmsService) SyncCatalog(ctx context.Context, connectionID string, filte
 			}
 		}
 
-		// Deactivate missing rooms
+		// Deactivate missing rooms — including "zombie" rooms whose external_id is
+		// blank (never linked to a PMS room). Those can't be quoted and otherwise
+		// linger, so the dashboard keeps sending an id the PMS can't resolve.
 		if existingRooms, err := s.rooms.ListByProperty(ctx, saved.ID); err == nil {
 			for _, er := range existingRooms {
-				if er.ExternalID != "" && !activeRoomExtIDs[er.ExternalID] && er.IsActive {
+				if !activeRoomExtIDs[er.ExternalID] && er.IsActive {
 					s.log.Info("deactivating missing room", "property", saved.ID, "external_id", er.ExternalID, "name", er.Name)
 					er.IsActive = false
 					_, _ = s.rooms.Upsert(ctx, er)

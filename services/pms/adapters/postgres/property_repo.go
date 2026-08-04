@@ -170,6 +170,95 @@ func (r *PropertyRepository) GetChannelConfig(ctx context.Context, id string) (d
 	return cfg, nil
 }
 
+// ListListings returns every active property in the caller's org with its
+// booking-engine configuration attached. This is what the storefront serves to
+// a direct booking engine, which needs the whole set in one read: it has to
+// choose a property before it can ask about any particular one, so a
+// per-property config call cannot bootstrap it.
+//
+// Inactive properties are excluded — a booking engine has no use for a property
+// it cannot sell.
+func (r *PropertyRepository) ListListings(ctx context.Context) ([]domain.PropertyListing, error) {
+	tc, err := platformauth.FromContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("pms/prop_repo: %w", err)
+	}
+	var out []domain.PropertyListing
+	err = r.pool.WithTenant(ctx, tc.OrgID, func(ctx context.Context, tx pgx.Tx) error {
+		rows, err := tx.Query(ctx, `
+			SELECT id, COALESCE(external_id, ''), name, timezone, currency,
+			       is_active, is_default,
+			       booking_engine_enabled, booking_route, booking_route_percent
+			  FROM pms.properties
+			 WHERE org_id = $1::uuid AND is_active
+			 ORDER BY is_default DESC, name`,
+			tc.OrgID)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+		out = []domain.PropertyListing{}
+		for rows.Next() {
+			var p domain.PropertyListing
+			if err := rows.Scan(
+				&p.ID, &p.ExternalID, &p.Name, &p.Timezone, &p.DefaultCurrency,
+				&p.IsActive, &p.IsDefault,
+				&p.Channel.Enabled, &p.Channel.Route, &p.Channel.Percent,
+			); err != nil {
+				return err
+			}
+			out = append(out, p)
+		}
+		return rows.Err()
+	})
+	if err != nil {
+		return nil, fmt.Errorf("pms/prop_repo: list listings: %w", err)
+	}
+	return out, nil
+}
+
+// SetDefault promotes one property to the org's default, demoting the incumbent
+// in the same transaction. The properties_default_uniq partial index allows only
+// one default per org, so clearing and setting cannot be split into two
+// statements outside a transaction without risking a constraint violation.
+//
+// Setting a property that is already the default is a no-op rather than an
+// error, which keeps the dashboard's star button idempotent.
+func (r *PropertyRepository) SetDefault(ctx context.Context, id string) error {
+	tc, err := platformauth.FromContext(ctx)
+	if err != nil {
+		return fmt.Errorf("pms/prop_repo: %w", err)
+	}
+	if _, err := uuid.Parse(id); err != nil {
+		return fmt.Errorf("pms/prop_repo: invalid id: %w", err)
+	}
+	err = r.pool.WithTenant(ctx, tc.OrgID, func(ctx context.Context, tx pgx.Tx) error {
+		// Demote first: the unique index is checked per-statement, so setting the
+		// new default before clearing the old one would collide.
+		if _, err := tx.Exec(ctx, `
+			UPDATE pms.properties SET is_default = FALSE
+			 WHERE org_id = $1::uuid AND is_default AND id <> $2::uuid`,
+			tc.OrgID, id); err != nil {
+			return err
+		}
+		tag, err := tx.Exec(ctx, `
+			UPDATE pms.properties SET is_default = TRUE
+			 WHERE org_id = $1::uuid AND id = $2::uuid AND is_active`,
+			tc.OrgID, id)
+		if err != nil {
+			return err
+		}
+		if tag.RowsAffected() == 0 {
+			return fmt.Errorf("property not found or inactive")
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("pms/prop_repo: set default: %w", err)
+	}
+	return nil
+}
+
 func (r *PropertyRepository) GetByExternalID(ctx context.Context, connectionID, externalID string) (domain.Property, error) {
 	tc, err := platformauth.FromContext(ctx)
 	if err != nil {

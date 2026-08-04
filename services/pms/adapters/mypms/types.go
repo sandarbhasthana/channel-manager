@@ -276,6 +276,11 @@ type Quote struct {
 	IsAvailable   bool    `json:"is_available"`
 }
 
+// GetQuoteResponse wraps a quote (the PMS returns {"data": {...}}).
+type GetQuoteResponse struct {
+	Data Quote `json:"data"`
+}
+
 // CreateBookingRequest is the body for action create_booking.
 type CreateBookingRequest struct {
 	Action     string `json:"action"`

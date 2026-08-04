@@ -225,6 +225,18 @@ func main() {
 	intHandler := integrationhttp.NewHandler(intSvc)
 	adminKeysHandler := integrationhttp.NewAdminKeysHandler(intKeyStore)
 
+	// Per-channel pricing rules (Channel Manager-owned adjustment over PMS base).
+	channelRateRepo := pricingpostgres.NewChannelRateRepository(pool)
+	channelRatesHandler := integrationhttp.NewChannelRatesHandler(channelRateRepo)
+
+	// CM-stored base rates (used when the live PMS quote is unavailable).
+	baseRateRepo := pricingpostgres.NewRoomBaseRateRepository(pool)
+	roomBaseRatesHandler := integrationhttp.NewRoomBaseRatesHandler(baseRateRepo)
+
+	// Org-level default property (the star in the dashboard property picker).
+	// Shared with the booking engine, which reads it off the storefront listing.
+	defaultPropertyHandler := integrationhttp.NewDefaultPropertyHandler(pmsPropRepo)
+
 	mux.Handle("GET /api/integrations/pms", intAuth.Middleware(http.HandlerFunc(intHandler.OrgHealth)))
 	mux.Handle("POST /api/integrations/pms", intAuth.Middleware(http.HandlerFunc(intHandler.OrgDispatch)))
 	mux.Handle("GET /api/integrations/pms/{propertyId}", intAuth.Middleware(http.HandlerFunc(intHandler.PropertyHealth)))
@@ -242,6 +254,10 @@ func main() {
 	sfHandler := storefronthttp.NewHandler(sfSvc)
 
 	mux.Handle("GET /api/storefront/v1/health", intAuth.Middleware(http.HandlerFunc(sfHandler.Health)))
+	// The booking engine's bootstrap read: which properties may it sell, which is
+	// the org default, and where does each one route. GET-only, so it does not
+	// collide with the POST {propertyId} dispatch pattern below.
+	mux.Handle("GET /api/storefront/v1/properties", intAuth.Middleware(http.HandlerFunc(sfHandler.Properties)))
 	mux.Handle("POST /api/storefront/v1/{propertyId}", intAuth.Middleware(http.HandlerFunc(sfHandler.Dispatch)))
 
 	// ── Connect-RPC interceptor (auth-gated) ──────────────────────────────────
@@ -282,6 +298,15 @@ func main() {
 	protected.Handle("GET /admin/integration-keys", http.HandlerFunc(adminKeysHandler.ListKeys))
 	protected.Handle("POST /admin/integration-keys", http.HandlerFunc(adminKeysHandler.CreateKey))
 	protected.Handle("DELETE /admin/integration-keys/{id}", http.HandlerFunc(adminKeysHandler.RevokeKey))
+
+	protected.Handle("GET /admin/channel-rates", http.HandlerFunc(channelRatesHandler.List))
+	protected.Handle("PUT /admin/channel-rates", http.HandlerFunc(channelRatesHandler.Save))
+
+	protected.Handle("GET /admin/room-base-rates", http.HandlerFunc(roomBaseRatesHandler.List))
+	protected.Handle("PUT /admin/room-base-rates", http.HandlerFunc(roomBaseRatesHandler.Save))
+
+	protected.Handle("GET /admin/default-property", http.HandlerFunc(defaultPropertyHandler.Get))
+	protected.Handle("PUT /admin/default-property", http.HandlerFunc(defaultPropertyHandler.Set))
 
 	protected.Handle(rpcPath, rpcMux)
 	protected.Handle(connRPCPath, rpcMux)

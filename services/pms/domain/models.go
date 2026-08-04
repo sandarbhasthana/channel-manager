@@ -62,6 +62,28 @@ type ChannelConfig struct {
 	Percent int
 }
 
+// PropertyListing is a property together with the booking-engine configuration
+// a direct booking engine needs to pick one and route to it.
+//
+// Deliberately separate from Property: it is assembled by a hand-written query
+// over columns (booking_engine_enabled, booking_route, is_default) that the
+// sqlc-generated property model does not carry, for the same reason
+// GetChannelConfig is hand-written rather than threaded through sqlc.
+//
+// IsDefault is org-level — at most one property per org has it (enforced by the
+// properties_default_uniq partial index) — because the booking engine reads it
+// with an org-scoped integration key and has no user to read a preference from.
+type PropertyListing struct {
+	ID              string
+	ExternalID      string
+	Name            string
+	Timezone        string
+	DefaultCurrency string
+	IsActive        bool
+	IsDefault       bool
+	Channel         ChannelConfig
+}
+
 // PropertySearchFilter filters search_properties.
 type PropertySearchFilter struct {
 	City    string

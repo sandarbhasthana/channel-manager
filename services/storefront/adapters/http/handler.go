@@ -36,6 +36,23 @@ func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
 	jsonOK(w, h.svc.Health(r.Context(), tc.OrgID))
 }
 
+// Properties handles GET /api/storefront/v1/properties.
+//
+// Registered before the {propertyId} pattern is irrelevant here — that route is
+// POST-only, so "properties" can never be mistaken for a property id.
+func (h *Handler) Properties(w http.ResponseWriter, r *http.Request) {
+	if _, err := platformauth.FromContext(r.Context()); err != nil {
+		jsonError(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	resp, err := h.svc.ListProperties(r.Context())
+	if err != nil {
+		jsonError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	jsonOK(w, map[string]any{"data": resp})
+}
+
 // Dispatch handles POST /api/storefront/v1/{propertyId}.
 func (h *Handler) Dispatch(w http.ResponseWriter, r *http.Request) {
 	propertyID := r.PathValue("propertyId")

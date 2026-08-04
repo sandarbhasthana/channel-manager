@@ -98,6 +98,42 @@ func (s *Service) Health(ctx context.Context, orgID string) map[string]any {
 	}
 }
 
+// ListProperties returns the org's sellable properties for a direct booking
+// engine, newest routing config included.
+//
+// This is the booking engine's bootstrap call: it has no property id until a
+// guest picks one, so it cannot reach get_channel_config first. Each row
+// therefore carries its own booking_route, letting the engine keep routing stay
+// actions per property exactly as before while sourcing the list from one place.
+//
+// Properties whose direct channel is switched off are omitted rather than
+// returned with a flag — the storefront already refuses to quote or book them
+// (see requireBookingEngine), so offering them to a guest could only produce a
+// dead end.
+func (s *Service) ListProperties(ctx context.Context) (map[string]any, error) {
+	listings, err := s.props.ListListings(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("storefront: list properties: %w", err)
+	}
+	out := make([]map[string]any, 0, len(listings))
+	for _, p := range listings {
+		if !p.Channel.Enabled {
+			continue
+		}
+		out = append(out, map[string]any{
+			"property_id":           p.ID,
+			"external_id":           p.ExternalID,
+			"name":                  p.Name,
+			"timezone":              p.Timezone,
+			"currency":              p.DefaultCurrency,
+			"is_default":            p.IsDefault,
+			"booking_route":         p.Channel.Route,
+			"booking_route_percent": p.Channel.Percent,
+		})
+	}
+	return map[string]any{"properties": out}, nil
+}
+
 type property struct {
 	ID, Name, DefaultCurrency, ExternalID string
 }

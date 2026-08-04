@@ -69,6 +69,17 @@ func (f *fakeProps) GetByExternalID(_ context.Context, _, _ string) (pmsdomain.P
 	return pmsdomain.Property{}, errors.New("not found")
 }
 
+func (f *fakeProps) ListListings(_ context.Context) ([]pmsdomain.PropertyListing, error) {
+	if f.err != nil {
+		return nil, f.err
+	}
+	return []pmsdomain.PropertyListing{{
+		ID: testPropID, ExternalID: testExtPropID, Name: "Test Hotel",
+		Timezone: "UTC", DefaultCurrency: "USD", IsActive: true, IsDefault: true,
+		Channel: pmsdomain.ChannelConfig{Enabled: !f.beDisabled, Route: "pms"},
+	}}, nil
+}
+
 // ── PMS gateway ─────────────────────────────────────────────────────────────
 
 type fakePms struct {
