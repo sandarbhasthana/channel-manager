@@ -1,12 +1,14 @@
 package usecases
 
 import (
+	"encoding/json"
 	"errors"
 	"testing"
 	"time"
 
 	pmsdomain "github.com/channel-manager/channel-manager/services/pms/domain"
 	"github.com/channel-manager/channel-manager/services/storefront/domain"
+	"github.com/channel-manager/channel-manager/services/storefront/ports"
 )
 
 // dispatch is a helper that runs an action and returns the map payload.
@@ -43,7 +45,7 @@ func TestCreateBooking_PmsRejection_ReleasesHoldAndWritesNoReservation(t *testin
 	if h.holds.releaseCalls != 0 {
 		t.Errorf("strict array booking should not consume holds, got %d releases", h.holds.releaseCalls)
 	}
-	if h.idem.markCalls != 0 {
+	if h.idem.putCalls != 0 {
 		t.Error("idempotency key must not be marked for a failed booking")
 	}
 	assertAudited(t, h, "storefront.booking.rejected")
@@ -74,7 +76,7 @@ func TestCreateBooking_CanonicalWriteFails_ReturnsReconciliationPending(t *testi
 	if got := out["reservation_ids"].([]string); len(got) != 1 || got[0] != "" {
 		t.Errorf("expected one empty reservation id, got %v", got)
 	}
-	if h.idem.markCalls != 1 {
+	if h.idem.putCalls != 1 {
 		t.Error("idempotency key must still be marked: the PMS booking is real")
 	}
 	assertAudited(t, h, "storefront.booking.create")
@@ -111,16 +113,31 @@ func TestCreateBooking_Success(t *testing.T) {
 
 // ── create_booking: idempotency replay ──────────────────────────────────────
 
-// A replayed idempotency key is rejected before any side effect occurs.
-func TestCreateBooking_DuplicateIdempotencyKey_NoSideEffects(t *testing.T) {
+// A replayed idempotency key returns the original response before any side effect occurs.
+func TestCreateBooking_DuplicateIdempotencyKey_ReplaysResponseWithNoSideEffects(t *testing.T) {
 	h := newHarness()
-	h.idem.seen["idem-replay"] = true
-	_, err := dispatch(t, h, domain.ActionCreateBooking, createBody(map[string]any{
+	body := createBody(map[string]any{
 		"idempotency_key": "idem-replay",
-	}))
+	})
+	body["action"] = domain.ActionCreateBooking
+	requestHash, err := bookingRequestHash(body)
+	if err != nil {
+		t.Fatalf("bookingRequestHash() error = %v", err)
+	}
+	storeKey := bookingIdempotencyStoreKey(testOrgID, testPropID, "idem-replay")
+	h.idem.records[storeKey] = ports.IdempotencyRecord{
+		RequestHash: requestHash,
+		Response: json.RawMessage(
+			`{"booking_ids":["pms-booking-1"],"room_ids":["room-101"],"group_status":"CONFIRMED"}`,
+		),
+	}
+	out, err := dispatch(t, h, domain.ActionCreateBooking, body)
 
-	if !errors.Is(err, domain.ErrDuplicateRequest) {
-		t.Fatalf("expected ErrDuplicateRequest, got %v", err)
+	if err != nil {
+		t.Fatalf("replay returned error: %v", err)
+	}
+	if got := out["booking_ids"].([]any); len(got) != 1 || got[0] != "pms-booking-1" {
+		t.Fatalf("replayed booking_ids = %#v", got)
 	}
 	if h.pms.createCalls != 0 {
 		t.Error("PMS must not be called on a replayed request")
@@ -133,6 +150,48 @@ func TestCreateBooking_DuplicateIdempotencyKey_NoSideEffects(t *testing.T) {
 	}
 	if len(h.audit.events) != 0 {
 		t.Errorf("a rejected replay is not an auditable mutation, got %v", h.audit.actions())
+	}
+}
+
+func TestCreateBooking_DuplicateIdempotencyKeyRejectsChangedPayload(t *testing.T) {
+	h := newHarness()
+	original := createBody(map[string]any{"idempotency_key": "idem-conflict"})
+	original["action"] = domain.ActionCreateBooking
+	requestHash, err := bookingRequestHash(original)
+	if err != nil {
+		t.Fatalf("bookingRequestHash() error = %v", err)
+	}
+	storeKey := bookingIdempotencyStoreKey(testOrgID, testPropID, "idem-conflict")
+	h.idem.records[storeKey] = ports.IdempotencyRecord{
+		RequestHash: requestHash,
+		Response:    json.RawMessage(`{"booking_ids":["pms-booking-1"],"room_ids":["room-101"]}`),
+	}
+	changed := createBody(map[string]any{
+		"idempotency_key": "idem-conflict",
+		"guest_name":      "Different Guest",
+	})
+
+	_, err = dispatch(t, h, domain.ActionCreateBooking, changed)
+
+	if !errors.Is(err, domain.ErrDuplicateRequest) {
+		t.Fatalf("expected ErrDuplicateRequest, got %v", err)
+	}
+	if h.pms.createCalls != 0 {
+		t.Fatal("PMS was called for a conflicting idempotency replay")
+	}
+}
+
+func TestCreateBookingRequiresIdempotencyKey(t *testing.T) {
+	h := newHarness()
+	body := createBody(map[string]any{"idempotency_key": ""})
+
+	_, err := dispatch(t, h, domain.ActionCreateBooking, body)
+
+	if err == nil || err.Error() != "idempotency_key is required and must contain at most 200 characters" {
+		t.Fatalf("expected required idempotency key error, got %v", err)
+	}
+	if h.pms.createCalls != 0 {
+		t.Fatal("PMS was called without an idempotency key")
 	}
 }
 

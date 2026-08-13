@@ -3,6 +3,7 @@ package ports
 
 import (
 	"context"
+	"encoding/json"
 
 	pmsdomain "github.com/channel-manager/channel-manager/services/pms/domain"
 	pricingdomain "github.com/channel-manager/channel-manager/services/pricing/domain"
@@ -69,12 +70,16 @@ type HoldStore interface {
 	ActiveForProperty(ctx context.Context, propertyID string) ([]domain.Hold, error)
 }
 
-// IdempotencyStore deduplicates create_booking retries.
+// IdempotencyRecord stores the original result of a create_booking mutation.
+type IdempotencyRecord struct {
+	RequestHash string          `json:"request_hash"`
+	Response    json.RawMessage `json:"response"`
+}
+
+// IdempotencyStore replays completed create_booking retries.
 type IdempotencyStore interface {
-	// Exists reports whether key was already processed.
-	Exists(ctx context.Context, key string) (bool, error)
-	// Mark records key as processed.
-	Mark(ctx context.Context, key string) error
+	Get(ctx context.Context, key string) (IdempotencyRecord, bool, error)
+	Put(ctx context.Context, key string, record IdempotencyRecord) error
 }
 
 // AuditEvent is one auditable storefront mutation.

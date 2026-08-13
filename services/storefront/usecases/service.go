@@ -3,6 +3,7 @@ package usecases
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -101,7 +102,7 @@ func (s *Service) Health(ctx context.Context, orgID string) map[string]any {
 }
 
 type property struct {
-	ID, Name, DefaultCurrency, ExternalID string
+	ID, OrgID, Name, DefaultCurrency, ExternalID string
 }
 
 // loadProperty resolves either an internal property UUID or the PMS external id.
@@ -115,6 +116,7 @@ func (s *Service) loadProperty(ctx context.Context, propertyID string) (property
 	}
 	return property{
 		ID:              prop.ID,
+		OrgID:           prop.OrgID,
 		Name:            prop.Name,
 		DefaultCurrency: prop.DefaultCurrency,
 		ExternalID:      prop.ExternalID,
@@ -500,14 +502,29 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 		return nil, err
 	}
 	idemKey, _ := body["idempotency_key"].(string)
-	if idemKey != "" {
-		seen, err := s.idem.Exists(ctx, idemKey)
-		if err != nil {
-			return nil, err
-		}
-		if seen {
+	idemKey = strings.TrimSpace(idemKey)
+	if idemKey == "" || len(idemKey) > 200 {
+		return nil, errors.New("idempotency_key is required and must contain at most 200 characters")
+	}
+	body["idempotency_key"] = idemKey
+	requestHash, err := bookingRequestHash(body)
+	if err != nil {
+		return nil, err
+	}
+	storeKey := bookingIdempotencyStoreKey(prop.OrgID, prop.ID, idemKey)
+	record, seen, err := s.idem.Get(ctx, storeKey)
+	if err != nil {
+		return nil, err
+	}
+	if seen {
+		if record.RequestHash == "" || record.RequestHash != requestHash || len(record.Response) == 0 {
 			return nil, domain.ErrDuplicateRequest
 		}
+		var replay map[string]any
+		if err := json.Unmarshal(record.Response, &replay); err != nil {
+			return nil, fmt.Errorf("storefront: decode booking replay: %w", err)
+		}
+		return replay, nil
 	}
 
 	checkin, checkout, err := parseDateRange(body)
@@ -590,12 +607,6 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 		"reconciliation_pending": reconciliationPending,
 	})
 
-	if idemKey != "" {
-		if err := s.idem.Mark(ctx, idemKey); err != nil {
-			s.log.Warn("mark idempotency key failed", "err", err, "key", idemKey)
-		}
-	}
-
 	out := map[string]any{
 		"booking_ids":     pmsBooking.BookingIDs,
 		"room_ids":        pmsBooking.RoomIDs,
@@ -614,7 +625,32 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 	if reconciliationPending {
 		out["reconciliation_pending"] = true
 	}
+	response, err := json.Marshal(out)
+	if err != nil {
+		return nil, fmt.Errorf("storefront: encode booking replay: %w", err)
+	}
+	cacheContext, cancelCache := context.WithTimeout(context.WithoutCancel(ctx), 2*time.Second)
+	defer cancelCache()
+	if err := s.idem.Put(cacheContext, storeKey, ports.IdempotencyRecord{
+		RequestHash: requestHash,
+		Response:    response,
+	}); err != nil {
+		s.log.Warn("cache idempotent booking result failed", "err", err, "key", storeKey)
+	}
 	return out, nil
+}
+
+func bookingRequestHash(body map[string]any) (string, error) {
+	payload, err := json.Marshal(body)
+	if err != nil {
+		return "", fmt.Errorf("storefront: encode booking request fingerprint: %w", err)
+	}
+	return fmt.Sprintf("%x", sha256.Sum256(payload)), nil
+}
+
+func bookingIdempotencyStoreKey(organizationID, propertyID, idempotencyKey string) string {
+	scope := organizationID + "\x00" + propertyID + "\x00" + idempotencyKey
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(scope)))
 }
 
 // persistReservation writes the canonical direct reservation. It never fails the

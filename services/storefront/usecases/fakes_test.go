@@ -226,17 +226,22 @@ func (f *fakeHolds) seed(h domain.Hold) {
 // ── idempotency store ───────────────────────────────────────────────────────
 
 type fakeIdem struct {
-	seen      map[string]bool
-	markCalls int
+	records  map[string]ports.IdempotencyRecord
+	putCalls int
 }
 
-func newFakeIdem() *fakeIdem { return &fakeIdem{seen: make(map[string]bool)} }
+func newFakeIdem() *fakeIdem {
+	return &fakeIdem{records: make(map[string]ports.IdempotencyRecord)}
+}
 
-func (f *fakeIdem) Exists(_ context.Context, key string) (bool, error) { return f.seen[key], nil }
+func (f *fakeIdem) Get(_ context.Context, key string) (ports.IdempotencyRecord, bool, error) {
+	record, ok := f.records[key]
+	return record, ok, nil
+}
 
-func (f *fakeIdem) Mark(_ context.Context, key string) error {
-	f.markCalls++
-	f.seen[key] = true
+func (f *fakeIdem) Put(_ context.Context, key string, record ports.IdempotencyRecord) error {
+	f.putCalls++
+	f.records[key] = record
 	return nil
 }
 
@@ -350,14 +355,15 @@ func mustDay(s string) time.Time {
 
 func createBody(extra map[string]any) map[string]any {
 	body := map[string]any{
-		"checkin":      "2026-08-01",
-		"checkout":     "2026-08-03",
-		"room_ids":     []any{testRoomID},
-		"guest_name":   "Ada Lovelace",
-		"email":        "ada@example.com",
-		"adults":       float64(2),
-		"total_amount": float64(450),
-		"currency":     "USD",
+		"checkin":         "2026-08-01",
+		"checkout":        "2026-08-03",
+		"room_ids":        []any{testRoomID},
+		"guest_name":      "Ada Lovelace",
+		"email":           "ada@example.com",
+		"adults":          float64(2),
+		"total_amount":    float64(450),
+		"currency":        "USD",
+		"idempotency_key": "idem-default",
 	}
 	for k, v := range extra {
 		body[k] = v

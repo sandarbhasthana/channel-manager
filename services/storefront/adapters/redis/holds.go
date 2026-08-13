@@ -10,6 +10,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"github.com/channel-manager/channel-manager/services/storefront/domain"
+	"github.com/channel-manager/channel-manager/services/storefront/ports"
 )
 
 const (
@@ -129,19 +130,35 @@ func NewIdempotencyStore(client *redis.Client) *IdempotencyStore {
 	return &IdempotencyStore{client: client}
 }
 
-// Exists reports whether the key has already been processed.
-func (s *IdempotencyStore) Exists(ctx context.Context, key string) (bool, error) {
-	n, err := s.client.Exists(ctx, idemKeyPrefix+key).Result()
-	if err != nil {
-		return false, fmt.Errorf("storefront: idempotency exists: %w", err)
+// Get returns the cached result for a completed booking request.
+func (s *IdempotencyStore) Get(ctx context.Context, key string) (ports.IdempotencyRecord, bool, error) {
+	raw, err := s.client.Get(ctx, idemKeyPrefix+key).Bytes()
+	if err == redis.Nil {
+		return ports.IdempotencyRecord{}, false, nil
 	}
-	return n > 0, nil
+	if err != nil {
+		return ports.IdempotencyRecord{}, false, fmt.Errorf("storefront: idempotency get: %w", err)
+	}
+	// Older deployments stored a marker only. Keep treating it as a duplicate,
+	// but do not pretend that a replayable response exists.
+	if string(raw) == "1" {
+		return ports.IdempotencyRecord{}, true, nil
+	}
+	var record ports.IdempotencyRecord
+	if err := json.Unmarshal(raw, &record); err != nil {
+		return ports.IdempotencyRecord{}, false, fmt.Errorf("storefront: decode idempotency record: %w", err)
+	}
+	return record, true, nil
 }
 
-// Mark records the key as processed with a 24-hour TTL.
-func (s *IdempotencyStore) Mark(ctx context.Context, key string) error {
-	if err := s.client.Set(ctx, idemKeyPrefix+key, "1", idemKeyTTL).Err(); err != nil {
-		return fmt.Errorf("storefront: idempotency mark: %w", err)
+// Put stores a replayable booking response with a 24-hour TTL.
+func (s *IdempotencyStore) Put(ctx context.Context, key string, record ports.IdempotencyRecord) error {
+	raw, err := json.Marshal(record)
+	if err != nil {
+		return fmt.Errorf("storefront: encode idempotency record: %w", err)
+	}
+	if err := s.client.Set(ctx, idemKeyPrefix+key, raw, idemKeyTTL).Err(); err != nil {
+		return fmt.Errorf("storefront: idempotency put: %w", err)
 	}
 	return nil
 }
