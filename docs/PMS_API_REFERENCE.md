@@ -86,7 +86,7 @@ These are the **recommended endpoints** for a channel manager / external booking
 }
 ```
 
-**Response:** Available rooms with pricing, capacity, and availability status.
+**Response:** Complete offers with `room_ids: string[]`, `room_count`, combined pricing/currency, aggregate capacity, room names/types, and availability attributes. Scalar/comma-joined offer IDs are not returned.
 
 ### 1.5 Get Room Details
 
@@ -119,7 +119,7 @@ These are the **recommended endpoints** for a channel manager / external booking
 ```json
 {
   "action": "get_quote",
-  "room_id": "string (required)",
+  "room_ids": ["string (required)", "string (optional additional room)"],
   "checkin": "YYYY-MM-DD",
   "checkout": "YYYY-MM-DD",
   "adults": 1
@@ -149,7 +149,10 @@ These are the **recommended endpoints** for a channel manager / external booking
   "phone": "string (optional)",
   "adults": 1,
   "children": 0,
-  "notes": "string (optional)"
+  "notes": "string (optional)",
+  "total_amount": 480,
+  "currency": "USD",
+  "idempotency_key": "call-id"
 }
 ```
 
@@ -158,16 +161,20 @@ These are the **recommended endpoints** for a channel manager / external booking
 ```json
 {
   "data": {
-    "booking_id": "string",
-    "status": "CONFIRMATION_PENDING",
+    "booking_ids": ["string", "string"],
+    "room_ids": ["string", "string"],
+    "group_status": "CONFIRMATION_PENDING",
     "guest_name": "string",
-    "room_name": "string",
-    "room_type": "string",
+    "room_names": ["string", "string"],
+    "room_types": ["string", "string"],
     "property_name": "string",
     "checkin": "ISO datetime",
     "checkout": "ISO datetime",
     "adults": 1,
     "children": 0,
+    "total_amount": 480,
+    "currency": "USD",
+    "payment_status": "UNPAID",
     "message": "Booking confirmed for ..."
   }
 }

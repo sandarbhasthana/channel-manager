@@ -32,11 +32,7 @@ func dispatch(t *testing.T, h *harness, action string, body map[string]any) (map
 func TestCreateBooking_PmsRejection_ReleasesHoldAndWritesNoReservation(t *testing.T) {
 	h := newHarness()
 	h.pms.createErr = errors.New("no availability")
-	hold := h.liveHold("tok-reject")
-
-	_, err := dispatch(t, h, domain.ActionCreateBooking, createBody(map[string]any{
-		"hold_token": hold.Token,
-	}))
+	_, err := dispatch(t, h, domain.ActionCreateBooking, createBody(nil))
 
 	if err == nil {
 		t.Fatal("expected error when PMS rejects the booking")
@@ -44,11 +40,8 @@ func TestCreateBooking_PmsRejection_ReleasesHoldAndWritesNoReservation(t *testin
 	if h.res.ingestCalls != 0 {
 		t.Errorf("canonical reservation written despite PMS rejection: %d calls", h.res.ingestCalls)
 	}
-	if h.holds.releaseCalls != 1 {
-		t.Errorf("expected hold released exactly once, got %d", h.holds.releaseCalls)
-	}
-	if _, err := h.holds.Get(tenantCtx(), hold.Token); err != domain.ErrHoldNotFound {
-		t.Error("hold should be gone after PMS rejection")
+	if h.holds.releaseCalls != 0 {
+		t.Errorf("strict array booking should not consume holds, got %d releases", h.holds.releaseCalls)
 	}
 	if h.idem.markCalls != 0 {
 		t.Error("idempotency key must not be marked for a failed booking")
@@ -65,24 +58,21 @@ func TestCreateBooking_PmsRejection_ReleasesHoldAndWritesNoReservation(t *testin
 func TestCreateBooking_CanonicalWriteFails_ReturnsReconciliationPending(t *testing.T) {
 	h := newHarness()
 	h.res.ingestErr = errors.New("database is down")
-	hold := h.liveHold("tok-orphan")
-
 	out, err := dispatch(t, h, domain.ActionCreateBooking, createBody(map[string]any{
-		"hold_token":      hold.Token,
 		"idempotency_key": "idem-orphan",
 	}))
 
 	if err != nil {
 		t.Fatalf("guest must not see an error when the PMS confirmed: %v", err)
 	}
-	if out["booking_id"] != "pms-booking-1" {
-		t.Errorf("expected PMS booking id in response, got %v", out["booking_id"])
+	if got := out["booking_ids"].([]string); len(got) != 1 || got[0] != "pms-booking-1" {
+		t.Errorf("expected PMS booking ids in response, got %v", got)
 	}
 	if out["reconciliation_pending"] != true {
 		t.Error("expected reconciliation_pending=true when canonical write fails")
 	}
-	if out["reservation_id"] != "" {
-		t.Errorf("expected empty reservation_id, got %v", out["reservation_id"])
+	if got := out["reservation_ids"].([]string); len(got) != 1 || got[0] != "" {
+		t.Errorf("expected one empty reservation id, got %v", got)
 	}
 	if h.idem.markCalls != 1 {
 		t.Error("idempotency key must still be marked: the PMS booking is real")
@@ -93,10 +83,7 @@ func TestCreateBooking_CanonicalWriteFails_ReturnsReconciliationPending(t *testi
 // A successful booking carries no reconciliation flag and yields a reservation id.
 func TestCreateBooking_Success(t *testing.T) {
 	h := newHarness()
-	hold := h.liveHold("tok-ok")
-
 	out, err := dispatch(t, h, domain.ActionCreateBooking, createBody(map[string]any{
-		"hold_token":      hold.Token,
 		"idempotency_key": "idem-ok",
 	}))
 	if err != nil {
@@ -105,11 +92,11 @@ func TestCreateBooking_Success(t *testing.T) {
 	if _, present := out["reconciliation_pending"]; present {
 		t.Error("reconciliation_pending must be absent on success")
 	}
-	if out["reservation_id"] != "reservation-1" {
-		t.Errorf("expected reservation id, got %v", out["reservation_id"])
+	if got := out["reservation_ids"].([]string); len(got) != 1 || got[0] != "reservation-1" {
+		t.Errorf("expected reservation id, got %v", got)
 	}
-	if h.holds.releaseCalls != 1 {
-		t.Errorf("hold should be consumed exactly once, got %d", h.holds.releaseCalls)
+	if h.holds.releaseCalls != 0 {
+		t.Errorf("strict array booking should not consume holds, got %d releases", h.holds.releaseCalls)
 	}
 	if h.res.ingested.Status != "confirmed" {
 		t.Errorf("expected confirmed reservation, got %q", h.res.ingested.Status)
@@ -117,9 +104,8 @@ func TestCreateBooking_Success(t *testing.T) {
 	if h.res.ingested.ChannelConfirmationID != "pms-booking-1" {
 		t.Error("reservation should carry the PMS booking id")
 	}
-	// The hold, not the request body, is authoritative for the room.
-	if h.pms.createdInput.RoomID != testRoomID {
-		t.Errorf("expected room from hold, got %q", h.pms.createdInput.RoomID)
+	if len(h.pms.createdInput.RoomIDs) != 1 || h.pms.createdInput.RoomIDs[0] != testRoomID {
+		t.Errorf("expected exact room_ids array, got %v", h.pms.createdInput.RoomIDs)
 	}
 }
 
@@ -129,10 +115,7 @@ func TestCreateBooking_Success(t *testing.T) {
 func TestCreateBooking_DuplicateIdempotencyKey_NoSideEffects(t *testing.T) {
 	h := newHarness()
 	h.idem.seen["idem-replay"] = true
-	hold := h.liveHold("tok-replay")
-
 	_, err := dispatch(t, h, domain.ActionCreateBooking, createBody(map[string]any{
-		"hold_token":      hold.Token,
 		"idempotency_key": "idem-replay",
 	}))
 
@@ -157,15 +140,16 @@ func TestCreateBooking_DuplicateIdempotencyKey_NoSideEffects(t *testing.T) {
 
 // An unknown or expired hold token surfaces ErrHoldNotFound, which the HTTP
 // layer maps to 410 Gone so the guest re-quotes.
-func TestCreateBooking_ExpiredHold_ReturnsHoldNotFound(t *testing.T) {
+func TestCreateBooking_HoldCannotReplaceRoomIDs(t *testing.T) {
 	h := newHarness()
-
-	_, err := dispatch(t, h, domain.ActionCreateBooking, createBody(map[string]any{
+	body := createBody(map[string]any{
 		"hold_token": "tok-does-not-exist",
-	}))
+	})
+	delete(body, "room_ids")
+	_, err := dispatch(t, h, domain.ActionCreateBooking, body)
 
-	if !errors.Is(err, domain.ErrHoldNotFound) {
-		t.Fatalf("expected ErrHoldNotFound, got %v", err)
+	if err == nil {
+		t.Fatal("expected room_ids validation error")
 	}
 	if h.pms.createCalls != 0 {
 		t.Error("PMS must not be called with an expired hold")
@@ -176,25 +160,16 @@ func TestCreateBooking_ExpiredHold_ReturnsHoldNotFound(t *testing.T) {
 }
 
 // A hold belonging to another property must not be usable here.
-func TestCreateBooking_HoldFromAnotherProperty_Rejected(t *testing.T) {
+func TestCreateBooking_ScalarRoomIDRejected(t *testing.T) {
 	h := newHarness()
-	h.holds.seed(domain.Hold{
-		Token:      "tok-foreign",
-		PropertyID: "99999999-9999-9999-9999-999999999999",
-		RoomID:     testRoomID,
-		Checkin:    mustDay("2026-08-01"),
-		Checkout:   mustDay("2026-08-03"),
-		ExpiresAt:  time.Now().Add(5 * time.Minute),
-	})
-
-	_, err := dispatch(t, h, domain.ActionCreateBooking, createBody(map[string]any{
-		"hold_token": "tok-foreign",
-	}))
+	body := createBody(map[string]any{"room_id": testRoomID})
+	delete(body, "room_ids")
+	_, err := dispatch(t, h, domain.ActionCreateBooking, body)
 	if err == nil {
-		t.Fatal("expected rejection of a hold from another property")
+		t.Fatal("expected rejection of scalar room_id")
 	}
 	if h.pms.createCalls != 0 {
-		t.Error("PMS must not be called with a foreign hold")
+		t.Error("PMS must not be called with scalar room_id")
 	}
 }
 
@@ -204,8 +179,8 @@ func TestCreateBooking_HoldFromAnotherProperty_Rejected(t *testing.T) {
 func TestSearchAvailability_ExcludesHeldRooms(t *testing.T) {
 	h := newHarness()
 	h.pms.offers = []pmsdomain.AvailabilityOffer{
-		{RoomID: testRoomID, RoomTypeName: "Deluxe", IsAvailable: true, TotalPrice: 450, Currency: "USD"},
-		{RoomID: "room-102", RoomTypeName: "Deluxe", IsAvailable: true, TotalPrice: 450, Currency: "USD"},
+		{RoomIDs: []string{testRoomID}, RoomCount: 1, RoomTypeName: "Deluxe", IsAvailable: true, TotalPrice: 450, Currency: "USD"},
+		{RoomIDs: []string{"room-102"}, RoomCount: 1, RoomTypeName: "Deluxe", IsAvailable: true, TotalPrice: 450, Currency: "USD"},
 	}
 	h.liveHold("tok-held") // holds room-101 over 2026-08-01..03
 
@@ -220,8 +195,8 @@ func TestSearchAvailability_ExcludesHeldRooms(t *testing.T) {
 	if len(rooms) != 1 {
 		t.Fatalf("expected 1 available room, got %d", len(rooms))
 	}
-	if rooms[0]["room_id"] != "room-102" {
-		t.Errorf("held room should be excluded, got %v", rooms[0]["room_id"])
+	if got := rooms[0]["room_ids"].([]string); len(got) != 1 || got[0] != "room-102" {
+		t.Errorf("held room should be excluded, got %v", got)
 	}
 	if out["source"] != "CHANNEL_MANAGER" || out["property_id"] != testExtPropID {
 		t.Fatalf("scope metadata = %#v", out)
@@ -235,7 +210,7 @@ func TestSearchAvailability_ExcludesHeldRooms(t *testing.T) {
 func TestSearchAvailability_NonOverlappingHoldDoesNotExclude(t *testing.T) {
 	h := newHarness()
 	h.pms.offers = []pmsdomain.AvailabilityOffer{
-		{RoomID: testRoomID, RoomTypeName: "Deluxe", IsAvailable: true, Currency: "USD"},
+		{RoomIDs: []string{testRoomID}, RoomCount: 1, RoomTypeName: "Deluxe", IsAvailable: true, Currency: "USD"},
 	}
 	h.liveHold("tok-held") // 2026-08-01..03
 
@@ -255,7 +230,7 @@ func TestSearchAvailability_NonOverlappingHoldDoesNotExclude(t *testing.T) {
 func TestSearchAvailability_ExcludesUnavailableOffers(t *testing.T) {
 	h := newHarness()
 	h.pms.offers = []pmsdomain.AvailabilityOffer{
-		{RoomID: "room-103", IsAvailable: false},
+		{RoomIDs: []string{"room-103"}, RoomCount: 1, IsAvailable: false},
 	}
 	out, err := dispatch(t, h, domain.ActionSearchAvailability, map[string]any{
 		"checkin": "2026-08-01", "checkout": "2026-08-03",
@@ -265,6 +240,62 @@ func TestSearchAvailability_ExcludesUnavailableOffers(t *testing.T) {
 	}
 	if rooms := out["available_rooms"].([]map[string]any); len(rooms) != 0 {
 		t.Errorf("expected no rooms, got %d", len(rooms))
+	}
+}
+
+// Multi-room combo offers already satisfy requested_rooms; can_accommodate
+// must be true when any combo is present (not len(offers) >= rooms).
+func TestSearchAvailability_ComboOfferCanAccommodate(t *testing.T) {
+	h := newHarness()
+	h.pms.offers = []pmsdomain.AvailabilityOffer{
+		{
+			RoomIDs: []string{"room-101", "room-102"}, RoomCount: 2, RoomTypeName: "2x Standard Room",
+			IsAvailable: true, Capacity: 4, TotalPrice: 480, Currency: "USD",
+		},
+	}
+	out, err := dispatch(t, h, domain.ActionSearchAvailability, map[string]any{
+		"checkin": "2026-08-01", "checkout": "2026-08-03",
+		"adults": 2, "children": 1, "rooms": 2,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	rooms := out["available_rooms"].([]map[string]any)
+	if len(rooms) != 1 {
+		t.Fatalf("expected 1 combo offer, got %d", len(rooms))
+	}
+	if out["can_accommodate"] != true {
+		t.Fatalf("combo offer should accommodate; got %#v", out)
+	}
+	if out["requested_rooms"] != 2 || out["total_available"] != 1 {
+		t.Fatalf("availability summary = %#v", out)
+	}
+}
+
+// A hold on either physical room in a combo must suppress the whole offer.
+func TestSearchAvailability_ExcludesComboWhenPartHeld(t *testing.T) {
+	h := newHarness()
+	h.pms.offers = []pmsdomain.AvailabilityOffer{
+		{
+			RoomIDs: []string{"room-101", "room-102"}, RoomCount: 2, RoomTypeName: "2x Standard Room",
+			IsAvailable: true, Capacity: 4, Currency: "USD",
+		},
+		{RoomIDs: []string{"room-103"}, RoomCount: 1, RoomTypeName: "Deluxe", IsAvailable: true, Currency: "USD"},
+	}
+	h.liveHold("tok-held") // holds room-101
+
+	out, err := dispatch(t, h, domain.ActionSearchAvailability, map[string]any{
+		"checkin": "2026-08-01", "checkout": "2026-08-03", "rooms": 2,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	rooms := out["available_rooms"].([]map[string]any)
+	if len(rooms) != 1 {
+		t.Fatalf("expected only non-held offer, got %d (%#v)", len(rooms), rooms)
+	}
+	if got := rooms[0]["room_ids"].([]string); len(got) != 1 || got[0] != "room-103" {
+		t.Fatalf("held combo should be excluded, got %#v", rooms[0])
 	}
 }
 
@@ -336,6 +367,7 @@ func TestCancelBooking_MirrorsCanonicalCancellation(t *testing.T) {
 
 	out, err := dispatch(t, h, domain.ActionCancelBooking, map[string]any{
 		"booking_id":     "pms-booking-1",
+		"guest_surname":  "Smith",
 		"reservation_id": "reservation-1",
 		"reason":         "guest request",
 	})
@@ -357,7 +389,8 @@ func TestCancelBooking_WithoutReservationID_StillCancelsInPms(t *testing.T) {
 	h := newHarness()
 
 	_, err := dispatch(t, h, domain.ActionCancelBooking, map[string]any{
-		"booking_id": "pms-booking-1",
+		"booking_id":    "pms-booking-1",
+		"guest_surname": "Smith",
 	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -393,7 +426,7 @@ func TestBookingEngineDisabled_RefusesSearchQuoteCreate(t *testing.T) {
 			// Give each action an otherwise-valid body so the only reason to
 			// fail is the disabled engine.
 			h.pms.offers = []pmsdomain.AvailabilityOffer{
-				{RoomID: testRoomID, RoomTypeName: "Deluxe", IsAvailable: true, TotalPrice: 450, Currency: "USD"},
+				{RoomIDs: []string{testRoomID}, RoomCount: 1, RoomTypeName: "Deluxe", IsAvailable: true, TotalPrice: 450, Currency: "USD"},
 			}
 			h.liveHold("tok-1")
 			body := map[string]any{
@@ -445,10 +478,10 @@ func TestParseDateRange_Invalid(t *testing.T) {
 func TestCreateBooking_NoRoomAndNoHold_Rejected(t *testing.T) {
 	h := newHarness()
 	body := createBody(nil)
-	delete(body, "room_id")
+	delete(body, "room_ids")
 
 	if _, err := dispatch(t, h, domain.ActionCreateBooking, body); err == nil {
-		t.Fatal("expected error when neither room_id nor hold_token is supplied")
+		t.Fatal("expected error when room_ids is missing")
 	}
 	if h.pms.createCalls != 0 {
 		t.Error("PMS must not be called without a room")
@@ -480,11 +513,7 @@ func assertNotAudited(t *testing.T, h *harness, action string) {
 func TestNilAuditRecorder_DoesNotPanic(t *testing.T) {
 	h := newHarness()
 	h.svc = NewService(h.props, h.pms, h.res, h.promos, h.holds, h.idem, nil, time.Minute)
-	hold := h.liveHold("tok-nil-audit")
-
-	if _, err := dispatch(t, h, domain.ActionCreateBooking, createBody(map[string]any{
-		"hold_token": hold.Token,
-	})); err != nil {
+	if _, err := dispatch(t, h, domain.ActionCreateBooking, createBody(nil)); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
@@ -492,29 +521,16 @@ func TestNilAuditRecorder_DoesNotPanic(t *testing.T) {
 // A booking that identifies only a room type (a preference booking: no room
 // number and no hold) is accepted and forwards the room type to the PMS. This
 // is G1 -- the old code hard-rejected it and the guest silently lost the booking.
-func TestCreateBooking_RoomTypeOnly_Succeeds(t *testing.T) {
+func TestCreateBooking_RoomTypeOnly_Rejected(t *testing.T) {
 	h := newHarness()
 	body := createBody(map[string]any{"room_type_id": "rt-deluxe"})
-	delete(body, "room_id")
+	delete(body, "room_ids")
 
-	out, err := dispatch(t, h, domain.ActionCreateBooking, body)
-	if err != nil {
-		t.Fatalf("room-type-only booking must succeed, got: %v", err)
+	if _, err := dispatch(t, h, domain.ActionCreateBooking, body); err == nil {
+		t.Fatal("room-type-only booking must be rejected by the strict room_ids contract")
 	}
-	if h.pms.createCalls != 1 {
-		t.Fatalf("expected the PMS to be called once, got %d", h.pms.createCalls)
-	}
-	if h.pms.createdInput.RoomID != "" {
-		t.Errorf("a preference booking must not carry a room id, got %q", h.pms.createdInput.RoomID)
-	}
-	if h.pms.createdInput.RoomTypeID != "rt-deluxe" {
-		t.Errorf("expected room type forwarded to the PMS, got %q", h.pms.createdInput.RoomTypeID)
-	}
-	if h.res.ingested.RoomTypeID != "rt-deluxe" {
-		t.Errorf("canonical reservation should record the room type, got %q", h.res.ingested.RoomTypeID)
-	}
-	if _, present := out["reconciliation_pending"]; present {
-		t.Error("reconciliation_pending must be absent on success")
+	if h.pms.createCalls != 0 {
+		t.Fatalf("PMS must not be called, got %d calls", h.pms.createCalls)
 	}
 }
 

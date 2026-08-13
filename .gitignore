@@ -32,3 +32,4 @@ apps/dashboard/.next/
 .claude/
 .gocache/
 .codex-tmp/
+.playwright-cli/

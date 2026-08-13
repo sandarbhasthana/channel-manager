@@ -105,16 +105,27 @@ func (f *fakePms) CreateBooking(_ context.Context, _ string, in pmsdomain.Create
 		return f.booking, nil
 	}
 	return &pmsdomain.PmsBooking{
-		BookingID: "pms-booking-1", Status: "CONFIRMED", RoomID: in.RoomID,
-		GuestName: in.GuestName, PaymentStatus: "PAID",
+		BookingIDs: []string{"pms-booking-1"}, RoomIDs: append([]string(nil), in.RoomIDs...),
+		RoomNames: []string{"101"}, RoomTypes: []string{"Deluxe"},
+		GroupStatus: "CONFIRMED", Status: "CONFIRMED",
+		GuestName: in.GuestName, Adults: in.Adults, Children: in.Children, PaymentStatus: "PAID",
 	}, nil
 }
 
-func (f *fakePms) GetBooking(_ context.Context, _, bookingID string) (*pmsdomain.PmsBooking, error) {
-	return &pmsdomain.PmsBooking{BookingID: bookingID, Status: "CONFIRMED"}, nil
+func (f *fakePms) GetBooking(_ context.Context, _ string, in pmsdomain.GetBookingInput) (*pmsdomain.PmsBooking, error) {
+	return &pmsdomain.PmsBooking{BookingID: in.BookingID, Status: "CONFIRMED"}, nil
 }
 
-func (f *fakePms) CancelBooking(_ context.Context, _, bookingID, _ string) (*pmsdomain.CancelBookingResult, error) {
+func (f *fakePms) UpdateBooking(_ context.Context, _ string, in pmsdomain.UpdateBookingInput) (*pmsdomain.PmsBooking, error) {
+	return &pmsdomain.PmsBooking{
+		BookingID: in.BookingID,
+		Status:    "CONFIRMATION_PENDING",
+		GuestName: in.GuestName,
+		Message:   "updated",
+	}, nil
+}
+
+func (f *fakePms) CancelBooking(_ context.Context, _ string, in pmsdomain.CancelBookingInput) (*pmsdomain.CancelBookingResult, error) {
 	f.cancelCalls++
 	if f.cancelErr != nil {
 		return nil, f.cancelErr
@@ -122,7 +133,7 @@ func (f *fakePms) CancelBooking(_ context.Context, _, bookingID, _ string) (*pms
 	if f.cancelResult != nil {
 		return f.cancelResult, nil
 	}
-	return &pmsdomain.CancelBookingResult{BookingID: bookingID, Status: "CANCELLED"}, nil
+	return &pmsdomain.CancelBookingResult{BookingID: in.BookingID, Status: "CANCELLED"}, nil
 }
 
 // ── reservation writer ──────────────────────────────────────────────────────
@@ -341,7 +352,7 @@ func createBody(extra map[string]any) map[string]any {
 	body := map[string]any{
 		"checkin":      "2026-08-01",
 		"checkout":     "2026-08-03",
-		"room_id":      testRoomID,
+		"room_ids":     []any{testRoomID},
 		"guest_name":   "Ada Lovelace",
 		"email":        "ada@example.com",
 		"adults":       float64(2),

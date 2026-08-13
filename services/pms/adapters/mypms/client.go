@@ -110,9 +110,42 @@ func (c *Client) GetQuote(ctx context.Context, propertyID string, req GetQuoteRe
 }
 
 // CreateBooking calls POST .../{propertyId} with action create_booking.
-func (c *Client) CreateBooking(ctx context.Context, propertyID string, req CreateBookingRequest) (*Booking, error) {
+func (c *Client) CreateBooking(ctx context.Context, propertyID string, req CreateBookingRequest) (*BookingGroup, error) {
 	req.Action = ActionCreateBooking
 	path := fmt.Sprintf("/api/webhooks/bookings/%s", propertyID)
+	raw, err := c.doBytes(ctx, http.MethodPost, path, req)
+	if err != nil {
+		return nil, err
+	}
+	var wrapped struct {
+		Data BookingGroup `json:"data"`
+	}
+	if err := json.Unmarshal(raw, &wrapped); err == nil && len(wrapped.Data.BookingIDs) > 0 {
+		return &wrapped.Data, nil
+	}
+	var direct BookingGroup
+	if err := json.Unmarshal(raw, &direct); err != nil {
+		return nil, fmt.Errorf("mypms: decode booking group: %w", err)
+	}
+	return &direct, nil
+}
+
+// GetBooking calls POST .../{propertyId} with action get_booking.
+func (c *Client) GetBooking(ctx context.Context, propertyID string, req GetBookingRequest) (*Booking, error) {
+	req.Action = ActionGetBooking
+	path := fmt.Sprintf("/api/webhooks/bookings/%s", propertyID)
+	return c.decodeBooking(ctx, path, req)
+}
+
+// UpdateBooking calls POST .../{propertyId} with action update_booking.
+func (c *Client) UpdateBooking(ctx context.Context, propertyID string, req UpdateBookingRequest) (*Booking, error) {
+	req.Action = ActionUpdateBooking
+	path := fmt.Sprintf("/api/webhooks/bookings/%s", propertyID)
+	return c.decodeBooking(ctx, path, req)
+}
+
+// decodeBooking unwraps PMS {"data": {...}} envelopes the same way CreateBooking does.
+func (c *Client) decodeBooking(ctx context.Context, path string, req any) (*Booking, error) {
 	raw, err := c.doBytes(ctx, http.MethodPost, path, req)
 	if err != nil {
 		return nil, err
@@ -128,40 +161,25 @@ func (c *Client) CreateBooking(ctx context.Context, propertyID string, req Creat
 	return &direct, nil
 }
 
-// GetBooking calls POST .../{propertyId} with action get_booking.
-func (c *Client) GetBooking(ctx context.Context, propertyID, bookingID string) (*Booking, error) {
-	body := GetBookingRequest{
-		Action:    ActionGetBooking,
-		BookingID: bookingID,
-	}
-	var out Booking
-	path := fmt.Sprintf("/api/webhooks/bookings/%s", propertyID)
-	if err := c.do(ctx, http.MethodPost, path, body, &out); err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// UpdateBooking calls POST .../{propertyId} with action update_booking.
-func (c *Client) UpdateBooking(ctx context.Context, propertyID string, req UpdateBookingRequest) (*Booking, error) {
-	req.Action = ActionUpdateBooking
-	var out Booking
-	path := fmt.Sprintf("/api/webhooks/bookings/%s", propertyID)
-	if err := c.do(ctx, http.MethodPost, path, req, &out); err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // CancelBooking calls POST .../{propertyId} with action cancel_booking.
 func (c *Client) CancelBooking(ctx context.Context, propertyID string, req CancelBookingRequest) (*CancelBookingResponse, error) {
 	req.Action = ActionCancelBooking
-	var out CancelBookingResponse
 	path := fmt.Sprintf("/api/webhooks/bookings/%s", propertyID)
-	if err := c.do(ctx, http.MethodPost, path, req, &out); err != nil {
+	raw, err := c.doBytes(ctx, http.MethodPost, path, req)
+	if err != nil {
 		return nil, err
 	}
-	return &out, nil
+	var wrapped struct {
+		Data CancelBookingResponse `json:"data"`
+	}
+	if err := json.Unmarshal(raw, &wrapped); err == nil && wrapped.Data.BookingID != "" {
+		return &wrapped.Data, nil
+	}
+	var direct CancelBookingResponse
+	if err := json.Unmarshal(raw, &direct); err != nil {
+		return nil, fmt.Errorf("mypms: decode cancel booking: %w", err)
+	}
+	return &direct, nil
 }
 
 // DeleteBooking calls POST .../{propertyId} with action delete_booking.

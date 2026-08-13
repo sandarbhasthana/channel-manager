@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -134,6 +136,8 @@ func (s *Service) Dispatch(ctx context.Context, propertyID, action string, body 
 		return s.createBooking(ctx, prop, body)
 	case domain.ActionGetBooking:
 		return s.getBooking(ctx, prop, body)
+	case domain.ActionUpdateBooking:
+		return s.updateBooking(ctx, prop, body)
 	case domain.ActionCancelBooking:
 		return s.cancelBooking(ctx, prop, body)
 	case domain.ActionGetPromo:
@@ -342,11 +346,14 @@ func (s *Service) searchAvailability(ctx context.Context, prop property, body ma
 
 	rooms := make([]map[string]any, 0, len(offers))
 	for _, o := range offers {
-		if !o.IsAvailable || held[o.RoomID] {
+		if !o.IsAvailable || offerTouchesHeldRoom(held, o.RoomIDs) {
 			continue
 		}
 		rooms = append(rooms, map[string]any{
-			"room_id":         o.RoomID,
+			"room_ids":        o.RoomIDs,
+			"room_count":      o.RoomCount,
+			"room_names":      o.RoomNames,
+			"room_types":      o.RoomTypes,
 			"room_type_id":    o.RoomTypeID,
 			"room_type":       o.RoomTypeName,
 			"available_units": o.AvailableUnits,
@@ -354,12 +361,18 @@ func (s *Service) searchAvailability(ctx context.Context, prop property, body ma
 			"total_price":     o.TotalPrice,
 			"currency":        currencyOr(o.Currency, prop.DefaultCurrency),
 			"capacity":        o.Capacity,
+			"max_adults":      o.MaxAdults,
+			"max_children":    o.MaxChildren,
+			"description":     o.Description,
+			"amenities":       o.Amenities,
 		})
 	}
 	publicPropertyID := prop.ExternalID
 	if publicPropertyID == "" {
 		publicPropertyID = prop.ID
 	}
+	// PMS returns one bookable offer per solution. For rooms>1 that is a combo
+	// ("id1,id2"), so presence of any offer means the party can be accommodated.
 	return map[string]any{
 		"source":                      "CHANNEL_MANAGER",
 		"property_id":                 publicPropertyID,
@@ -370,10 +383,20 @@ func (s *Service) searchAvailability(ctx context.Context, prop property, body ma
 		"adults":                      adults,
 		"children":                    children,
 		"requested_rooms":             requestedRooms,
-		"can_accommodate":             len(rooms) >= requestedRooms,
+		"can_accommodate":             len(rooms) > 0,
 		"available_rooms":             rooms,
 		"total_available":             len(rooms),
 	}, nil
+}
+
+// offerTouchesHeldRoom reports whether a soft hold covers any room in an offer.
+func offerTouchesHeldRoom(held map[string]bool, roomIDs []string) bool {
+	for _, roomID := range roomIDs {
+		if held[roomID] {
+			return true
+		}
+	}
+	return false
 }
 
 // heldRooms returns the set of room ids soft-held over the requested stay.
@@ -497,32 +520,9 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 	if totalAmount <= 0 {
 		return nil, errors.New("total_amount is required and must be greater than zero")
 	}
-
-	roomID, _ := body["room_id"].(string)
-	roomTypeID, _ := body["room_type_id"].(string)
-
-	// A hold is optional but strongly preferred: it is what makes the
-	// last-room race safe. When present it also authoritatively supplies the room.
-	holdToken, _ := body["hold_token"].(string)
-	var hold domain.Hold
-	if holdToken != "" {
-		hold, err = s.holds.Get(ctx, holdToken)
-		if err != nil {
-			return nil, err
-		}
-		if hold.PropertyID != prop.ID {
-			return nil, errors.New("hold does not belong to this property")
-		}
-		roomID = hold.RoomID
-		if hold.RoomTypeID != "" {
-			roomTypeID = hold.RoomTypeID
-		}
-	}
-	// A booking identifies its inventory by a specific room, a room type, or a
-	// hold that supplies the room. CM never mints a room number for a preference
-	// booking (D6): room assignment is the PMS's concern.
-	if roomID == "" && roomTypeID == "" {
-		return nil, errors.New("room_id, room_type_id, or hold_token is required")
+	roomIDs, err := strictStringArray(body["room_ids"])
+	if err != nil {
+		return nil, err
 	}
 
 	guestName, _ := body["guest_name"].(string)
@@ -534,24 +534,22 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 	notes, _ := body["notes"].(string)
 
 	pmsBooking, err := s.pms.CreateBooking(ctx, prop.ID, pmsdomain.CreateBookingInput{
-		RoomID:     roomID,
-		RoomTypeID: roomTypeID,
-		Checkin:    checkin,
-		Checkout:   checkout,
-		GuestName:  guestName,
-		Email:      email,
-		Phone:      phone,
-		Adults:     intOr(body["adults"], 1),
-		Children:   intOr(body["children"], 0),
-		Notes:      notes,
+		RoomIDs:        roomIDs,
+		Checkin:        checkin,
+		Checkout:       checkout,
+		GuestName:      guestName,
+		Email:          email,
+		Phone:          phone,
+		Adults:         intOr(body["adults"], 1),
+		Children:       intOr(body["children"], 0),
+		Notes:          notes,
+		TotalAmount:    totalAmount,
+		Currency:       currencyOr(stringOr(body["currency"]), prop.DefaultCurrency),
+		IdempotencyKey: idemKey,
 	})
 	if err != nil {
-		// The PMS refused the stay: free the room for the next guest.
-		if holdToken != "" {
-			_ = s.holds.Release(ctx, holdToken)
-		}
 		s.recordAudit(ctx, "storefront.booking.rejected", "property", prop.ID, map[string]any{
-			"room_id":  roomID,
+			"room_ids": roomIDs,
 			"checkin":  checkin.Format("2006-01-02"),
 			"checkout": checkout.Format("2006-01-02"),
 			"reason":   err.Error(),
@@ -559,13 +557,32 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 		return nil, fmt.Errorf("storefront: create booking: %w", err)
 	}
 
-	reservationID, reconciliationPending := s.persistReservation(ctx, prop, pmsBooking, hold, body, checkin, checkout, idemKey)
+	reservationIDs := make([]string, 0, len(pmsBooking.BookingIDs))
+	reconciliationPending := false
+	for index, bookingID := range pmsBooking.BookingIDs {
+		individual := *pmsBooking
+		individual.BookingID = bookingID
+		individual.RoomID = pmsBooking.RoomIDs[index]
+		if index < len(pmsBooking.RoomNames) {
+			individual.RoomName = pmsBooking.RoomNames[index]
+		}
+		if index < len(pmsBooking.RoomTypes) {
+			individual.RoomType = pmsBooking.RoomTypes[index]
+		}
+		reservationKey := idemKey
+		if len(pmsBooking.BookingIDs) > 1 && reservationKey != "" {
+			reservationKey = fmt.Sprintf("%s:%d", reservationKey, index)
+		}
+		reservationID, pending := s.persistReservation(ctx, prop, &individual, domain.Hold{}, body, checkin, checkout, reservationKey)
+		reservationIDs = append(reservationIDs, reservationID)
+		reconciliationPending = reconciliationPending || pending
+	}
 
-	s.recordAudit(ctx, "storefront.booking.create", "reservation", pmsBooking.BookingID, map[string]any{
+	s.recordAudit(ctx, "storefront.booking.create", "property", prop.ID, map[string]any{
 		"property_id":            prop.ID,
-		"reservation_id":         reservationID,
-		"pms_booking_id":         pmsBooking.BookingID,
-		"room_id":                roomID,
+		"reservation_ids":        reservationIDs,
+		"pms_booking_ids":        pmsBooking.BookingIDs,
+		"room_ids":               pmsBooking.RoomIDs,
 		"checkin":                checkin.Format("2006-01-02"),
 		"checkout":               checkout.Format("2006-01-02"),
 		"total_amount":           floatOr(body["total_amount"], 0),
@@ -573,9 +590,6 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 		"reconciliation_pending": reconciliationPending,
 	})
 
-	if holdToken != "" {
-		_ = s.holds.Release(ctx, holdToken)
-	}
 	if idemKey != "" {
 		if err := s.idem.Mark(ctx, idemKey); err != nil {
 			s.log.Warn("mark idempotency key failed", "err", err, "key", idemKey)
@@ -583,14 +597,19 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 	}
 
 	out := map[string]any{
-		"booking_id":     pmsBooking.BookingID,
-		"reservation_id": reservationID,
-		"status":         pmsBooking.Status,
-		"room_id":        pmsBooking.RoomID,
-		"room_type":      pmsBooking.RoomType,
-		"checkin":        pmsBooking.Checkin,
-		"checkout":       pmsBooking.Checkout,
-		"payment_status": pmsBooking.PaymentStatus,
+		"booking_ids":     pmsBooking.BookingIDs,
+		"room_ids":        pmsBooking.RoomIDs,
+		"reservation_ids": reservationIDs,
+		"group_status":    pmsBooking.GroupStatus,
+		"room_names":      pmsBooking.RoomNames,
+		"room_types":      pmsBooking.RoomTypes,
+		"checkin":         pmsBooking.Checkin,
+		"checkout":        pmsBooking.Checkout,
+		"adults":          pmsBooking.Adults,
+		"children":        pmsBooking.Children,
+		"total_amount":    totalAmount,
+		"currency":        currencyOr(stringOr(body["currency"]), prop.DefaultCurrency),
+		"payment_status":  pmsBooking.PaymentStatus,
 	}
 	if reconciliationPending {
 		out["reconciliation_pending"] = true
@@ -657,11 +676,17 @@ func (s *Service) persistReservation(
 }
 
 func (s *Service) getBooking(ctx context.Context, prop property, body map[string]any) (map[string]any, error) {
-	bookingID, _ := body["booking_id"].(string)
-	if bookingID == "" {
-		return nil, errors.New("booking_id is required")
+	input := pmsdomain.GetBookingInput{
+		BookingID:        stringOr(body["booking_id"]),
+		GuestSurname:     stringOr(body["guest_surname"]),
+		GuestFirstName:   stringOr(body["guest_first_name"]),
+		GuestName:        stringOr(body["guest_name"]),
+		Phone:            stringOr(body["phone"]),
+		Email:            stringOr(body["email"]),
+		Checkin:          stringOr(body["checkin"]),
+		PhoneMatchLast10: boolOr(body["phone_match_last10"]),
 	}
-	b, err := s.pms.GetBooking(ctx, prop.ID, bookingID)
+	b, err := s.pms.GetBooking(ctx, prop.ID, input)
 	if err != nil {
 		return nil, fmt.Errorf("storefront: get booking: %w", err)
 	}
@@ -669,28 +694,114 @@ func (s *Service) getBooking(ctx context.Context, prop property, body map[string
 		"booking_id":     b.BookingID,
 		"status":         b.Status,
 		"guest_name":     b.GuestName,
+		"email":          b.Email,
+		"phone":          b.Phone,
+		"room_id":        b.RoomID,
+		"room_name":      b.RoomName,
 		"room_type":      b.RoomType,
+		"property_name":  b.PropertyName,
 		"checkin":        b.Checkin,
 		"checkout":       b.Checkout,
+		"adults":         b.Adults,
+		"children":       b.Children,
+		"notes":          b.Notes,
 		"payment_status": b.PaymentStatus,
+		"source":         b.Source,
+	}, nil
+}
+
+func (s *Service) updateBooking(ctx context.Context, prop property, body map[string]any) (map[string]any, error) {
+	bookingID := stringOr(body["booking_id"])
+	guestSurname := stringOr(body["guest_surname"])
+	if bookingID == "" {
+		return nil, errors.New("booking_id is required")
+	}
+	if guestSurname == "" {
+		return nil, errors.New("guest_surname is required")
+	}
+	input := pmsdomain.UpdateBookingInput{
+		BookingID:    bookingID,
+		GuestSurname: guestSurname,
+		GuestName:    stringOr(body["guest_name"]),
+		Email:        stringOr(body["email"]),
+		Phone:        stringOr(body["phone"]),
+		Notes:        stringOr(body["notes"]),
+		RoomID:       stringOr(body["room_id"]),
+	}
+	if checkin := stringOr(body["checkin"]); checkin != "" {
+		t, err := time.Parse("2006-01-02", checkin)
+		if err != nil {
+			return nil, fmt.Errorf("invalid checkin: %w", err)
+		}
+		input.Checkin = &t
+	}
+	if checkout := stringOr(body["checkout"]); checkout != "" {
+		t, err := time.Parse("2006-01-02", checkout)
+		if err != nil {
+			return nil, fmt.Errorf("invalid checkout: %w", err)
+		}
+		input.Checkout = &t
+	}
+	if _, ok := body["adults"]; ok {
+		adults := intOr(body["adults"], 0)
+		input.Adults = &adults
+	}
+	if _, ok := body["children"]; ok {
+		children := intOr(body["children"], 0)
+		input.Children = &children
+	}
+
+	b, err := s.pms.UpdateBooking(ctx, prop.ID, input)
+	if err != nil {
+		return nil, fmt.Errorf("storefront: update booking: %w", err)
+	}
+	s.recordAudit(ctx, "storefront.booking.update", "reservation", bookingID, map[string]any{
+		"property_id":    prop.ID,
+		"pms_booking_id": bookingID,
+		"status":         b.Status,
+	})
+	return map[string]any{
+		"booking_id":    b.BookingID,
+		"status":        b.Status,
+		"guest_name":    b.GuestName,
+		"email":         b.Email,
+		"phone":         b.Phone,
+		"room_id":       b.RoomID,
+		"room_name":     b.RoomName,
+		"room_type":     b.RoomType,
+		"property_name": b.PropertyName,
+		"checkin":       b.Checkin,
+		"checkout":      b.Checkout,
+		"adults":        b.Adults,
+		"children":      b.Children,
+		"notes":         b.Notes,
+		"message":       b.Message,
 	}, nil
 }
 
 func (s *Service) cancelBooking(ctx context.Context, prop property, body map[string]any) (map[string]any, error) {
-	bookingID, _ := body["booking_id"].(string)
+	bookingID := stringOr(body["booking_id"])
+	guestSurname := stringOr(body["guest_surname"])
 	if bookingID == "" {
 		return nil, errors.New("booking_id is required")
 	}
-	reason, _ := body["reason"].(string)
+	if guestSurname == "" {
+		return nil, errors.New("guest_surname is required")
+	}
+	reason := stringOr(body["reason"])
 
-	result, err := s.pms.CancelBooking(ctx, prop.ID, bookingID, reason)
+	result, err := s.pms.CancelBooking(ctx, prop.ID, pmsdomain.CancelBookingInput{
+		BookingID:    bookingID,
+		GuestSurname: guestSurname,
+		Reason:       reason,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("storefront: cancel booking: %w", err)
 	}
 	// Mirror the cancellation into canonical reservations so inventory and OTA
 	// pushes see the released room. Failure here is a reconciliation concern,
 	// not a guest-visible one.
-	reservationID, _ := body["reservation_id"].(string)
+	reservationID := stringOr(body["reservation_id"])
 	if reservationID != "" {
 		if _, err := s.res.CancelReservation(ctx, reservationID); err != nil {
 			s.log.Error("canonical reservation cancel failed",
@@ -733,6 +844,30 @@ func parseDateRange(body map[string]any) (time.Time, time.Time, error) {
 	return checkin, checkout, nil
 }
 
+var strictRoomIDPattern = regexp.MustCompile(`^[A-Za-z0-9._~-]{1,128}$`)
+
+func strictStringArray(value any) ([]string, error) {
+	values, ok := value.([]any)
+	if !ok || len(values) == 0 {
+		return nil, errors.New("room_ids must be a non-empty array")
+	}
+	roomIDs := make([]string, len(values))
+	seen := make(map[string]struct{}, len(values))
+	for index, value := range values {
+		roomID, ok := value.(string)
+		roomID = strings.TrimSpace(roomID)
+		if !ok || roomID == "" || !strictRoomIDPattern.MatchString(roomID) {
+			return nil, errors.New("room_ids contains a blank or malformed identifier")
+		}
+		if _, duplicate := seen[roomID]; duplicate {
+			return nil, errors.New("room_ids must not contain duplicates")
+		}
+		seen[roomID] = struct{}{}
+		roomIDs[index] = roomID
+	}
+	return roomIDs, nil
+}
+
 func intOr(v any, def int) int {
 	switch n := v.(type) {
 	case float64: // encoding/json decodes numbers into float64
@@ -753,6 +888,11 @@ func floatOr(v any, def float64) float64 {
 func stringOr(v any) string {
 	s, _ := v.(string)
 	return s
+}
+
+func boolOr(v any) bool {
+	b, ok := v.(bool)
+	return ok && b
 }
 
 func currencyOr(vals ...string) string {

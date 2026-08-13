@@ -21,10 +21,10 @@ type BookingEngineClient interface {
 	GetInventory(ctx context.Context, externalPropertyID, roomTypeID string, from, to time.Time) ([]domain.InventorySnapshot, error)
 	GetQuote(ctx context.Context, externalPropertyID string, q domain.QuoteQuery) (*domain.Quote, error)
 	CreateBooking(ctx context.Context, externalPropertyID string, in domain.CreateBookingInput) (*domain.PmsBooking, error)
-	GetBooking(ctx context.Context, externalPropertyID, bookingID string) (*domain.PmsBooking, error)
+	GetBooking(ctx context.Context, externalPropertyID string, in domain.GetBookingInput) (*domain.PmsBooking, error)
 	ListBookings(ctx context.Context, externalPropertyID string, in domain.ListBookingsInput) (*domain.ListBookingsResult, error)
 	UpdateBooking(ctx context.Context, externalPropertyID string, in domain.UpdateBookingInput) (*domain.PmsBooking, error)
-	CancelBooking(ctx context.Context, externalPropertyID, bookingID, reason string) (*domain.CancelBookingResult, error)
+	CancelBooking(ctx context.Context, externalPropertyID string, in domain.CancelBookingInput) (*domain.CancelBookingResult, error)
 	DeleteBooking(ctx context.Context, externalPropertyID, bookingID string) (*domain.DeleteBookingResult, error)
 }
 

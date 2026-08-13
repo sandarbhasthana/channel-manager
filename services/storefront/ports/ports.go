@@ -30,8 +30,9 @@ type PmsGateway interface {
 	SearchAvailability(ctx context.Context, propertyID string, q pmsdomain.AvailabilityQuery) ([]pmsdomain.AvailabilityOffer, error)
 	GetQuote(ctx context.Context, propertyID string, q pmsdomain.QuoteQuery) (*pmsdomain.Quote, error)
 	CreateBooking(ctx context.Context, propertyID string, in pmsdomain.CreateBookingInput) (*pmsdomain.PmsBooking, error)
-	GetBooking(ctx context.Context, propertyID, bookingID string) (*pmsdomain.PmsBooking, error)
-	CancelBooking(ctx context.Context, propertyID, bookingID, reason string) (*pmsdomain.CancelBookingResult, error)
+	GetBooking(ctx context.Context, propertyID string, in pmsdomain.GetBookingInput) (*pmsdomain.PmsBooking, error)
+	UpdateBooking(ctx context.Context, propertyID string, in pmsdomain.UpdateBookingInput) (*pmsdomain.PmsBooking, error)
+	CancelBooking(ctx context.Context, propertyID string, in pmsdomain.CancelBookingInput) (*pmsdomain.CancelBookingResult, error)
 }
 
 // ReservationWriter is the subset of the reservations service the storefront

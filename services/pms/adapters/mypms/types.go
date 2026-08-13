@@ -13,21 +13,21 @@ const (
 	ActionSearchAvailability = "search_availability"
 	ActionGetRoomDetails     = "get_room_details"
 	ActionGetQuote           = "get_quote"
-	ActionCreateBooking        = "create_booking"
-	ActionGetBooking           = "get_booking"
-	ActionUpdateBooking        = "update_booking"
-	ActionCancelBooking        = "cancel_booking"
-	ActionDeleteBooking        = "delete_booking"
-	ActionListBookings         = "list_bookings"
+	ActionCreateBooking      = "create_booking"
+	ActionGetBooking         = "get_booking"
+	ActionUpdateBooking      = "update_booking"
+	ActionCancelBooking      = "cancel_booking"
+	ActionDeleteBooking      = "delete_booking"
+	ActionListBookings       = "list_bookings"
 )
 
 // OrgHealthResponse is returned by GET /api/webhooks/bookings.
 type OrgHealthResponse struct {
-	Status            string   `json:"status"`
-	Service           string   `json:"service"`
-	AvailableActions  []string `json:"available_actions"`
-	OrganizationID    string   `json:"organization_id"`
-	BookingActions    []string `json:"booking_actions"`
+	Status           string   `json:"status"`
+	Service          string   `json:"service"`
+	AvailableActions []string `json:"available_actions"`
+	OrganizationID   string   `json:"organization_id"`
+	BookingActions   []string `json:"booking_actions"`
 }
 
 // PropertyHealthResponse is returned by GET /api/webhooks/bookings/{propertyId}.
@@ -96,28 +96,35 @@ func (r *SearchPropertiesResponse) UnmarshalJSON(data []byte) error {
 
 // SearchAvailabilityRequest is the body for action search_availability.
 type SearchAvailabilityRequest struct {
-	Action    string `json:"action"`
-	Checkin   string `json:"checkin"`
-	Checkout  string `json:"checkout"`
-	Adults    int    `json:"adults"`
-	Children  int    `json:"children"`
-	Rooms     int    `json:"rooms"`
-	RoomType  string `json:"room_type,omitempty"`
+	Action   string `json:"action"`
+	Checkin  string `json:"checkin"`
+	Checkout string `json:"checkout"`
+	Adults   int    `json:"adults"`
+	Children int    `json:"children"`
+	Rooms    int    `json:"rooms"`
+	RoomType string `json:"room_type,omitempty"`
 }
 
 // AvailabilityRoom is one bookable unit in a search_availability response.
 type AvailabilityRoom struct {
-	RoomID       string  `json:"room_id"`
-	RoomName     string  `json:"room_name"`
-	RoomTypeID   string  `json:"room_type_id"`
-	RoomType     string  `json:"room_type"`
-	RoomTypeName string  `json:"room_type_name"`
-	Available    bool    `json:"is_available"`
-	AvailableQty int     `json:"available"`
-	Capacity     int     `json:"capacity"`
-	PricePerNight float64 `json:"price_per_night"`
-	TotalPrice   float64 `json:"total_price"`
-	Currency     string  `json:"currency"`
+	RoomIDs       []string `json:"room_ids"`
+	RoomCount     int      `json:"room_count"`
+	RoomNames     []string `json:"room_names"`
+	RoomTypes     []string `json:"room_types"`
+	RoomName      string   `json:"room_name"`
+	RoomTypeID    string   `json:"room_type_id"`
+	RoomType      string   `json:"room_type"`
+	RoomTypeName  string   `json:"room_type_name"`
+	Available     bool     `json:"is_available"`
+	AvailableQty  int      `json:"available"`
+	Capacity      int      `json:"capacity"`
+	MaxAdults     int      `json:"max_adults"`
+	MaxChildren   int      `json:"max_children"`
+	Description   string   `json:"description"`
+	Amenities     []string `json:"amenities"`
+	PricePerNight float64  `json:"price_per_night"`
+	TotalPrice    float64  `json:"total_price"`
+	Currency      string   `json:"currency"`
 }
 
 // SearchAvailabilityResponse wraps availability results.
@@ -166,12 +173,12 @@ type GetRoomDetailsRequest struct {
 
 // RoomTypeDetail describes a sellable room category from the PMS.
 type RoomTypeDetail struct {
-	ID           string `json:"id"`
-	RoomTypeID   string `json:"room_type_id"`
-	RoomType     string `json:"room_type"`
-	Name         string `json:"name"`
-	MaxOccupancy int    `json:"max_occupancy"`
-	BaseOccupancy int   `json:"base_occupancy"`
+	ID            string       `json:"id"`
+	RoomTypeID    string       `json:"room_type_id"`
+	RoomType      string       `json:"room_type"`
+	Name          string       `json:"name"`
+	MaxOccupancy  int          `json:"max_occupancy"`
+	BaseOccupancy int          `json:"base_occupancy"`
 	Capacity      int          `json:"capacity"`
 	Description   string       `json:"description"`
 	Rooms         []RoomDetail `json:"rooms"`
@@ -278,17 +285,38 @@ type Quote struct {
 
 // CreateBookingRequest is the body for action create_booking.
 type CreateBookingRequest struct {
-	Action     string `json:"action"`
-	RoomID     string `json:"room_id"`
-	RoomTypeID string `json:"room_type_id,omitempty"`
-	Checkin    string `json:"checkin"`
-	Checkout  string `json:"checkout"`
-	GuestName string `json:"guest_name"`
-	Email     string `json:"email,omitempty"`
-	Phone     string `json:"phone,omitempty"`
-	Adults    int    `json:"adults"`
-	Children  int    `json:"children"`
-	Notes     string `json:"notes,omitempty"`
+	Action         string   `json:"action"`
+	RoomIDs        []string `json:"room_ids"`
+	Checkin        string   `json:"checkin"`
+	Checkout       string   `json:"checkout"`
+	GuestName      string   `json:"guest_name"`
+	Email          string   `json:"email,omitempty"`
+	Phone          string   `json:"phone,omitempty"`
+	Adults         int      `json:"adults"`
+	Children       int      `json:"children"`
+	Notes          string   `json:"notes,omitempty"`
+	TotalAmount    float64  `json:"total_amount"`
+	Currency       string   `json:"currency"`
+	IdempotencyKey string   `json:"idempotency_key,omitempty"`
+}
+
+// BookingGroup is the atomic result returned by create_booking.
+type BookingGroup struct {
+	BookingIDs    []string `json:"booking_ids"`
+	RoomIDs       []string `json:"room_ids"`
+	GroupStatus   string   `json:"group_status"`
+	GuestName     string   `json:"guest_name"`
+	RoomNames     []string `json:"room_names"`
+	RoomTypes     []string `json:"room_types"`
+	PropertyName  string   `json:"property_name"`
+	Checkin       string   `json:"checkin"`
+	Checkout      string   `json:"checkout"`
+	Adults        int      `json:"adults"`
+	Children      int      `json:"children"`
+	TotalAmount   float64  `json:"total_amount"`
+	Currency      string   `json:"currency"`
+	PaymentStatus string   `json:"payment_status"`
+	Message       string   `json:"message"`
 }
 
 // Booking is the canonical booking shape from the PMS.
@@ -319,30 +347,39 @@ type CreateBookingResponse struct {
 
 // GetBookingRequest is the body for action get_booking.
 type GetBookingRequest struct {
-	Action    string `json:"action"`
-	BookingID string `json:"booking_id"`
+	Action           string `json:"action"`
+	BookingID        string `json:"booking_id,omitempty"`
+	GuestSurname     string `json:"guest_surname,omitempty"`
+	GuestFirstName   string `json:"guest_first_name,omitempty"`
+	GuestName        string `json:"guest_name,omitempty"`
+	Phone            string `json:"phone,omitempty"`
+	Email            string `json:"email,omitempty"`
+	Checkin          string `json:"checkin,omitempty"`
+	PhoneMatchLast10 bool   `json:"phone_match_last10,omitempty"`
 }
 
 // UpdateBookingRequest is the body for action update_booking.
 type UpdateBookingRequest struct {
-	Action    string `json:"action"`
-	BookingID string `json:"booking_id"`
-	Checkin   string `json:"checkin,omitempty"`
-	Checkout  string `json:"checkout,omitempty"`
-	GuestName string `json:"guest_name,omitempty"`
-	Email     string `json:"email,omitempty"`
-	Phone     string `json:"phone,omitempty"`
-	Adults    *int   `json:"adults,omitempty"`
-	Children  *int   `json:"children,omitempty"`
-	Notes     string `json:"notes,omitempty"`
-	RoomID    string `json:"room_id,omitempty"`
+	Action       string `json:"action"`
+	BookingID    string `json:"booking_id"`
+	GuestSurname string `json:"guest_surname,omitempty"`
+	Checkin      string `json:"checkin,omitempty"`
+	Checkout     string `json:"checkout,omitempty"`
+	GuestName    string `json:"guest_name,omitempty"`
+	Email        string `json:"email,omitempty"`
+	Phone        string `json:"phone,omitempty"`
+	Adults       *int   `json:"adults,omitempty"`
+	Children     *int   `json:"children,omitempty"`
+	Notes        string `json:"notes,omitempty"`
+	RoomID       string `json:"room_id,omitempty"`
 }
 
 // CancelBookingRequest is the body for action cancel_booking.
 type CancelBookingRequest struct {
-	Action    string `json:"action"`
-	BookingID string `json:"booking_id"`
-	Reason    string `json:"reason,omitempty"`
+	Action       string `json:"action"`
+	BookingID    string `json:"booking_id"`
+	GuestSurname string `json:"guest_surname,omitempty"`
+	Reason       string `json:"reason,omitempty"`
 }
 
 // CancelBookingResponse is returned by cancel_booking.

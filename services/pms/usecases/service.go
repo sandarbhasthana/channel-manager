@@ -422,7 +422,7 @@ func (s *PmsService) CreateBooking(ctx context.Context, propertyID string, in do
 }
 
 // GetBooking proxies get_booking to the PMS.
-func (s *PmsService) GetBooking(ctx context.Context, propertyID, bookingID string) (*domain.PmsBooking, error) {
+func (s *PmsService) GetBooking(ctx context.Context, propertyID string, in domain.GetBookingInput) (*domain.PmsBooking, error) {
 	prop, err := s.props.GetByID(ctx, propertyID)
 	if err != nil {
 		return nil, err
@@ -431,7 +431,7 @@ func (s *PmsService) GetBooking(ctx context.Context, propertyID, bookingID strin
 	if err != nil {
 		return nil, err
 	}
-	return engine.GetBooking(ctx, prop.ExternalID, bookingID)
+	return engine.GetBooking(ctx, prop.ExternalID, in)
 }
 
 // UpdateBooking proxies update_booking to the PMS.
@@ -448,7 +448,7 @@ func (s *PmsService) UpdateBooking(ctx context.Context, propertyID string, in do
 }
 
 // CancelBooking proxies cancel_booking to the PMS.
-func (s *PmsService) CancelBooking(ctx context.Context, propertyID, bookingID, reason string) (*domain.CancelBookingResult, error) {
+func (s *PmsService) CancelBooking(ctx context.Context, propertyID string, in domain.CancelBookingInput) (*domain.CancelBookingResult, error) {
 	prop, err := s.props.GetByID(ctx, propertyID)
 	if err != nil {
 		return nil, err
@@ -457,7 +457,7 @@ func (s *PmsService) CancelBooking(ctx context.Context, propertyID, bookingID, r
 	if err != nil {
 		return nil, err
 	}
-	return engine.CancelBooking(ctx, prop.ExternalID, bookingID, reason)
+	return engine.CancelBooking(ctx, prop.ExternalID, in)
 }
 
 // DeleteBooking proxies delete_booking to the PMS.

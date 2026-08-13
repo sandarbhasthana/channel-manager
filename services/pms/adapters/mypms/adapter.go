@@ -64,11 +64,11 @@ func (a *Adapter) SearchProperties(ctx context.Context, filter domain.PropertySe
 	out := make([]domain.Property, 0, len(resp.Properties))
 	for _, p := range resp.Properties {
 		out = append(out, domain.Property{
-			ExternalID:       p.PropertyID,
-			Name:             p.Name,
-			DefaultCurrency:  p.Currency,
-			City:             p.City,
-			Country:          p.Country,
+			ExternalID:      p.PropertyID,
+			Name:            p.Name,
+			DefaultCurrency: p.Currency,
+			City:            p.City,
+			Country:         p.Country,
 		})
 	}
 	return out, nil
@@ -124,7 +124,7 @@ func roomTypesFromDetails(propertyID string, resp *GetRoomDetailsResponse) []dom
 		if baseOcc == 0 {
 			baseOcc = maxOcc
 		}
-		
+
 		var rooms []domain.Room
 		// If rooms are provided nested inside the room type
 		for _, r := range rt.Rooms {
@@ -185,7 +185,10 @@ func (a *Adapter) SearchAvailability(ctx context.Context, externalPropertyID str
 			avail = 1
 		}
 		out = append(out, domain.AvailabilityOffer{
-			RoomID:         r.RoomID,
+			RoomIDs:        append([]string(nil), r.RoomIDs...),
+			RoomCount:      r.RoomCount,
+			RoomNames:      append([]string(nil), r.RoomNames...),
+			RoomTypes:      append([]string(nil), r.RoomTypes...),
 			RoomTypeID:     rtID,
 			RoomTypeName:   firstNonEmpty(r.RoomTypeName, r.RoomType),
 			AvailableUnits: avail,
@@ -194,6 +197,10 @@ func (a *Adapter) SearchAvailability(ctx context.Context, externalPropertyID str
 			TotalPrice:     r.TotalPrice,
 			Currency:       r.Currency,
 			Capacity:       r.Capacity,
+			MaxAdults:      r.MaxAdults,
+			MaxChildren:    r.MaxChildren,
+			Description:    r.Description,
+			Amenities:      append([]string(nil), r.Amenities...),
 		})
 	}
 	return out, nil
@@ -246,16 +253,53 @@ func (a *Adapter) GetQuote(ctx context.Context, externalPropertyID string, q dom
 
 func (a *Adapter) CreateBooking(ctx context.Context, externalPropertyID string, in domain.CreateBookingInput) (*domain.PmsBooking, error) {
 	resp, err := a.client.CreateBooking(ctx, externalPropertyID, CreateBookingRequest{
-		RoomID:     in.RoomID,
-		RoomTypeID: in.RoomTypeID,
-		Checkin:    in.Checkin.Format("2006-01-02"),
-		Checkout:  in.Checkout.Format("2006-01-02"),
-		GuestName: in.GuestName,
-		Email:     in.Email,
-		Phone:     in.Phone,
-		Adults:    in.Adults,
-		Children:  in.Children,
-		Notes:     in.Notes,
+		RoomIDs:        append([]string(nil), in.RoomIDs...),
+		Checkin:        in.Checkin.Format("2006-01-02"),
+		Checkout:       in.Checkout.Format("2006-01-02"),
+		GuestName:      in.GuestName,
+		Email:          in.Email,
+		Phone:          in.Phone,
+		Adults:         in.Adults,
+		Children:       in.Children,
+		Notes:          in.Notes,
+		TotalAmount:    in.TotalAmount,
+		Currency:       in.Currency,
+		IdempotencyKey: in.IdempotencyKey,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(resp.BookingIDs) == 0 || len(resp.BookingIDs) != len(resp.RoomIDs) {
+		return nil, fmt.Errorf("mypms: create booking returned unaligned booking_ids and room_ids")
+	}
+	return &domain.PmsBooking{
+		BookingIDs:    append([]string(nil), resp.BookingIDs...),
+		RoomIDs:       append([]string(nil), resp.RoomIDs...),
+		RoomNames:     append([]string(nil), resp.RoomNames...),
+		RoomTypes:     append([]string(nil), resp.RoomTypes...),
+		GroupStatus:   resp.GroupStatus,
+		Status:        resp.GroupStatus,
+		GuestName:     resp.GuestName,
+		PropertyName:  resp.PropertyName,
+		Checkin:       resp.Checkin,
+		Checkout:      resp.Checkout,
+		Adults:        resp.Adults,
+		Children:      resp.Children,
+		PaymentStatus: resp.PaymentStatus,
+		Message:       resp.Message,
+	}, nil
+}
+
+func (a *Adapter) GetBooking(ctx context.Context, externalPropertyID string, in domain.GetBookingInput) (*domain.PmsBooking, error) {
+	resp, err := a.client.GetBooking(ctx, externalPropertyID, GetBookingRequest{
+		BookingID:        in.BookingID,
+		GuestSurname:     in.GuestSurname,
+		GuestFirstName:   in.GuestFirstName,
+		GuestName:        in.GuestName,
+		Phone:            in.Phone,
+		Email:            in.Email,
+		Checkin:          in.Checkin,
+		PhoneMatchLast10: in.PhoneMatchLast10,
 	})
 	if err != nil {
 		return nil, err
@@ -263,16 +307,8 @@ func (a *Adapter) CreateBooking(ctx context.Context, externalPropertyID string, 
 	return bookingToDomain(resp), nil
 }
 
-func (a *Adapter) GetBooking(ctx context.Context, externalPropertyID, bookingID string) (*domain.PmsBooking, error) {
-	resp, err := a.client.GetBooking(ctx, externalPropertyID, bookingID)
-	if err != nil {
-		return nil, err
-	}
-	return bookingToDomain(resp), nil
-}
-
 func (a *Adapter) UpdateBooking(ctx context.Context, externalPropertyID string, in domain.UpdateBookingInput) (*domain.PmsBooking, error) {
-	req := UpdateBookingRequest{BookingID: in.BookingID}
+	req := UpdateBookingRequest{BookingID: in.BookingID, GuestSurname: in.GuestSurname}
 	if in.Checkin != nil {
 		s := in.Checkin.Format("2006-01-02")
 		req.Checkin = s
@@ -295,10 +331,11 @@ func (a *Adapter) UpdateBooking(ctx context.Context, externalPropertyID string, 
 	return bookingToDomain(resp), nil
 }
 
-func (a *Adapter) CancelBooking(ctx context.Context, externalPropertyID, bookingID, reason string) (*domain.CancelBookingResult, error) {
+func (a *Adapter) CancelBooking(ctx context.Context, externalPropertyID string, in domain.CancelBookingInput) (*domain.CancelBookingResult, error) {
 	resp, err := a.client.CancelBooking(ctx, externalPropertyID, CancelBookingRequest{
-		BookingID: bookingID,
-		Reason:    reason,
+		BookingID:    in.BookingID,
+		GuestSurname: in.GuestSurname,
+		Reason:       in.Reason,
 	})
 	if err != nil {
 		return nil, err

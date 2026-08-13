@@ -6,20 +6,20 @@ import "time"
 type PmsCapability string
 
 const (
-	CapabilityListProperties      PmsCapability = "list_properties"
-	CapabilityListRoomTypes       PmsCapability = "list_room_types"
-	CapabilityGetInventory        PmsCapability = "get_inventory"
-	CapabilityGetRates            PmsCapability = "get_rates"
-	CapabilityGetReservations     PmsCapability = "get_reservations"
-	CapabilityPushReservations    PmsCapability = "push_reservations"
-	CapabilityPushInventory       PmsCapability = "push_inventory"
-	CapabilityChangeFeed          PmsCapability = "change_feed"
-	CapabilitySearchAvailability  PmsCapability = "search_availability"
-	CapabilityGetQuote            PmsCapability = "get_quote"
-	CapabilityCreateBooking       PmsCapability = "create_booking"
-	CapabilityGetBooking          PmsCapability = "get_booking"
-	CapabilityUpdateBooking       PmsCapability = "update_booking"
-	CapabilityCancelBooking       PmsCapability = "cancel_booking"
+	CapabilityListProperties     PmsCapability = "list_properties"
+	CapabilityListRoomTypes      PmsCapability = "list_room_types"
+	CapabilityGetInventory       PmsCapability = "get_inventory"
+	CapabilityGetRates           PmsCapability = "get_rates"
+	CapabilityGetReservations    PmsCapability = "get_reservations"
+	CapabilityPushReservations   PmsCapability = "push_reservations"
+	CapabilityPushInventory      PmsCapability = "push_inventory"
+	CapabilityChangeFeed         PmsCapability = "change_feed"
+	CapabilitySearchAvailability PmsCapability = "search_availability"
+	CapabilityGetQuote           PmsCapability = "get_quote"
+	CapabilityCreateBooking      PmsCapability = "create_booking"
+	CapabilityGetBooking         PmsCapability = "get_booking"
+	CapabilityUpdateBooking      PmsCapability = "update_booking"
+	CapabilityCancelBooking      PmsCapability = "cancel_booking"
 )
 
 // Connection is a tenant's link to a PMS account.
@@ -39,18 +39,18 @@ type Connection struct {
 
 // Property is the canonical hotel listing as known to Channel Manager.
 type Property struct {
-	ID                 string
-	OrgID              string
-	ConnectionID       string
-	ExternalID         string
-	Name               string
-	Timezone           string
-	DefaultCurrency    string
-	City               string
-	Country            string
-	IsActive           bool
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
+	ID              string
+	OrgID           string
+	ConnectionID    string
+	ExternalID      string
+	Name            string
+	Timezone        string
+	DefaultCurrency string
+	City            string
+	Country         string
+	IsActive        bool
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 // ChannelConfig is a property's booking-engine configuration, which the booking
@@ -104,15 +104,15 @@ type RoomType struct {
 
 // Room is a physical room within a RoomType.
 type Room struct {
-	ID           string
-	OrgID        string
-	PropertyID   string
-	RoomTypeID   string
-	ExternalID   string
-	Name         string
-	IsActive     bool
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID         string
+	OrgID      string
+	PropertyID string
+	RoomTypeID string
+	ExternalID string
+	Name       string
+	IsActive   bool
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 // AvailabilityQuery parameters for search_availability.
@@ -127,7 +127,10 @@ type AvailabilityQuery struct {
 
 // AvailabilityOffer is one bookable option from search_availability.
 type AvailabilityOffer struct {
-	RoomID         string
+	RoomIDs        []string
+	RoomCount      int
+	RoomNames      []string
+	RoomTypes      []string
 	RoomTypeID     string
 	RoomTypeName   string
 	AvailableUnits int
@@ -136,6 +139,10 @@ type AvailabilityOffer struct {
 	TotalPrice     float64
 	Currency       string
 	Capacity       int
+	MaxAdults      int
+	MaxChildren    int
+	Description    string
+	Amenities      []string
 }
 
 // QuoteQuery parameters for get_quote.
@@ -162,30 +169,52 @@ type Quote struct {
 
 // CreateBookingInput parameters for create_booking.
 type CreateBookingInput struct {
-	RoomID    string
-	RoomTypeID string
-	Checkin   time.Time
-	Checkout  time.Time
-	GuestName string
-	Email     string
-	Phone     string
-	Adults    int
-	Children  int
-	Notes     string
+	RoomIDs        []string
+	Checkin        time.Time
+	Checkout       time.Time
+	GuestName      string
+	Email          string
+	Phone          string
+	Adults         int
+	Children       int
+	Notes          string
+	TotalAmount    float64
+	Currency       string
+	IdempotencyKey string
+}
+
+// GetBookingInput parameters for get_booking.
+type GetBookingInput struct {
+	BookingID        string
+	GuestSurname     string
+	GuestFirstName   string
+	GuestName        string
+	Phone            string
+	Email            string
+	Checkin          string
+	PhoneMatchLast10 bool
 }
 
 // UpdateBookingInput parameters for update_booking.
 type UpdateBookingInput struct {
-	BookingID string
-	Checkin   *time.Time
-	Checkout  *time.Time
-	GuestName string
-	Email     string
-	Phone     string
-	Adults    *int
-	Children  *int
-	Notes     string
-	RoomID    string
+	BookingID    string
+	GuestSurname string
+	Checkin      *time.Time
+	Checkout     *time.Time
+	GuestName    string
+	Email        string
+	Phone        string
+	Adults       *int
+	Children     *int
+	Notes        string
+	RoomID       string
+}
+
+// CancelBookingInput parameters for cancel_booking.
+type CancelBookingInput struct {
+	BookingID    string
+	GuestSurname string
+	Reason       string
 }
 
 // ListBookingsInput parameters for list_bookings.
@@ -203,6 +232,11 @@ type ListBookingsResult struct {
 
 // PmsBooking is a reservation as returned by the PMS booking engine.
 type PmsBooking struct {
+	BookingIDs    []string
+	RoomIDs       []string
+	RoomNames     []string
+	RoomTypes     []string
+	GroupStatus   string
 	BookingID     string
 	Status        string
 	GuestName     string
@@ -271,8 +305,8 @@ type ChangeEvent struct {
 
 // SyncCatalogResult summarizes a catalog sync from the PMS.
 type SyncCatalogResult struct {
-	PropertiesSynced  int
-	RoomTypesSynced   int
+	PropertiesSynced int
+	RoomTypesSynced  int
 }
 
 // IngestAvailabilityResult summarizes availability ingestion.

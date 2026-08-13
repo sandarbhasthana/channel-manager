@@ -107,8 +107,8 @@ func TestAdapter_SearchAvailability_PmsAvailableRoomsShape(t *testing.T) {
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"data": map[string]any{
 				"available_rooms": []map[string]any{
-					{"room_id": "r1", "room_name": "Room 101", "room_type": "Standard Room", "capacity": 2, "price_per_night": 120, "total_price": 240, "currency": "USD"},
-					{"room_id": "r2", "room_name": "Room 201", "room_type": "Deluxe Room", "capacity": 2, "price_per_night": 3800, "total_price": 7600, "currency": "INR"},
+					{"room_ids": []string{"r1"}, "room_count": 1, "room_names": []string{"Room 101"}, "room_types": []string{"Standard Room"}, "room_type": "Standard Room", "capacity": 2, "price_per_night": 120, "total_price": 240, "currency": "USD"},
+					{"room_ids": []string{"r2"}, "room_count": 1, "room_names": []string{"Room 201"}, "room_types": []string{"Deluxe Room"}, "room_type": "Deluxe Room", "capacity": 2, "price_per_night": 3800, "total_price": 7600, "currency": "INR"},
 				},
 			},
 		})
@@ -130,10 +130,10 @@ func TestAdapter_SearchAvailability_PmsAvailableRoomsShape(t *testing.T) {
 	}
 	for _, o := range offers {
 		if !o.IsAvailable {
-			t.Errorf("offer %s should be available", o.RoomID)
+			t.Errorf("offer %v should be available", o.RoomIDs)
 		}
 		if o.AvailableUnits < 1 {
-			t.Errorf("offer %s should have >=1 unit, got %d", o.RoomID, o.AvailableUnits)
+			t.Errorf("offer %v should have >=1 unit, got %d", o.RoomIDs, o.AvailableUnits)
 		}
 	}
 	if offers[0].RoomTypeName != "Standard Room" || offers[0].RoomTypeID != "Standard Room" {

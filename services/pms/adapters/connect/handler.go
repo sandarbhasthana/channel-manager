@@ -249,7 +249,7 @@ func (h *Handler) CreateBooking(
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("property_id, room_id, and guest_name are required"))
 	}
 	b, err := h.svc.CreateBooking(ctx, r.GetPropertyId(), domain.CreateBookingInput{
-		RoomID:    r.GetRoomId(),
+		RoomIDs:   []string{r.GetRoomId()},
 		Checkin:   calendarDateToTime(r.GetCheckin()),
 		Checkout:  calendarDateToTime(r.GetCheckout()),
 		GuestName: r.GetGuestName(),
@@ -273,7 +273,9 @@ func (h *Handler) GetBooking(
 	if r.GetPropertyId() == "" || r.GetBookingId() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("property_id and booking_id are required"))
 	}
-	b, err := h.svc.GetBooking(ctx, r.GetPropertyId(), r.GetBookingId())
+	b, err := h.svc.GetBooking(ctx, r.GetPropertyId(), domain.GetBookingInput{
+		BookingID: r.GetBookingId(),
+	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -327,7 +329,10 @@ func (h *Handler) CancelBooking(
 	if r.GetPropertyId() == "" || r.GetBookingId() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("property_id and booking_id are required"))
 	}
-	result, err := h.svc.CancelBooking(ctx, r.GetPropertyId(), r.GetBookingId(), r.GetReason())
+	result, err := h.svc.CancelBooking(ctx, r.GetPropertyId(), domain.CancelBookingInput{
+		BookingID: r.GetBookingId(),
+		Reason:    r.GetReason(),
+	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -364,7 +369,7 @@ func (h *Handler) ListBookings(
 	if r.GetPropertyId() == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("property_id is required"))
 	}
-	
+
 	in := domain.ListBookingsInput{
 		Status: r.GetStatus(),
 	}
@@ -384,7 +389,7 @@ func (h *Handler) ListBookings(
 
 	out := make([]*pmsv1.PmsBooking, 0, len(result.Bookings))
 	for _, b := range result.Bookings {
-		// Use a local copy of b so we can take its address safely in old Go versions, 
+		// Use a local copy of b so we can take its address safely in old Go versions,
 		// though in 1.22+ it's fine.
 		bCopy := b
 		out = append(out, bookingToProto(&bCopy))

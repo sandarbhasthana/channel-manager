@@ -12,6 +12,7 @@ const (
 	ActionGetQuote           = "get_quote"
 	ActionCreateBooking      = "create_booking"
 	ActionGetBooking         = "get_booking"
+	ActionUpdateBooking      = "update_booking"
 	ActionCancelBooking      = "cancel_booking"
 
 	// ActionGetPromo reads a promo code and evaluates its rules for this
@@ -40,6 +41,7 @@ var AvailableActions = []string{
 	ActionGetQuote,
 	ActionCreateBooking,
 	ActionGetBooking,
+	ActionUpdateBooking,
 	ActionCancelBooking,
 	ActionGetPromo,
 	ActionRedeemPromo,
