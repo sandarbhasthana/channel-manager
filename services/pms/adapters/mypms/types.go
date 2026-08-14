@@ -431,3 +431,12 @@ func (e *APIError) Error() string {
 	}
 	return "mypms: " + e.Message
 }
+
+// HTTPStatus exposes the upstream PMS status so storefront can pass 404/409 through
+// instead of collapsing them to 400.
+func (e *APIError) HTTPStatus() int {
+	if e == nil {
+		return 0
+	}
+	return e.StatusCode
+}

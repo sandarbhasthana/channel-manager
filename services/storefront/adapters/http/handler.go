@@ -70,9 +70,21 @@ func (h *Handler) Dispatch(w http.ResponseWriter, r *http.Request) {
 	jsonOK(w, map[string]any{"data": resp})
 }
 
+type httpStatusError interface {
+	HTTPStatus() int
+}
+
 // statusFor maps domain errors onto HTTP status codes. A replayed idempotency
 // key and an expired hold are both client-correctable conflicts, not 500s.
+// Upstream PMS 404/409 (and other 4xx/5xx) are preserved so the agent can tell
+// "not found" and "already booked" apart from a malformed request.
 func statusFor(err error) int {
+	var coded httpStatusError
+	if errors.As(err, &coded) {
+		if status := coded.HTTPStatus(); status >= 400 && status <= 599 {
+			return status
+		}
+	}
 	switch {
 	case errors.Is(err, domain.ErrDuplicateRequest):
 		return http.StatusConflict
