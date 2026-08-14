@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"time"
 
+	platformauth "github.com/channel-manager/channel-manager/platform/auth"
 	chdomain "github.com/channel-manager/channel-manager/services/channel/domain"
 	channelports "github.com/channel-manager/channel-manager/services/channel/ports"
 	channelusecases "github.com/channel-manager/channel-manager/services/channel/usecases"
@@ -113,6 +114,24 @@ func (s *Service) Dispatch(ctx context.Context, propertyID, action string, body 
 		return s.pushRates(ctx, prop.ID, body)
 	case domain.ActionGetSyncJobs:
 		return s.getSyncJobs(ctx, prop.ID, body)
+	case domain.ActionListConnections:
+		return s.listConnections(ctx, prop.ID)
+	case domain.ActionCreateConnection:
+		return s.createConnection(ctx, prop.ID, prop.ExternalID, body)
+	case domain.ActionUpdateConnection:
+		return s.updateConnection(ctx, body)
+	case domain.ActionDeleteConnection:
+		return s.deleteConnection(ctx, body)
+	case domain.ActionConnectChannel:
+		return s.connectChannel(ctx, prop.ID, prop.ExternalID, body)
+	case domain.ActionPauseChannel:
+		return s.setChannelState(ctx, prop.ID, body, "pause")
+	case domain.ActionResumeChannel:
+		return s.setChannelState(ctx, prop.ID, body, "resume")
+	case domain.ActionDisconnectChannel:
+		return s.setChannelState(ctx, prop.ID, body, "disconnect")
+	case domain.ActionListRoomTypes:
+		return s.listRoomTypes(ctx, prop.ID)
 	default:
 		return nil, fmt.Errorf("unknown action %q", action)
 	}
@@ -210,6 +229,281 @@ func (s *Service) listChannels(ctx context.Context, propertyID string) (map[stri
 		})
 	}
 	return map[string]any{"channels": out}, nil
+}
+
+// listConnections returns the org's OTA connections joined with this property's
+// channel rows.
+//
+// The two are separate concepts in the domain — a Connection is an org-level
+// credential, a Channel is one property listed against it — but a property
+// operator thinks in terms of one thing ("is Booking.com on for my hotel?").
+// Joining here rather than in the PMS keeps that decision in one place and
+// spares the UI a second round trip just to correlate ids.
+func (s *Service) listConnections(ctx context.Context, propertyID string) (map[string]any, error) {
+	tc, err := platformauth.FromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conns, err := s.channels.ListConnections(ctx, tc.OrgID)
+	if err != nil {
+		return nil, err
+	}
+	channels, err := s.channels.ListChannels(ctx, propertyID)
+	if err != nil {
+		return nil, err
+	}
+	byConn := make(map[string]chdomain.Channel, len(channels))
+	for _, ch := range channels {
+		byConn[ch.ConnectionID] = ch
+	}
+
+	out := make([]map[string]any, 0, len(conns))
+	for _, c := range conns {
+		row := map[string]any{
+			"id":           c.ID,
+			"provider":     c.Provider,
+			"name":         c.Name,
+			"status":       c.Status,
+			"last_sync_at": c.LastSyncAt,
+			"last_error":   c.LastError,
+			"created_at":   c.CreatedAt,
+			// has_credentials rather than the secret itself: the PMS only needs
+			// to know whether the connector is configured, and forwarding the
+			// ref would leak a secret handle into a browser for no gain.
+			"has_credentials": c.SecretRef != "",
+			"linked":          false,
+		}
+		if ch, ok := byConn[c.ID]; ok {
+			row["linked"] = true
+			row["channel_id"] = ch.ID
+			row["channel_status"] = ch.Status
+			row["external_property_id"] = ch.ExternalPropertyID
+			row["channel_last_sync_at"] = ch.LastSyncAt
+			row["channel_last_error"] = ch.LastError
+		}
+		out = append(out, row)
+	}
+	return map[string]any{
+		"connections": out,
+		"providers":   domain.SupportedProviders,
+	}, nil
+}
+
+// createConnection creates an org-level connection and, unless the caller opts
+// out, immediately links the calling property to it.
+//
+// The link is the default because this action is only reachable from a
+// property-scoped endpoint: a PMS user who adds Booking.com from inside their
+// property is asking for their property to be on Booking.com, not for a
+// dangling org credential they then have to attach in a second step.
+func (s *Service) createConnection(ctx context.Context, propertyID, externalPropertyID string, body map[string]any) (map[string]any, error) {
+	tc, err := platformauth.FromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	provider, _ := body["provider"].(string)
+	if provider == "" {
+		return nil, errors.New("provider is required")
+	}
+	name, _ := body["name"].(string)
+	if name == "" {
+		name = provider
+	}
+
+	creds := stringMap(body["credentials"])
+
+	conn, err := s.channels.CreateConnection(ctx, chdomain.Connection{
+		OrgID:    tc.OrgID,
+		Provider: provider,
+		Name:     name,
+		Status:   "active",
+	}, creds)
+	if err != nil {
+		return nil, err
+	}
+
+	result := map[string]any{"connection_id": conn.ID, "provider": conn.Provider, "status": conn.Status}
+
+	if link, ok := body["link_property"].(bool); ok && !link {
+		return result, nil
+	}
+	extID, _ := body["external_property_id"].(string)
+	if extID == "" {
+		extID = externalPropertyID
+	}
+	ch, err := s.channels.ConnectChannel(ctx, chdomain.Channel{
+		OrgID:              tc.OrgID,
+		PropertyID:         propertyID,
+		ConnectionID:       conn.ID,
+		ExternalPropertyID: extID,
+		Status:             "active",
+	})
+	if err != nil {
+		// The credential was created and is usable; only the property link
+		// failed. Report that rather than unwinding, so a retry of
+		// connect_channel finishes the job instead of re-entering the API key.
+		s.log.Warn("connection created but property link failed", "connection_id", conn.ID, "err", err)
+		result["link_error"] = err.Error()
+		return result, nil
+	}
+	result["channel_id"] = ch.ID
+	result["linked"] = true
+	return result, nil
+}
+
+func (s *Service) updateConnection(ctx context.Context, body map[string]any) (map[string]any, error) {
+	id, _ := body["connection_id"].(string)
+	if id == "" {
+		return nil, errors.New("connection_id is required")
+	}
+	// Guard against updating a connection belonging to another org. RLS already
+	// scopes the read, so a miss here means "not yours" as much as "not there".
+	if _, err := s.channels.GetConnection(ctx, id); err != nil {
+		return nil, fmt.Errorf("connection not found: %w", err)
+	}
+	name, _ := body["name"].(string)
+	status, _ := body["status"].(string)
+	if status != "" && status != "active" && status != "inactive" && status != "disabled" {
+		return nil, fmt.Errorf("invalid status %q", status)
+	}
+	if err := s.channels.UpdateConnection(ctx, id, name, stringMap(body["credentials"]), status); err != nil {
+		return nil, err
+	}
+	return map[string]any{"connection_id": id, "updated": true}, nil
+}
+
+func (s *Service) deleteConnection(ctx context.Context, body map[string]any) (map[string]any, error) {
+	id, _ := body["connection_id"].(string)
+	if id == "" {
+		return nil, errors.New("connection_id is required")
+	}
+	if _, err := s.channels.GetConnection(ctx, id); err != nil {
+		return nil, fmt.Errorf("connection not found: %w", err)
+	}
+	if err := s.channels.DeleteConnection(ctx, id); err != nil {
+		return nil, err
+	}
+	return map[string]any{"connection_id": id, "deleted": true}, nil
+}
+
+// connectChannel links this property to an existing org connection.
+func (s *Service) connectChannel(ctx context.Context, propertyID, externalPropertyID string, body map[string]any) (map[string]any, error) {
+	tc, err := platformauth.FromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	connID, _ := body["connection_id"].(string)
+	if connID == "" {
+		return nil, errors.New("connection_id is required")
+	}
+	// Linking the same connection twice would produce two channel rows for one
+	// property, and every push loop below iterates channels — so the property
+	// would get double pushes with no way to tell from the UI.
+	existing, err := s.channels.ListChannels(ctx, propertyID)
+	if err != nil {
+		return nil, err
+	}
+	for _, ch := range existing {
+		if ch.ConnectionID == connID {
+			return map[string]any{"channel_id": ch.ID, "already_linked": true}, nil
+		}
+	}
+	extID, _ := body["external_property_id"].(string)
+	if extID == "" {
+		extID = externalPropertyID
+	}
+	ch, err := s.channels.ConnectChannel(ctx, chdomain.Channel{
+		OrgID:              tc.OrgID,
+		PropertyID:         propertyID,
+		ConnectionID:       connID,
+		ExternalPropertyID: extID,
+		Status:             "active",
+	})
+	if err != nil {
+		return nil, err
+	}
+	return map[string]any{"channel_id": ch.ID, "status": ch.Status, "linked": true}, nil
+}
+
+// setChannelState pauses, resumes or disconnects a property's channel. The three
+// share a body shape and an ownership check, so they share an implementation.
+func (s *Service) setChannelState(ctx context.Context, propertyID string, body map[string]any, op string) (map[string]any, error) {
+	id, _ := body["channel_id"].(string)
+	if id == "" {
+		return nil, errors.New("channel_id is required")
+	}
+
+	// The channel must belong to the property in the URL. RLS bounds this to the
+	// caller's org, which is not enough on its own: a key scoped to one property
+	// could otherwise pause a sibling property's channel just by passing its id,
+	// silently halting that property's distribution.
+	existing, err := s.channels.GetChannel(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("channel not found: %w", err)
+	}
+	if existing.PropertyID != propertyID {
+		return nil, errors.New("channel does not belong to this property")
+	}
+
+	var ch chdomain.Channel
+	switch op {
+	case "pause":
+		ch, err = s.channels.PauseChannel(ctx, id)
+	case "resume":
+		ch, err = s.channels.ResumeChannel(ctx, id)
+	case "disconnect":
+		ch, err = s.channels.DisconnectChannel(ctx, id)
+	default:
+		return nil, fmt.Errorf("unknown channel operation %q", op)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return map[string]any{"channel_id": ch.ID, "status": ch.Status}, nil
+}
+
+// listRoomTypes returns CM's catalog for the property, so the PMS mapping screen
+// can present a picker. Free-text CM room type ids were the single biggest
+// source of silent mapping failures: a typo produces a mapping that saves fine
+// and then never matches anything on push.
+func (s *Service) listRoomTypes(ctx context.Context, propertyID string) (map[string]any, error) {
+	rts, err := s.pms.ListRoomTypes(ctx, propertyID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]map[string]any, 0, len(rts))
+	for _, rt := range rts {
+		out = append(out, map[string]any{
+			"id":            rt.ID,
+			"external_id":   rt.ExternalID,
+			"code":          rt.Code,
+			"name":          rt.Name,
+			"max_occupancy": rt.MaxOccupancy,
+			"rooms_count":   len(rt.Rooms),
+			"is_active":     rt.IsActive,
+		})
+	}
+	return map[string]any{"room_types": out}, nil
+}
+
+// stringMap coerces a decoded JSON object into map[string]string, dropping
+// non-string values rather than failing: credential blobs are provider-shaped
+// and a stray number should not sink the whole request.
+func stringMap(v any) map[string]string {
+	m, ok := v.(map[string]any)
+	if !ok || len(m) == 0 {
+		return nil
+	}
+	out := make(map[string]string, len(m))
+	for k, val := range m {
+		if s, ok := val.(string); ok && s != "" {
+			out[k] = s
+		}
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }
 
 func (s *Service) getInventory(ctx context.Context, propertyID string, body map[string]any) (map[string]any, error) {
