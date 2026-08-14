@@ -265,6 +265,71 @@ func TestSearchAvailability_ExcludesHeldRooms(t *testing.T) {
 	}
 }
 
+func TestSearchFlexibleAvailability_ExcludesHeldRoomsFromStay(t *testing.T) {
+	h := newHarness()
+	h.pms.flexible = &pmsdomain.FlexibleAvailabilityResult{
+		Nights: 2, Adults: 2, RequestedRooms: 1, SortBy: "soonest",
+		EarliestCheckin: "2026-08-01", LatestCheckout: "2026-08-10",
+		Stays: []pmsdomain.FlexibleStay{{
+			Checkin: "2026-08-01", Checkout: "2026-08-03", Nights: 2, CanAccommodate: true,
+			Offers: []pmsdomain.AvailabilityOffer{
+				{RoomIDs: []string{testRoomID}, RoomCount: 1, RoomTypeName: "Deluxe", IsAvailable: true, PricePerNight: 200, TotalPrice: 400, Currency: "USD"},
+				{RoomIDs: []string{"room-102"}, RoomCount: 1, RoomTypeName: "Deluxe", IsAvailable: true, PricePerNight: 220, TotalPrice: 440, Currency: "USD"},
+			},
+		}},
+		TotalMatching: 1, Returned: 1,
+	}
+	h.liveHold("tok-held")
+
+	out, err := dispatch(t, h, domain.ActionSearchFlexibleAvailability, map[string]any{
+		"nights": float64(2), "adults": float64(2), "rooms": float64(1),
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	stays := out["stays"].([]map[string]any)
+	if len(stays) != 1 {
+		t.Fatalf("expected 1 stay, got %d", len(stays))
+	}
+	rooms := stays[0]["available_rooms"].([]map[string]any)
+	if len(rooms) != 1 {
+		t.Fatalf("expected 1 remaining room, got %d", len(rooms))
+	}
+	if got := rooms[0]["room_ids"].([]string); len(got) != 1 || got[0] != "room-102" {
+		t.Errorf("held room should be excluded, got %v", got)
+	}
+	rate := stays[0]["starting_rate"].(map[string]any)
+	if rate["total"] != float64(440) {
+		t.Errorf("starting_rate should recompute after hold filter, got %#v", rate)
+	}
+}
+
+func TestSearchFlexibleAvailability_DropsStayWhenAllRoomsHeld(t *testing.T) {
+	h := newHarness()
+	h.pms.flexible = &pmsdomain.FlexibleAvailabilityResult{
+		Nights: 2, Adults: 2, RequestedRooms: 1,
+		Stays: []pmsdomain.FlexibleStay{{
+			Checkin: "2026-08-01", Checkout: "2026-08-03", Nights: 2, CanAccommodate: true,
+			Offers: []pmsdomain.AvailabilityOffer{
+				{RoomIDs: []string{testRoomID}, RoomCount: 1, RoomTypeName: "Deluxe", IsAvailable: true, TotalPrice: 400, Currency: "USD"},
+			},
+		}},
+		TotalMatching: 1, Returned: 1,
+	}
+	h.liveHold("tok-held")
+
+	out, err := dispatch(t, h, domain.ActionSearchFlexibleAvailability, map[string]any{
+		"nights": float64(2),
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	stays := out["stays"].([]map[string]any)
+	if len(stays) != 0 {
+		t.Fatalf("expected held stay to be dropped, got %#v", stays)
+	}
+}
+
 // A hold on non-overlapping dates must not suppress the room.
 func TestSearchAvailability_NonOverlappingHoldDoesNotExclude(t *testing.T) {
 	h := newHarness()

@@ -191,6 +191,51 @@ func TestAdapter_SearchAvailability_LegacyRoomIDShape(t *testing.T) {
 	}
 }
 
+func TestAdapter_SearchFlexibleAvailability_PmsStayShape(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var body map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatalf("Decode() error = %v", err)
+		}
+		if body["action"] != "search_flexible_availability" || body["nights"] != float64(2) {
+			t.Fatalf("body = %#v", body)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"data": map[string]any{
+				"nights": 2, "adults": 2, "children": 0, "requested_rooms": 1,
+				"sort_by": "soonest",
+				"search_window": map[string]any{"earliest_checkin": "2026-08-16", "latest_checkout": "2026-08-22"},
+				"stays": []map[string]any{{
+					"checkin": "2026-08-18", "checkout": "2026-08-20", "nights": 2,
+					"can_accommodate": true,
+					"starting_rate": map[string]any{"per_night": 150, "total": 300, "currency": "USD"},
+					"matching_room_types": []string{"Deluxe King"},
+					"available_rooms": []map[string]any{
+						{"room_ids": []string{"r1"}, "room_count": 1, "room_type": "Deluxe King", "price_per_night": 150, "total_price": 300, "currency": "USD"},
+					},
+					"total_available": 1,
+				}},
+				"total_matching": 1, "returned": 1,
+			},
+		})
+	}))
+	defer srv.Close()
+
+	adapter := mypms.NewAdapterFromConfig(srv.URL, "tok")
+	result, err := adapter.SearchFlexibleAvailability(context.Background(), "prop-1", domain.FlexibleAvailabilityQuery{
+		Nights: 2, Adults: 2, Rooms: 1, EarliestCheckin: "2026-08-16", LatestCheckout: "2026-08-22",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Nights != 2 || len(result.Stays) != 1 || result.Stays[0].Checkin != "2026-08-18" {
+		t.Fatalf("result = %+v", result)
+	}
+	if len(result.Stays[0].Offers) != 1 || result.Stays[0].Offers[0].RoomIDs[0] != "r1" {
+		t.Fatalf("offers = %+v", result.Stays[0].Offers)
+	}
+}
+
 func mustParse(t *testing.T, s string) time.Time {
 	t.Helper()
 	d, err := time.Parse("2006-01-02", s)

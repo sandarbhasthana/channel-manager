@@ -88,6 +88,34 @@ These are the **recommended endpoints** for a channel manager / external booking
 
 **Response:** Complete offers with `room_ids: string[]`, `room_count`, combined pricing/currency, aggregate capacity, room names/types, and availability attributes. Scalar/comma-joined offer IDs are not returned.
 
+### 1.4b Search Flexible Availability
+
+|              |                                            |
+| ------------ | ------------------------------------------ |
+| **Endpoint** | `POST /api/webhooks/bookings/{propertyId}` |
+| **Auth**     | Bearer token                               |
+
+Use when the guest knows the number of nights but is flexible on dates.
+
+**Request Body:**
+
+```json
+{
+  "action": "search_flexible_availability",
+  "nights": 3,
+  "adults": 2,
+  "children": 0,
+  "rooms": 1,
+  "room_type": "string (optional)",
+  "earliest_checkin": "YYYY-MM-DD",
+  "latest_checkout": "YYYY-MM-DD",
+  "limit": 5,
+  "sort_by": "soonest"
+}
+```
+
+**Response:** `stays[]` of matching date windows, each with `checkin`, `checkout`, `nights`, `starting_rate`, `matching_room_types`, and the same `available_rooms` offer shape as `search_availability`. `earliest_checkin` defaults to today in the property timezone; `latest_checkout` defaults to 30 days later. Window max 60 days, `nights` max 30, `limit` max 10.
+
 ### 1.5 Get Room Details
 
 |              |                                            |

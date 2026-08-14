@@ -11,8 +11,9 @@ import (
 // Action names for POST /api/webhooks/bookings[/{propertyId}].
 const (
 	ActionSearchProperties   = "search_properties"
-	ActionSearchAvailability = "search_availability"
-	ActionGetRoomDetails     = "get_room_details"
+	ActionSearchAvailability         = "search_availability"
+	ActionSearchFlexibleAvailability = "search_flexible_availability"
+	ActionGetRoomDetails             = "get_room_details"
 	ActionGetQuote           = "get_quote"
 	ActionCreateBooking      = "create_booking"
 	ActionGetBooking         = "get_booking"
@@ -163,6 +164,80 @@ func (r *SearchAvailabilityResponse) RoomsList() []AvailabilityRoom {
 		if err := json.Unmarshal(r.Data, &arr); err == nil && len(arr) > 0 {
 			return arr
 		}
+	}
+	return nil
+}
+
+// SearchFlexibleAvailabilityRequest is the body for action search_flexible_availability.
+type SearchFlexibleAvailabilityRequest struct {
+	Action          string `json:"action"`
+	Nights          int    `json:"nights"`
+	Adults          int    `json:"adults"`
+	Children        int    `json:"children"`
+	Rooms           int    `json:"rooms"`
+	RoomType        string `json:"room_type,omitempty"`
+	EarliestCheckin string `json:"earliest_checkin,omitempty"`
+	LatestCheckout  string `json:"latest_checkout,omitempty"`
+	Limit           int    `json:"limit,omitempty"`
+	SortBy          string `json:"sort_by,omitempty"`
+}
+
+type flexibleStayRate struct {
+	PerNight float64 `json:"per_night"`
+	Total    float64 `json:"total"`
+	Currency string  `json:"currency"`
+}
+
+type flexibleStay struct {
+	Checkin           string             `json:"checkin"`
+	Checkout          string             `json:"checkout"`
+	Nights            int                `json:"nights"`
+	CanAccommodate    bool               `json:"can_accommodate"`
+	StartingRate      *flexibleStayRate  `json:"starting_rate"`
+	MatchingRoomTypes []string           `json:"matching_room_types"`
+	AvailableRooms    []AvailabilityRoom `json:"available_rooms"`
+	TotalAvailable    int                `json:"total_available"`
+}
+
+// SearchFlexibleAvailabilityResponse wraps flexible stay windows from the PMS.
+type SearchFlexibleAvailabilityResponse struct {
+	Nights         int            `json:"nights"`
+	Adults         int            `json:"adults"`
+	Children       int            `json:"children"`
+	RequestedRooms int            `json:"requested_rooms"`
+	SortBy         string         `json:"sort_by"`
+	SearchWindow   struct {
+		EarliestCheckin string `json:"earliest_checkin"`
+		LatestCheckout  string `json:"latest_checkout"`
+	} `json:"search_window"`
+	Stays         []flexibleStay  `json:"stays"`
+	TotalMatching int             `json:"total_matching"`
+	Returned      int             `json:"returned"`
+	Property      PropertySummary `json:"property"`
+	Data          json.RawMessage `json:"data"`
+}
+
+func (r *SearchFlexibleAvailabilityResponse) StaysList() []flexibleStay {
+	if len(r.Stays) > 0 {
+		return r.Stays
+	}
+	if len(r.Data) == 0 {
+		return nil
+	}
+	var nested SearchFlexibleAvailabilityResponse
+	if err := json.Unmarshal(r.Data, &nested); err == nil && len(nested.Stays) > 0 {
+		if r.Nights == 0 {
+			r.Nights = nested.Nights
+			r.Adults = nested.Adults
+			r.Children = nested.Children
+			r.RequestedRooms = nested.RequestedRooms
+			r.SortBy = nested.SortBy
+			r.SearchWindow = nested.SearchWindow
+			r.TotalMatching = nested.TotalMatching
+			r.Returned = nested.Returned
+			r.Property = nested.Property
+		}
+		return nested.Stays
 	}
 	return nil
 }

@@ -33,6 +33,7 @@ func (a *Adapter) Capabilities() []domain.PmsCapability {
 		domain.CapabilityListRoomTypes,
 		domain.CapabilityGetInventory,
 		domain.CapabilitySearchAvailability,
+		domain.CapabilitySearchFlexibleAvailability,
 		domain.CapabilityGetQuote,
 		domain.CapabilityCreateBooking,
 		domain.CapabilityGetBooking,
@@ -174,45 +175,121 @@ func (a *Adapter) SearchAvailability(ctx context.Context, externalPropertyID str
 	rooms := resp.RoomsList()
 	out := make([]domain.AvailabilityOffer, 0, len(rooms))
 	for _, r := range rooms {
-		rtID := r.RoomTypeID
-		if rtID == "" {
-			rtID = r.RoomType
-		}
-		roomIDs := r.NormalizedRoomIDs()
-		roomCount := r.NormalizedRoomCount()
-		// The PMS search endpoint returns only bookable rooms and omits a
-		// per-room is_available flag, so a room present in the response is
-		// available by definition. Default the unit count to one physical room.
-		avail := r.AvailableUnits
-		if avail <= 0 {
-			avail = r.AvailableQty
-		}
-		if avail <= 0 {
-			avail = 1
-		}
-		if roomCount < 1 {
-			roomCount = len(roomIDs)
-		}
-		out = append(out, domain.AvailabilityOffer{
-			RoomIDs:        roomIDs,
-			RoomCount:      roomCount,
-			RoomNames:      r.NormalizedRoomNames(),
-			RoomTypes:      append([]string(nil), r.RoomTypes...),
-			RoomTypeID:     rtID,
-			RoomTypeName:   firstNonEmpty(r.RoomTypeName, r.RoomType),
-			AvailableUnits: avail,
-			IsAvailable:    true,
-			PricePerNight:  r.PricePerNight,
-			TotalPrice:     r.TotalPrice,
-			Currency:       r.Currency,
-			Capacity:       r.Capacity,
-			MaxAdults:      r.MaxAdults,
-			MaxChildren:    r.MaxChildren,
-			Description:    r.Description,
-			Amenities:      append([]string(nil), r.Amenities...),
-		})
+		out = append(out, offerFromRoom(r))
 	}
 	return out, nil
+}
+
+func (a *Adapter) SearchFlexibleAvailability(ctx context.Context, externalPropertyID string, q domain.FlexibleAvailabilityQuery) (*domain.FlexibleAvailabilityResult, error) {
+	resp, err := a.client.SearchFlexibleAvailability(ctx, externalPropertyID, SearchFlexibleAvailabilityRequest{
+		Nights:          q.Nights,
+		Adults:          q.Adults,
+		Children:        q.Children,
+		Rooms:           q.Rooms,
+		RoomType:        q.RoomTypeName,
+		EarliestCheckin: q.EarliestCheckin,
+		LatestCheckout:  q.LatestCheckout,
+		Limit:           q.Limit,
+		SortBy:          q.SortBy,
+	})
+	if err != nil {
+		return nil, err
+	}
+	stays := resp.StaysList()
+	result := &domain.FlexibleAvailabilityResult{
+		PropertyID:      resp.Property.PropertyID,
+		PropertyName:    resp.Property.Name,
+		Nights:          resp.Nights,
+		Adults:          resp.Adults,
+		Children:        resp.Children,
+		RequestedRooms:  resp.RequestedRooms,
+		SortBy:          resp.SortBy,
+		EarliestCheckin: resp.SearchWindow.EarliestCheckin,
+		LatestCheckout:  resp.SearchWindow.LatestCheckout,
+		TotalMatching:   resp.TotalMatching,
+		Returned:        resp.Returned,
+		Stays:           make([]domain.FlexibleStay, 0, len(stays)),
+	}
+	if result.Nights == 0 {
+		result.Nights = q.Nights
+	}
+	if result.Adults == 0 {
+		result.Adults = q.Adults
+	}
+	result.Children = resp.Children
+	if result.RequestedRooms == 0 {
+		result.RequestedRooms = q.Rooms
+	}
+	for _, stay := range stays {
+		offers := make([]domain.AvailabilityOffer, 0, len(stay.AvailableRooms))
+		for _, room := range stay.AvailableRooms {
+			offers = append(offers, offerFromRoom(room))
+		}
+		mapped := domain.FlexibleStay{
+			Checkin:        stay.Checkin,
+			Checkout:       stay.Checkout,
+			Nights:         stay.Nights,
+			CanAccommodate: stay.CanAccommodate,
+			RoomTypes:      append([]string(nil), stay.MatchingRoomTypes...),
+			TotalAvailable: stay.TotalAvailable,
+			Offers:         offers,
+		}
+		if stay.StartingRate != nil {
+			mapped.StartingRate = &domain.FlexibleStayRate{
+				PerNight: stay.StartingRate.PerNight,
+				Total:    stay.StartingRate.Total,
+				Currency: stay.StartingRate.Currency,
+			}
+		}
+		if mapped.Nights == 0 {
+			mapped.Nights = q.Nights
+		}
+		if mapped.TotalAvailable == 0 {
+			mapped.TotalAvailable = len(offers)
+		}
+		result.Stays = append(result.Stays, mapped)
+	}
+	if result.Returned == 0 {
+		result.Returned = len(result.Stays)
+	}
+	return result, nil
+}
+
+func offerFromRoom(r AvailabilityRoom) domain.AvailabilityOffer {
+	rtID := r.RoomTypeID
+	if rtID == "" {
+		rtID = r.RoomType
+	}
+	roomIDs := r.NormalizedRoomIDs()
+	roomCount := r.NormalizedRoomCount()
+	avail := r.AvailableUnits
+	if avail <= 0 {
+		avail = r.AvailableQty
+	}
+	if avail <= 0 {
+		avail = 1
+	}
+	if roomCount < 1 {
+		roomCount = len(roomIDs)
+	}
+	return domain.AvailabilityOffer{
+		RoomIDs:        roomIDs,
+		RoomCount:      roomCount,
+		RoomNames:      r.NormalizedRoomNames(),
+		RoomTypes:      append([]string(nil), r.RoomTypes...),
+		RoomTypeID:     rtID,
+		RoomTypeName:   firstNonEmpty(r.RoomTypeName, r.RoomType),
+		AvailableUnits: avail,
+		IsAvailable:    true,
+		PricePerNight:  r.PricePerNight,
+		TotalPrice:     r.TotalPrice,
+		Currency:       r.Currency,
+		Capacity:       r.Capacity,
+		MaxAdults:      r.MaxAdults,
+		MaxChildren:    r.MaxChildren,
+		Description:    r.Description,
+		Amenities:      append([]string(nil), r.Amenities...),
+	}
 }
 
 func (a *Adapter) GetInventory(ctx context.Context, externalPropertyID, roomTypeID string, from, to time.Time) ([]domain.InventorySnapshot, error) {

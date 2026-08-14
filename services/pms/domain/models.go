@@ -15,6 +15,7 @@ const (
 	CapabilityPushInventory      PmsCapability = "push_inventory"
 	CapabilityChangeFeed         PmsCapability = "change_feed"
 	CapabilitySearchAvailability PmsCapability = "search_availability"
+	CapabilitySearchFlexibleAvailability PmsCapability = "search_flexible_availability"
 	CapabilityGetQuote           PmsCapability = "get_quote"
 	CapabilityCreateBooking      PmsCapability = "create_booking"
 	CapabilityGetBooking         PmsCapability = "get_booking"
@@ -143,6 +144,54 @@ type AvailabilityOffer struct {
 	MaxChildren    int
 	Description    string
 	Amenities      []string
+}
+
+// FlexibleAvailabilityQuery parameters for search_flexible_availability.
+type FlexibleAvailabilityQuery struct {
+	Nights          int
+	Adults          int
+	Children        int
+	Rooms           int
+	RoomTypeName    string
+	EarliestCheckin string
+	LatestCheckout  string
+	Limit           int
+	SortBy          string
+}
+
+// FlexibleStay is one date window that can accommodate the requested nights.
+type FlexibleStay struct {
+	Checkin        string
+	Checkout       string
+	Nights         int
+	CanAccommodate bool
+	StartingRate   *FlexibleStayRate
+	RoomTypes      []string
+	TotalAvailable int
+	Offers         []AvailabilityOffer
+}
+
+// FlexibleStayRate is the cheapest offer in a flexible stay window.
+type FlexibleStayRate struct {
+	PerNight float64
+	Total    float64
+	Currency string
+}
+
+// FlexibleAvailabilityResult is the PMS flexible-search payload.
+type FlexibleAvailabilityResult struct {
+	PropertyID      string
+	PropertyName    string
+	Nights          int
+	Adults          int
+	Children        int
+	RequestedRooms  int
+	SortBy          string
+	EarliestCheckin string
+	LatestCheckout  string
+	Stays           []FlexibleStay
+	TotalMatching   int
+	Returned        int
 }
 
 // QuoteQuery parameters for get_quote.

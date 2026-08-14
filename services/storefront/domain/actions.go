@@ -9,6 +9,7 @@ package domain
 // Action names for POST /api/storefront/v1/{propertyId}.
 const (
 	ActionSearchAvailability = "search_availability"
+	ActionSearchFlexibleAvailability = "search_flexible_availability"
 	ActionGetQuote           = "get_quote"
 	ActionCreateBooking      = "create_booking"
 	ActionGetBooking         = "get_booking"
@@ -38,6 +39,7 @@ const (
 // AvailableActions is returned by the storefront health endpoint.
 var AvailableActions = []string{
 	ActionSearchAvailability,
+	ActionSearchFlexibleAvailability,
 	ActionGetQuote,
 	ActionCreateBooking,
 	ActionGetBooking,

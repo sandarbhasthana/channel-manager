@@ -132,6 +132,8 @@ func (s *Service) Dispatch(ctx context.Context, propertyID, action string, body 
 	switch action {
 	case domain.ActionSearchAvailability:
 		return s.searchAvailability(ctx, prop, body)
+	case domain.ActionSearchFlexibleAvailability:
+		return s.searchFlexibleAvailability(ctx, prop, body)
 	case domain.ActionGetQuote:
 		return s.getQuote(ctx, prop, body)
 	case domain.ActionCreateBooking:
@@ -388,6 +390,143 @@ func (s *Service) searchAvailability(ctx context.Context, prop property, body ma
 		"can_accommodate":             len(rooms) > 0,
 		"available_rooms":             rooms,
 		"total_available":             len(rooms),
+	}, nil
+}
+
+func (s *Service) searchFlexibleAvailability(ctx context.Context, prop property, body map[string]any) (map[string]any, error) {
+	if err := s.requireBookingEngine(ctx, prop.ID); err != nil {
+		return nil, err
+	}
+	nights := intOr(body["nights"], 0)
+	if nights < 1 {
+		return nil, errors.New("nights is required and must be at least 1")
+	}
+	adults := intOr(body["adults"], 1)
+	children := intOr(body["children"], 0)
+	requestedRooms := intOr(body["rooms"], 1)
+	result, err := s.pms.SearchFlexibleAvailability(ctx, prop.ID, pmsdomain.FlexibleAvailabilityQuery{
+		Nights:          nights,
+		Adults:          adults,
+		Children:        children,
+		Rooms:           requestedRooms,
+		RoomTypeName:    strings.TrimSpace(stringOr(body["room_type"])),
+		EarliestCheckin: strings.TrimSpace(stringOr(body["earliest_checkin"])),
+		LatestCheckout:  strings.TrimSpace(stringOr(body["latest_checkout"])),
+		Limit:           intOr(body["limit"], 0),
+		SortBy:          strings.TrimSpace(stringOr(body["sort_by"])),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("storefront: search flexible availability: %w", err)
+	}
+
+	stays := make([]map[string]any, 0, len(result.Stays))
+	for _, stay := range result.Stays {
+		checkin, err := time.Parse("2006-01-02", stay.Checkin)
+		if err != nil {
+			return nil, fmt.Errorf("storefront: invalid flexible stay checkin: %w", err)
+		}
+		checkout, err := time.Parse("2006-01-02", stay.Checkout)
+		if err != nil {
+			return nil, fmt.Errorf("storefront: invalid flexible stay checkout: %w", err)
+		}
+		held, err := s.heldRooms(ctx, prop.ID, checkin, checkout)
+		if err != nil {
+			return nil, err
+		}
+		rooms := make([]map[string]any, 0, len(stay.Offers))
+		for _, o := range stay.Offers {
+			if !o.IsAvailable || offerTouchesHeldRoom(held, o.RoomIDs) {
+				continue
+			}
+			rooms = append(rooms, map[string]any{
+				"room_ids":        o.RoomIDs,
+				"room_count":      o.RoomCount,
+				"room_names":      o.RoomNames,
+				"room_types":      o.RoomTypes,
+				"room_type_id":    o.RoomTypeID,
+				"room_type":       o.RoomTypeName,
+				"available_units": o.AvailableUnits,
+				"price_per_night": o.PricePerNight,
+				"total_price":     o.TotalPrice,
+				"currency":        currencyOr(o.Currency, prop.DefaultCurrency),
+				"capacity":        o.Capacity,
+				"max_adults":      o.MaxAdults,
+				"max_children":    o.MaxChildren,
+				"description":     o.Description,
+				"amenities":       o.Amenities,
+			})
+		}
+		if len(rooms) == 0 {
+			continue
+		}
+		var startingRate *pmsdomain.FlexibleStayRate
+		for _, room := range rooms {
+			total, _ := room["total_price"].(float64)
+			if startingRate == nil || total < startingRate.Total {
+				startingRate = &pmsdomain.FlexibleStayRate{
+					PerNight: room["price_per_night"].(float64),
+					Total:    total,
+					Currency: room["currency"].(string),
+				}
+			}
+		}
+		roomTypes := stay.RoomTypes
+		if len(roomTypes) == 0 {
+			seen := map[string]struct{}{}
+			for _, room := range rooms {
+				name, _ := room["room_type"].(string)
+				if name == "" {
+					continue
+				}
+				if _, ok := seen[name]; ok {
+					continue
+				}
+				seen[name] = struct{}{}
+				roomTypes = append(roomTypes, name)
+			}
+		}
+		entry := map[string]any{
+			"checkin":             stay.Checkin,
+			"checkout":            stay.Checkout,
+			"nights":              stay.Nights,
+			"can_accommodate":     true,
+			"matching_room_types": roomTypes,
+			"available_rooms":     rooms,
+			"total_available":     len(rooms),
+		}
+		if startingRate != nil {
+			entry["starting_rate"] = map[string]any{
+				"per_night": startingRate.PerNight,
+				"total":     startingRate.Total,
+				"currency":  currencyOr(startingRate.Currency, prop.DefaultCurrency),
+			}
+		}
+		stays = append(stays, entry)
+	}
+
+	publicPropertyID := prop.ExternalID
+	if publicPropertyID == "" {
+		publicPropertyID = prop.ID
+	}
+	earliest := result.EarliestCheckin
+	latest := result.LatestCheckout
+	return map[string]any{
+		"source":                      "CHANNEL_MANAGER",
+		"property_id":                 publicPropertyID,
+		"channel_manager_property_id": prop.ID,
+		"property_name":               prop.Name,
+		"nights":                      result.Nights,
+		"adults":                      adults,
+		"children":                    children,
+		"requested_rooms":             requestedRooms,
+		"sort_by":                     result.SortBy,
+		"search_window": map[string]any{
+			"earliest_checkin": earliest,
+			"latest_checkout":  latest,
+		},
+		"stays":          stays,
+		"total_matching": result.TotalMatching,
+		"returned":       len(stays),
 	}, nil
 }
 

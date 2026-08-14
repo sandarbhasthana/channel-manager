@@ -83,6 +83,17 @@ func (c *Client) SearchAvailability(ctx context.Context, propertyID string, req 
 	return &out, nil
 }
 
+// SearchFlexibleAvailability calls POST .../{propertyId} with action search_flexible_availability.
+func (c *Client) SearchFlexibleAvailability(ctx context.Context, propertyID string, req SearchFlexibleAvailabilityRequest) (*SearchFlexibleAvailabilityResponse, error) {
+	req.Action = ActionSearchFlexibleAvailability
+	var out SearchFlexibleAvailabilityResponse
+	path := fmt.Sprintf("/api/webhooks/bookings/%s", propertyID)
+	if err := c.do(ctx, http.MethodPost, path, req, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // GetRoomDetails calls POST .../{propertyId} with action get_room_details.
 func (c *Client) GetRoomDetails(ctx context.Context, propertyID, roomID, roomTypeID string) (*GetRoomDetailsResponse, error) {
 	body := GetRoomDetailsRequest{

@@ -18,6 +18,7 @@ type BookingEngineClient interface {
 	PropertyHealth(ctx context.Context, externalPropertyID string) (*domain.PropertyHealth, error)
 	ListRoomTypes(ctx context.Context, externalPropertyID string) ([]domain.RoomType, error)
 	SearchAvailability(ctx context.Context, externalPropertyID string, q domain.AvailabilityQuery) ([]domain.AvailabilityOffer, error)
+	SearchFlexibleAvailability(ctx context.Context, externalPropertyID string, q domain.FlexibleAvailabilityQuery) (*domain.FlexibleAvailabilityResult, error)
 	GetInventory(ctx context.Context, externalPropertyID, roomTypeID string, from, to time.Time) ([]domain.InventorySnapshot, error)
 	GetQuote(ctx context.Context, externalPropertyID string, q domain.QuoteQuery) (*domain.Quote, error)
 	CreateBooking(ctx context.Context, externalPropertyID string, in domain.CreateBookingInput) (*domain.PmsBooking, error)

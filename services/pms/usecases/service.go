@@ -395,6 +395,18 @@ func (s *PmsService) SearchAvailability(ctx context.Context, propertyID string, 
 	return engine.SearchAvailability(ctx, prop.ExternalID, q)
 }
 
+func (s *PmsService) SearchFlexibleAvailability(ctx context.Context, propertyID string, q domain.FlexibleAvailabilityQuery) (*domain.FlexibleAvailabilityResult, error) {
+	prop, err := s.props.GetByID(ctx, propertyID)
+	if err != nil {
+		return nil, err
+	}
+	engine, _, err := s.engineForConnection(ctx, prop.ConnectionID)
+	if err != nil {
+		return nil, err
+	}
+	return engine.SearchFlexibleAvailability(ctx, prop.ExternalID, q)
+}
+
 // GetQuote proxies get_quote to the PMS.
 func (s *PmsService) GetQuote(ctx context.Context, propertyID string, q domain.QuoteQuery) (*domain.Quote, error) {
 	prop, err := s.props.GetByID(ctx, propertyID)

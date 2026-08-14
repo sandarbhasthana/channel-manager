@@ -72,8 +72,9 @@ func (f *fakeProps) GetByExternalID(_ context.Context, _, _ string) (pmsdomain.P
 // ── PMS gateway ─────────────────────────────────────────────────────────────
 
 type fakePms struct {
-	offers []pmsdomain.AvailabilityOffer
-	quote  *pmsdomain.Quote
+	offers   []pmsdomain.AvailabilityOffer
+	quote    *pmsdomain.Quote
+	flexible *pmsdomain.FlexibleAvailabilityResult
 
 	createErr    error
 	createCalls  int
@@ -86,6 +87,29 @@ type fakePms struct {
 
 func (f *fakePms) SearchAvailability(_ context.Context, _ string, _ pmsdomain.AvailabilityQuery) ([]pmsdomain.AvailabilityOffer, error) {
 	return f.offers, nil
+}
+
+func (f *fakePms) SearchFlexibleAvailability(_ context.Context, _ string, q pmsdomain.FlexibleAvailabilityQuery) (*pmsdomain.FlexibleAvailabilityResult, error) {
+	if f.flexible != nil {
+		return f.flexible, nil
+	}
+	return &pmsdomain.FlexibleAvailabilityResult{
+		Nights:         q.Nights,
+		Adults:         q.Adults,
+		Children:       q.Children,
+		RequestedRooms: q.Rooms,
+		SortBy:         q.SortBy,
+		Stays: []pmsdomain.FlexibleStay{{
+			Checkin:        "2026-08-16",
+			Checkout:       "2026-08-18",
+			Nights:         q.Nights,
+			CanAccommodate: true,
+			Offers:         f.offers,
+			TotalAvailable: len(f.offers),
+		}},
+		TotalMatching: 1,
+		Returned:      1,
+	}, nil
 }
 
 func (f *fakePms) GetQuote(_ context.Context, _ string, _ pmsdomain.QuoteQuery) (*pmsdomain.Quote, error) {

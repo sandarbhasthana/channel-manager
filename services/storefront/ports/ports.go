@@ -29,6 +29,7 @@ type PropertyLookup interface {
 // *pms/usecases.PmsService satisfies this.
 type PmsGateway interface {
 	SearchAvailability(ctx context.Context, propertyID string, q pmsdomain.AvailabilityQuery) ([]pmsdomain.AvailabilityOffer, error)
+	SearchFlexibleAvailability(ctx context.Context, propertyID string, q pmsdomain.FlexibleAvailabilityQuery) (*pmsdomain.FlexibleAvailabilityResult, error)
 	GetQuote(ctx context.Context, propertyID string, q pmsdomain.QuoteQuery) (*pmsdomain.Quote, error)
 	CreateBooking(ctx context.Context, propertyID string, in pmsdomain.CreateBookingInput) (*pmsdomain.PmsBooking, error)
 	GetBooking(ctx context.Context, propertyID string, in pmsdomain.GetBookingInput) (*pmsdomain.PmsBooking, error)
