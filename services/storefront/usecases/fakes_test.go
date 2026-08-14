@@ -69,6 +69,17 @@ func (f *fakeProps) GetByExternalID(_ context.Context, _, _ string) (pmsdomain.P
 	return pmsdomain.Property{}, errors.New("not found")
 }
 
+func (f *fakeProps) ListListings(_ context.Context) ([]pmsdomain.PropertyListing, error) {
+	if f.err != nil {
+		return nil, f.err
+	}
+	return []pmsdomain.PropertyListing{{
+		ID: testPropID, ExternalID: testExtPropID, Name: "Test Hotel",
+		Timezone: "UTC", DefaultCurrency: "USD", IsActive: true, IsDefault: true,
+		Channel: pmsdomain.ChannelConfig{Enabled: !f.beDisabled, Route: "pms"},
+	}}, nil
+}
+
 // ── PMS gateway ─────────────────────────────────────────────────────────────
 
 type fakePms struct {
@@ -171,6 +182,17 @@ type fakeRes struct {
 }
 
 func (f *fakeRes) IngestReservation(_ context.Context, res *resdomain.Reservation, _ string) (string, bool, error) {
+	f.ingestCalls++
+	if f.ingestErr != nil {
+		return "", false, f.ingestErr
+	}
+	f.ingested = res
+	return "reservation-1", true, nil
+}
+
+// RecordReservation is the non-publishing persist the storefront now uses for
+// direct bookings; for the fakes it behaves identically to IngestReservation.
+func (f *fakeRes) RecordReservation(_ context.Context, res *resdomain.Reservation, _ string) (string, bool, error) {
 	f.ingestCalls++
 	if f.ingestErr != nil {
 		return "", false, f.ingestErr

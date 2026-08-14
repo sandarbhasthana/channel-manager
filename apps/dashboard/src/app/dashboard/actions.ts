@@ -1,11 +1,14 @@
 "use server";
 
-import { listProperties, listBookings, getMe, updatePreferences, Property, PmsBooking, deleteBooking, updateBooking, listRoomTypes, RoomType, getRates, RatePoint, bulkUpsertRates } from "@/lib/api";
+import { listProperties, listBookings, getDefaultPropertyId, setDefaultPropertyId, Property, PmsBooking, deleteBooking, updateBooking, listRoomTypes, RoomType, getRates, RatePoint, bulkUpsertRates } from "@/lib/api";
 import { unstable_rethrow } from "next/navigation";
 
+// Sets the org's default property. Formerly a per-user preference; now shared
+// org-wide because the booking engine reads the same value off the storefront
+// listing to decide which property to sell when a guest names none.
 export async function setUserDefaultProperty(propertyId: string): Promise<void> {
   try {
-    await updatePreferences({ default_property_id: propertyId });
+    await setDefaultPropertyId(propertyId);
   } catch (error) {
     unstable_rethrow(error);
     console.error("Failed to set default property:", error);
@@ -19,19 +22,20 @@ export async function fetchDashboardData(): Promise<{ properties: Property[], bo
     if (!properties || properties.length === 0) {
       return { properties: [], bookings: [], defaultPropertyId: null };
     }
-    
-    // Get user preferences
-    const me = await getMe();
-    let selectedPropertyId = properties[0].id;
-    const defaultPropertyId = me?.preferences?.default_property_id || null;
-    
-    if (defaultPropertyId && properties.some(p => p.id === defaultPropertyId)) {
-      selectedPropertyId = defaultPropertyId;
-    }
+
+    // The starred property, org-wide. Null when no property has been starred yet.
+    const starred = await getDefaultPropertyId();
+    const defaultPropertyId =
+      starred && properties.some(p => p.id === starred) ? starred : null;
+
+    // The picker still has to open on something, so fall back to the first
+    // property for the initial selection — but report defaultPropertyId
+    // honestly, so the star renders only on a property that is actually starred.
+    const selectedPropertyId = defaultPropertyId ?? properties[0].id;
 
     const bookings = await listBookings(selectedPropertyId);
-    
-    return { properties, bookings, defaultPropertyId: selectedPropertyId };
+
+    return { properties, bookings, defaultPropertyId };
   } catch (error) {
     unstable_rethrow(error);
     console.error("Failed to fetch dashboard data:", error);

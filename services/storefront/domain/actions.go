@@ -34,6 +34,14 @@ const (
 	// config (enabled, route, percent). The booking engine reads it to decide
 	// where to send its own stay actions during the Phase 4 cutover.
 	ActionGetChannelConfig = "get_channel_config"
+
+	// ActionRecordDirectReservation records a direct-channel reservation for a
+	// stay the booking engine sent straight to the PMS (booking_route=pms), so
+	// the booking is still visible in the CM Booking Engine view — which lists
+	// only reservations marked source="direct". Unlike create_booking it makes
+	// NO PMS booking (the PMS already has the stay); it only mirrors the
+	// canonical reservation record.
+	ActionRecordDirectReservation = "record_direct_reservation"
 )
 
 // AvailableActions is returned by the storefront health endpoint.
@@ -49,6 +57,7 @@ var AvailableActions = []string{
 	ActionRedeemPromo,
 	ActionReleasePromo,
 	ActionGetChannelConfig,
+	ActionRecordDirectReservation,
 }
 
 // DirectChannel labels reservations that originate from the storefront rather

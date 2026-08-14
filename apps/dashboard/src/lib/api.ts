@@ -193,6 +193,29 @@ export async function listProperties(): Promise<Property[]> {
   }
 }
 
+// ── Org-level default property (the star in the property picker) ─────────────
+//
+// Stored on pms.properties.is_default, not on the caller's membership
+// preferences. The booking engine reads the same value through the storefront
+// with an org-scoped integration key and no user behind it, so a per-user
+// preference could never reach it. Consequence worth knowing: starring a
+// property changes it for everyone in the org, and repoints the booking engine.
+
+export async function getDefaultPropertyId(): Promise<string | null> {
+  try {
+    const data = await rest<{ propertyId: string | null }>("/admin/default-property", "GET");
+    return data.propertyId ?? null;
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("Error reading default property:", err);
+    return null;
+  }
+}
+
+export async function setDefaultPropertyId(propertyId: string): Promise<void> {
+  await rest("/admin/default-property", "PUT", { propertyId });
+}
+
 export interface Room {
   id: string;
   name: string;
@@ -518,4 +541,116 @@ export async function updatePromoCode(input: PromoCodeInput): Promise<PromoCode>
 
 export async function deletePromoCode(id: string): Promise<void> {
   await rpc("/pricing.v1.PricingService/DeletePromoCode", { id });
+}
+
+// ── Per-channel pricing rules (REST) ─────────────────────────────────────────
+// CM owns a per-channel adjustment applied on top of the PMS base rate. The
+// final rate a channel receives is PMS base × (1 + adjustPct/100).
+
+export interface ChannelRateRule {
+  roomTypeId: string;
+  channelId: string;
+  adjustPct: number;
+}
+
+export async function listChannelRateRules(propertyId: string): Promise<ChannelRateRule[]> {
+  try {
+    const data = await rest<{ rules: ChannelRateRule[] }>(
+      `/admin/channel-rates?propertyId=${encodeURIComponent(propertyId)}`,
+      "GET"
+    );
+    return data.rules || [];
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("Error listing channel rate rules:", err);
+    return [];
+  }
+}
+
+export async function saveChannelRateRules(
+  propertyId: string,
+  rules: ChannelRateRule[]
+): Promise<void> {
+  await rest("/admin/channel-rates", "PUT", { propertyId, rules });
+}
+
+// ── PMS base rate (live quote) ───────────────────────────────────────────────
+// The PMS owns the base rate card. GetQuote proxies to the PMS and returns the
+// nightly rate for a room; we use it as the base the per-channel adjustment is
+// applied to. (get_rates on the pricing service is still a stub.)
+
+export interface Quote {
+  roomId: string;
+  pricePerNight: number;
+  totalPrice: number;
+  currency: string;
+  isAvailable: boolean;
+}
+
+export async function getBaseQuote(
+  propertyId: string,
+  roomId: string,
+  adults = 2
+): Promise<Quote | null> {
+  try {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const cal = (d: Date) => ({ year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() });
+    const data = await rpc<{
+      roomId?: string;
+      pricePerNight?: number;
+      totalPrice?: number;
+      currency?: string;
+      isAvailable?: boolean;
+    }>("/pms.v1.PmsService/GetQuote", {
+      property_id: propertyId,
+      room_id: roomId,
+      checkin: cal(today),
+      checkout: cal(tomorrow),
+      adults,
+    });
+    return {
+      roomId: data.roomId ?? roomId,
+      pricePerNight: Number(data.pricePerNight ?? 0),
+      totalPrice: Number(data.totalPrice ?? 0),
+      currency: data.currency ?? "USD",
+      isAvailable: data.isAvailable ?? false,
+    };
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("Error fetching base quote:", err);
+    return null;
+  }
+}
+
+// ── CM-stored base rates (REST) ──────────────────────────────────────────────
+// When the live PMS quote isn't available, the owner can set a base rate in CM.
+// A stored base takes precedence over the live PMS quote on the Rooms & Rates page.
+
+export interface StoredBaseRate {
+  roomTypeId: string;
+  amount: number;
+  currency: string;
+}
+
+export async function listRoomBaseRates(propertyId: string): Promise<StoredBaseRate[]> {
+  try {
+    const data = await rest<{ baseRates: StoredBaseRate[] }>(
+      `/admin/room-base-rates?propertyId=${encodeURIComponent(propertyId)}`,
+      "GET"
+    );
+    return data.baseRates || [];
+  } catch (err) {
+    unstable_rethrow(err);
+    console.error("Error listing room base rates:", err);
+    return [];
+  }
+}
+
+export async function saveRoomBaseRates(
+  propertyId: string,
+  baseRates: StoredBaseRate[]
+): Promise<void> {
+  await rest("/admin/room-base-rates", "PUT", { propertyId, baseRates });
 }

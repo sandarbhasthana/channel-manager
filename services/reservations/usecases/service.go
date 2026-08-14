@@ -40,8 +40,26 @@ func (s *ReservationService) ListReservations(ctx context.Context, propertyID st
 	return s.repo.ListByProperty(ctx, propertyID)
 }
 
-// IngestReservation persists a canonical reservation (from PMS or OTA fetch).
+// IngestReservation persists a canonical reservation that ORIGINATED outside the
+// PMS (e.g. an OTA booking the integration service fetched) and publishes
+// reservation.created so the PMS is notified and creates it. For a booking the
+// PMS ALREADY has (a direct booking made through the storefront), use
+// RecordReservation instead — publishing that back makes the PMS duplicate it.
 func (s *ReservationService) IngestReservation(ctx context.Context, res *domain.Reservation, idempotencyKey string) (string, bool, error) {
+	return s.persist(ctx, res, idempotencyKey, true)
+}
+
+// RecordReservation persists a canonical reservation for a booking that already
+// exists in the PMS, WITHOUT publishing reservation.created. The PMS is the
+// origin of the stay, so propagating it back would make the PMS create a
+// duplicate reservation.
+func (s *ReservationService) RecordReservation(ctx context.Context, res *domain.Reservation, idempotencyKey string) (string, bool, error) {
+	return s.persist(ctx, res, idempotencyKey, false)
+}
+
+// persist saves a reservation and, only when publish is true, emits
+// reservation.created to the PMS webhook.
+func (s *ReservationService) persist(ctx context.Context, res *domain.Reservation, idempotencyKey string, publish bool) (string, bool, error) {
 	if idempotencyKey != "" {
 		if _, ok := s.seenKeys[idempotencyKey]; ok {
 			return "", false, ErrDuplicateRequest
@@ -56,7 +74,9 @@ func (s *ReservationService) IngestReservation(ctx context.Context, res *domain.
 	if idempotencyKey != "" {
 		s.seenKeys[idempotencyKey] = struct{}{}
 	}
-	_ = s.publisher.PublishReservationCreated(ctx, res)
+	if publish {
+		_ = s.publisher.PublishReservationCreated(ctx, res)
+	}
 	_ = uuid.NewString() // event id reserved for outbox
 	return res.ID, true, nil
 }

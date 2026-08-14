@@ -23,6 +23,12 @@ type PropertyLookup interface {
 	// (enabled + route + percent), which the booking engine reads to decide
 	// where to route its own stay actions.
 	GetChannelConfig(ctx context.Context, id string) (pmsdomain.ChannelConfig, error)
+	// ListListings returns the caller org's active properties with their
+	// booking-engine config. A booking engine calls this to discover which
+	// properties it may sell and which one is the org default; it cannot use
+	// GetChannelConfig for that, since that needs a property id it does not yet
+	// have.
+	ListListings(ctx context.Context) ([]pmsdomain.PropertyListing, error)
 }
 
 // PmsGateway is the subset of the PMS service the storefront calls.
@@ -40,7 +46,11 @@ type PmsGateway interface {
 // ReservationWriter is the subset of the reservations service the storefront
 // calls. *reservations/usecases.ReservationService satisfies this.
 type ReservationWriter interface {
-	IngestReservation(ctx context.Context, res *resdomain.Reservation, idempotencyKey string) (string, bool, error)
+	// RecordReservation persists a canonical reservation for a booking that
+	// already exists in the PMS (a direct booking made through the storefront).
+	// It does NOT publish reservation.created back to the PMS — the PMS already
+	// has the booking, so propagating it would create a duplicate reservation.
+	RecordReservation(ctx context.Context, res *resdomain.Reservation, idempotencyKey string) (string, bool, error)
 	CancelReservation(ctx context.Context, id string) (*resdomain.Reservation, error)
 }
 
