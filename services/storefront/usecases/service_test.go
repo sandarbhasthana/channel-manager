@@ -111,6 +111,42 @@ func TestCreateBooking_Success(t *testing.T) {
 	}
 }
 
+func TestCreateBooking_SingleConfirmationCoversMultipleRooms(t *testing.T) {
+	h := newHarness()
+	h.pms.booking = &pmsdomain.PmsBooking{
+		BookingIDs:    []string{"pms-booking-1"},
+		RoomIDs:       []string{"room-101", "room-102"},
+		RoomNames:     []string{"101", "102"},
+		RoomTypes:     []string{"Deluxe", "Deluxe"},
+		GroupStatus:   "CONFIRMED",
+		Status:        "CONFIRMED",
+		GuestName:     "Ada Lovelace",
+		Adults:        4,
+		PaymentStatus: "PAID",
+		Message:       "Booking confirmed for Ada Lovelace. Confirmation number: pms-booking-1",
+	}
+	out, err := dispatch(t, h, domain.ActionCreateBooking, createBody(map[string]any{
+		"idempotency_key": "idem-two-rooms",
+		"room_ids":        []any{"room-101", "room-102"},
+		"adults":          float64(4),
+	}))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got := out["booking_ids"].([]string); len(got) != 1 || got[0] != "pms-booking-1" {
+		t.Fatalf("booking_ids = %#v", got)
+	}
+	if got := out["booking_id"]; got != "pms-booking-1" {
+		t.Fatalf("booking_id = %#v", got)
+	}
+	if got := out["room_ids"].([]string); len(got) != 2 {
+		t.Fatalf("room_ids = %#v", got)
+	}
+	if h.res.ingestCalls != 2 {
+		t.Fatalf("ingestCalls = %d, want 2", h.res.ingestCalls)
+	}
+}
+
 // ── create_booking: idempotency replay ──────────────────────────────────────
 
 // A replayed idempotency key returns the original response before any side effect occurs.

@@ -355,8 +355,8 @@ func (a *Adapter) CreateBooking(ctx context.Context, externalPropertyID string, 
 	if err != nil {
 		return nil, err
 	}
-	if len(resp.BookingIDs) == 0 || len(resp.BookingIDs) != len(resp.RoomIDs) {
-		return nil, fmt.Errorf("mypms: create booking returned unaligned booking_ids and room_ids")
+	if len(resp.BookingIDs) != 1 || len(resp.RoomIDs) == 0 {
+		return nil, fmt.Errorf("mypms: create booking must return one confirmation number")
 	}
 	return &domain.PmsBooking{
 		BookingIDs:    append([]string(nil), resp.BookingIDs...),

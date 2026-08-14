@@ -189,7 +189,8 @@ Use when the guest knows the number of nights but is flexible on dates.
 ```json
 {
   "data": {
-    "booking_ids": ["string", "string"],
+    "booking_id": "string",
+    "booking_ids": ["string"],
     "room_ids": ["string", "string"],
     "group_status": "CONFIRMATION_PENDING",
     "guest_name": "string",

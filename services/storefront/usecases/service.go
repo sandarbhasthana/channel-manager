@@ -726,12 +726,17 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 		return nil, fmt.Errorf("storefront: create booking: %w", err)
 	}
 
-	reservationIDs := make([]string, 0, len(pmsBooking.BookingIDs))
+	if len(pmsBooking.BookingIDs) != 1 || len(pmsBooking.RoomIDs) == 0 {
+		return nil, fmt.Errorf("storefront: create booking must return one confirmation number")
+	}
+
+	reservationIDs := make([]string, 0, len(pmsBooking.RoomIDs))
 	reconciliationPending := false
-	for index, bookingID := range pmsBooking.BookingIDs {
+	confirmationID := pmsBooking.BookingIDs[0]
+	for index, roomID := range pmsBooking.RoomIDs {
 		individual := *pmsBooking
-		individual.BookingID = bookingID
-		individual.RoomID = pmsBooking.RoomIDs[index]
+		individual.BookingID = confirmationID
+		individual.RoomID = roomID
 		if index < len(pmsBooking.RoomNames) {
 			individual.RoomName = pmsBooking.RoomNames[index]
 		}
@@ -739,7 +744,7 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 			individual.RoomType = pmsBooking.RoomTypes[index]
 		}
 		reservationKey := idemKey
-		if len(pmsBooking.BookingIDs) > 1 && reservationKey != "" {
+		if len(pmsBooking.RoomIDs) > 1 && reservationKey != "" {
 			reservationKey = fmt.Sprintf("%s:%d", reservationKey, index)
 		}
 		reservationID, pending := s.persistReservation(ctx, prop, &individual, domain.Hold{}, body, checkin, checkout, reservationKey)
@@ -760,6 +765,7 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 	})
 
 	out := map[string]any{
+		"booking_id":      pmsBooking.BookingIDs[0],
 		"booking_ids":     pmsBooking.BookingIDs,
 		"room_ids":        pmsBooking.RoomIDs,
 		"reservation_ids": reservationIDs,
@@ -773,6 +779,9 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 		"total_amount":    totalAmount,
 		"currency":        currencyOr(stringOr(body["currency"]), prop.DefaultCurrency),
 		"payment_status":  pmsBooking.PaymentStatus,
+	}
+	if pmsBooking.Message != "" {
+		out["message"] = pmsBooking.Message
 	}
 	if reconciliationPending {
 		out["reconciliation_pending"] = true
