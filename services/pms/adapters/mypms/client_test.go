@@ -141,6 +141,56 @@ func TestAdapter_SearchAvailability_PmsAvailableRoomsShape(t *testing.T) {
 	}
 }
 
+// Production PMS historically returned scalar room_id / room_name without the
+// room_ids array. That shape must still produce a bookable offer so existing
+// properties keep working while room_ids is rolled out additively.
+func TestAdapter_SearchAvailability_LegacyRoomIDShape(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"data": map[string]any{
+				"available_rooms": []map[string]any{
+					{
+						"room_id": "cmpu45ktj00199kvsadren327", "room_name": "Room 103",
+						"room_type": "Standard Room", "capacity": 2, "price_per_night": 113.33,
+						"total_price": 340, "currency": "USD",
+					},
+					{
+						"room_id": "room-1,room-2", "room_name": "2x Standard Room",
+						"room_type": "2x Standard Room", "capacity": 4,
+					},
+				},
+			},
+		})
+	}))
+	defer srv.Close()
+
+	adapter := mypms.NewAdapterFromConfig(srv.URL, "tok")
+	offers, err := adapter.SearchAvailability(context.Background(), "prop-1", domain.AvailabilityQuery{
+		Checkin:  mustParse(t, "2026-08-29"),
+		Checkout: mustParse(t, "2026-09-01"),
+		Adults:   2,
+		Rooms:    1,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(offers) != 2 {
+		t.Fatalf("expected 2 offers, got %d", len(offers))
+	}
+	if got := offers[0].RoomIDs; len(got) != 1 || got[0] != "cmpu45ktj00199kvsadren327" {
+		t.Fatalf("single room_id = %v", got)
+	}
+	if offers[0].RoomCount != 1 || offers[0].RoomNames[0] != "Room 103" {
+		t.Fatalf("single room meta count=%d names=%v", offers[0].RoomCount, offers[0].RoomNames)
+	}
+	if got := offers[1].RoomIDs; len(got) != 2 || got[0] != "room-1" || got[1] != "room-2" {
+		t.Fatalf("combo room_id = %v", got)
+	}
+	if offers[1].RoomCount != 2 {
+		t.Fatalf("combo room_count = %d", offers[1].RoomCount)
+	}
+}
+
 func mustParse(t *testing.T, s string) time.Time {
 	t.Helper()
 	d, err := time.Parse("2006-01-02", s)

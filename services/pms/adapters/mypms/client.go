@@ -87,8 +87,10 @@ func (c *Client) SearchAvailability(ctx context.Context, propertyID string, req 
 func (c *Client) GetRoomDetails(ctx context.Context, propertyID, roomID, roomTypeID string) (*GetRoomDetailsResponse, error) {
 	body := GetRoomDetailsRequest{
 		Action:     ActionGetRoomDetails,
-		RoomID:     roomID,
 		RoomTypeID: roomTypeID,
+	}
+	if roomID != "" {
+		body.RoomIDs = []string{roomID}
 	}
 	var out GetRoomDetailsResponse
 	path := fmt.Sprintf("/api/webhooks/bookings/%s", propertyID)

@@ -5,6 +5,7 @@ package mypms
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // Action names for POST /api/webhooks/bookings[/{propertyId}].
@@ -107,11 +108,13 @@ type SearchAvailabilityRequest struct {
 
 // AvailabilityRoom is one bookable unit in a search_availability response.
 type AvailabilityRoom struct {
+	RoomID        string   `json:"room_id"` // legacy inbound decode only
 	RoomIDs       []string `json:"room_ids"`
 	RoomCount     int      `json:"room_count"`
 	RoomNames     []string `json:"room_names"`
 	RoomTypes     []string `json:"room_types"`
 	RoomName      string   `json:"room_name"`
+	AvailableUnits int     `json:"available_units"`
 	RoomTypeID    string   `json:"room_type_id"`
 	RoomType      string   `json:"room_type"`
 	RoomTypeName  string   `json:"room_type_name"`
@@ -164,11 +167,60 @@ func (r *SearchAvailabilityResponse) RoomsList() []AvailabilityRoom {
 	return nil
 }
 
+// NormalizedRoomIDs prefers the room_ids array and falls back to the legacy
+// scalar room_id (which may be comma-joined for multi-room combos).
+func (r AvailabilityRoom) NormalizedRoomIDs() []string {
+	if len(r.RoomIDs) > 0 {
+		out := make([]string, 0, len(r.RoomIDs))
+		for _, id := range r.RoomIDs {
+			id = strings.TrimSpace(id)
+			if id != "" {
+				out = append(out, id)
+			}
+		}
+		if len(out) > 0 {
+			return out
+		}
+	}
+	if strings.TrimSpace(r.RoomID) == "" {
+		return nil
+	}
+	parts := strings.Split(r.RoomID, ",")
+	out := make([]string, 0, len(parts))
+	for _, id := range parts {
+		id = strings.TrimSpace(id)
+		if id != "" {
+			out = append(out, id)
+		}
+	}
+	return out
+}
+
+// NormalizedRoomCount uses room_count when set, otherwise the resolved id list.
+func (r AvailabilityRoom) NormalizedRoomCount() int {
+	ids := r.NormalizedRoomIDs()
+	if r.RoomCount >= 1 {
+		return r.RoomCount
+	}
+	return len(ids)
+}
+
+// NormalizedRoomNames uses room_names when present, otherwise the scalar name.
+func (r AvailabilityRoom) NormalizedRoomNames() []string {
+	if len(r.RoomNames) > 0 {
+		return append([]string(nil), r.RoomNames...)
+	}
+	if strings.TrimSpace(r.RoomName) != "" {
+		return []string{r.RoomName}
+	}
+	return nil
+}
+
 // GetRoomDetailsRequest is the body for action get_room_details.
 type GetRoomDetailsRequest struct {
-	Action     string `json:"action"`
-	RoomID     string `json:"room_id,omitempty"`
-	RoomTypeID string `json:"room_type_id,omitempty"`
+	Action     string   `json:"action"`
+	RoomIDs    []string `json:"room_ids,omitempty"`
+	RoomTypeID string   `json:"room_type_id,omitempty"`
 }
 
 // RoomTypeDetail describes a sellable room category from the PMS.
@@ -187,7 +239,7 @@ type RoomTypeDetail struct {
 // RoomDetail describes a physical room from the PMS.
 type RoomDetail struct {
 	ID         string `json:"id"`
-	RoomID     string `json:"room_id"`
+	RoomID     string `json:"room_id"` // nested PMS room record identifier
 	RoomTypeID string `json:"room_type_id"`
 	Name       string `json:"name"`
 }
@@ -260,18 +312,20 @@ func (r *GetRoomDetailsResponse) RoomsList() []RoomDetail {
 
 // GetQuoteRequest is the body for action get_quote.
 type GetQuoteRequest struct {
-	Action   string `json:"action"`
-	RoomID   string `json:"room_id"`
-	Checkin  string `json:"checkin"`
-	Checkout string `json:"checkout"`
-	Adults   int    `json:"adults"`
+	Action   string   `json:"action"`
+	RoomIDs  []string `json:"room_ids"`
+	Checkin  string   `json:"checkin"`
+	Checkout string   `json:"checkout"`
+	Adults   int      `json:"adults"`
 }
 
 // Quote is returned by get_quote.
 type Quote struct {
-	RoomID        string  `json:"room_id"`
-	RoomName      string  `json:"room_name"`
-	RoomType      string  `json:"room_type"`
+	RoomIDs       []string `json:"room_ids"`
+	RoomCount     int      `json:"room_count"`
+	RoomID        string   `json:"room_id"` // legacy inbound decode only
+	RoomName      string   `json:"room_name"`
+	RoomType      string   `json:"room_type"`
 	Checkin       string  `json:"checkin"`
 	Checkout      string  `json:"checkout"`
 	Nights        int     `json:"nights"`
@@ -325,9 +379,10 @@ type Booking struct {
 	Status        string `json:"status"`
 	GuestName     string `json:"guest_name"`
 	Email         string `json:"email"`
-	Phone         string `json:"phone"`
-	RoomID        string `json:"room_id"`
-	RoomName      string `json:"room_name"`
+	Phone         string   `json:"phone"`
+	RoomIDs       []string `json:"room_ids"`
+	RoomID        string   `json:"room_id"` // legacy inbound decode only
+	RoomName      string   `json:"room_name"`
 	RoomType      string `json:"room_type"`
 	PropertyName  string `json:"property_name"`
 	Checkin       string `json:"checkin"`
@@ -370,8 +425,8 @@ type UpdateBookingRequest struct {
 	Phone        string `json:"phone,omitempty"`
 	Adults       *int   `json:"adults,omitempty"`
 	Children     *int   `json:"children,omitempty"`
-	Notes        string `json:"notes,omitempty"`
-	RoomID       string `json:"room_id,omitempty"`
+	Notes        string   `json:"notes,omitempty"`
+	RoomIDs      []string `json:"room_ids,omitempty"`
 }
 
 // CancelBookingRequest is the body for action cancel_booking.

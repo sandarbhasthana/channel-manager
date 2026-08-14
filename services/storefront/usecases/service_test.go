@@ -364,12 +364,12 @@ func TestSearchAvailability_ExcludesComboWhenPartHeld(t *testing.T) {
 func TestGetQuote_PlacesHold(t *testing.T) {
 	h := newHarness()
 	h.pms.quote = &pmsdomain.Quote{
-		RoomID: testRoomID, RoomType: "Deluxe", Nights: 2,
+		RoomIDs: []string{testRoomID}, RoomType: "Deluxe", Nights: 2,
 		TotalPrice: 450, Currency: "USD", IsAvailable: true,
 	}
 
 	out, err := dispatch(t, h, domain.ActionGetQuote, map[string]any{
-		"room_id": testRoomID, "checkin": "2026-08-01", "checkout": "2026-08-03",
+		"room_ids": []any{testRoomID}, "checkin": "2026-08-01", "checkout": "2026-08-03",
 	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -390,10 +390,10 @@ func TestGetQuote_PlacesHold(t *testing.T) {
 // An unavailable quote places no hold.
 func TestGetQuote_Unavailable_PlacesNoHold(t *testing.T) {
 	h := newHarness()
-	h.pms.quote = &pmsdomain.Quote{RoomID: testRoomID, IsAvailable: false}
+	h.pms.quote = &pmsdomain.Quote{RoomIDs: []string{testRoomID}, IsAvailable: false}
 
 	out, err := dispatch(t, h, domain.ActionGetQuote, map[string]any{
-		"room_id": testRoomID, "checkin": "2026-08-01", "checkout": "2026-08-03",
+		"room_ids": []any{testRoomID}, "checkin": "2026-08-01", "checkout": "2026-08-03",
 	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -407,11 +407,11 @@ func TestGetQuote_Unavailable_PlacesNoHold(t *testing.T) {
 // Quoting a room already held by someone else is refused.
 func TestGetQuote_AlreadyHeld_Refused(t *testing.T) {
 	h := newHarness()
-	h.pms.quote = &pmsdomain.Quote{RoomID: testRoomID, IsAvailable: true}
+	h.pms.quote = &pmsdomain.Quote{RoomIDs: []string{testRoomID}, IsAvailable: true}
 	h.liveHold("tok-other")
 
 	_, err := dispatch(t, h, domain.ActionGetQuote, map[string]any{
-		"room_id": testRoomID, "checkin": "2026-08-01", "checkout": "2026-08-03",
+		"room_ids": []any{testRoomID}, "checkin": "2026-08-01", "checkout": "2026-08-03",
 	})
 	if err == nil {
 		t.Fatal("expected refusal when the room is already held")
@@ -490,7 +490,7 @@ func TestBookingEngineDisabled_RefusesSearchQuoteCreate(t *testing.T) {
 			h.liveHold("tok-1")
 			body := map[string]any{
 				"checkin": "2026-08-01", "checkout": "2026-08-03",
-				"room_id": testRoomID, "hold_token": "tok-1",
+				"room_ids": []any{testRoomID}, "hold_token": "tok-1",
 			}
 			_, err := h.svc.Dispatch(tenantCtx(), testPropID, action, body)
 			if !errors.Is(err, domain.ErrBookingEngineDisabled) {

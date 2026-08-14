@@ -137,7 +137,12 @@ func quoteToProto(q *domain.Quote) *pmsv1.GetQuoteResponse {
 		return &pmsv1.GetQuoteResponse{}
 	}
 	return &pmsv1.GetQuoteResponse{
-		RoomId:        q.RoomID,
+		RoomId: func() string {
+			if len(q.RoomIDs) > 0 {
+				return q.RoomIDs[0]
+			}
+			return ""
+		}(),
 		RoomName:      q.RoomName,
 		RoomType:      q.RoomType,
 		Nights:        int32(q.Nights), //nolint:gosec
@@ -160,7 +165,12 @@ func bookingToProto(b *domain.PmsBooking) *pmsv1.PmsBooking {
 		GuestName:     b.GuestName,
 		Email:         b.Email,
 		Phone:         b.Phone,
-		RoomId:        b.RoomID,
+		RoomId: func() string {
+			if len(b.RoomIDs) > 0 {
+				return b.RoomIDs[0]
+			}
+			return b.RoomID
+		}(),
 		RoomName:      b.RoomName,
 		RoomType:      b.RoomType,
 		PropertyName:  b.PropertyName,

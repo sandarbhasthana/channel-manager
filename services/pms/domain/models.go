@@ -147,7 +147,7 @@ type AvailabilityOffer struct {
 
 // QuoteQuery parameters for get_quote.
 type QuoteQuery struct {
-	RoomID   string
+	RoomIDs  []string
 	Checkin  time.Time
 	Checkout time.Time
 	Adults   int
@@ -155,7 +155,7 @@ type QuoteQuery struct {
 
 // Quote is a price quote for a stay.
 type Quote struct {
-	RoomID        string
+	RoomIDs       []string
 	RoomName      string
 	RoomType      string
 	Nights        int
@@ -207,7 +207,7 @@ type UpdateBookingInput struct {
 	Adults       *int
 	Children     *int
 	Notes        string
-	RoomID       string
+	RoomIDs      []string
 }
 
 // CancelBookingInput parameters for cancel_booking.

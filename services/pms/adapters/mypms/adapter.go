@@ -3,6 +3,7 @@ package mypms
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/channel-manager/channel-manager/services/pms/domain"
@@ -177,17 +178,25 @@ func (a *Adapter) SearchAvailability(ctx context.Context, externalPropertyID str
 		if rtID == "" {
 			rtID = r.RoomType
 		}
+		roomIDs := r.NormalizedRoomIDs()
+		roomCount := r.NormalizedRoomCount()
 		// The PMS search endpoint returns only bookable rooms and omits a
 		// per-room is_available flag, so a room present in the response is
 		// available by definition. Default the unit count to one physical room.
-		avail := r.AvailableQty
+		avail := r.AvailableUnits
+		if avail <= 0 {
+			avail = r.AvailableQty
+		}
 		if avail <= 0 {
 			avail = 1
 		}
+		if roomCount < 1 {
+			roomCount = len(roomIDs)
+		}
 		out = append(out, domain.AvailabilityOffer{
-			RoomIDs:        append([]string(nil), r.RoomIDs...),
-			RoomCount:      r.RoomCount,
-			RoomNames:      append([]string(nil), r.RoomNames...),
+			RoomIDs:        roomIDs,
+			RoomCount:      roomCount,
+			RoomNames:      r.NormalizedRoomNames(),
 			RoomTypes:      append([]string(nil), r.RoomTypes...),
 			RoomTypeID:     rtID,
 			RoomTypeName:   firstNonEmpty(r.RoomTypeName, r.RoomType),
@@ -240,7 +249,7 @@ func (a *Adapter) GetInventory(ctx context.Context, externalPropertyID, roomType
 
 func (a *Adapter) GetQuote(ctx context.Context, externalPropertyID string, q domain.QuoteQuery) (*domain.Quote, error) {
 	resp, err := a.client.GetQuote(ctx, externalPropertyID, GetQuoteRequest{
-		RoomID:   q.RoomID,
+		RoomIDs:  append([]string(nil), q.RoomIDs...),
 		Checkin:  q.Checkin.Format("2006-01-02"),
 		Checkout: q.Checkout.Format("2006-01-02"),
 		Adults:   q.Adults,
@@ -323,7 +332,7 @@ func (a *Adapter) UpdateBooking(ctx context.Context, externalPropertyID string, 
 	req.Adults = in.Adults
 	req.Children = in.Children
 	req.Notes = in.Notes
-	req.RoomID = in.RoomID
+	req.RoomIDs = append([]string(nil), in.RoomIDs...)
 	resp, err := a.client.UpdateBooking(ctx, externalPropertyID, req)
 	if err != nil {
 		return nil, err
@@ -392,8 +401,12 @@ func quoteToDomain(q *Quote) *domain.Quote {
 	if q == nil {
 		return nil
 	}
+	ids := append([]string(nil), q.RoomIDs...)
+	if len(ids) == 0 && strings.TrimSpace(q.RoomID) != "" {
+		ids = []string{strings.TrimSpace(q.RoomID)}
+	}
 	return &domain.Quote{
-		RoomID:        q.RoomID,
+		RoomIDs:       ids,
 		RoomName:      q.RoomName,
 		RoomType:      q.RoomType,
 		Nights:        q.Nights,
@@ -410,13 +423,18 @@ func bookingToDomain(b *Booking) *domain.PmsBooking {
 	if b == nil {
 		return nil
 	}
+	ids := append([]string(nil), b.RoomIDs...)
+	if len(ids) == 0 && strings.TrimSpace(b.RoomID) != "" {
+		ids = []string{strings.TrimSpace(b.RoomID)}
+	}
 	return &domain.PmsBooking{
 		BookingID:     b.BookingID,
 		Status:        b.Status,
 		GuestName:     b.GuestName,
 		Email:         b.Email,
 		Phone:         b.Phone,
-		RoomID:        b.RoomID,
+		RoomIDs:       ids,
+		RoomID:        firstNonEmpty(ids...),
 		RoomName:      b.RoomName,
 		RoomType:      b.RoomType,
 		PropertyName:  b.PropertyName,

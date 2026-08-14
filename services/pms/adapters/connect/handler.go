@@ -229,7 +229,7 @@ func (h *Handler) GetQuote(
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("property_id and room_id are required"))
 	}
 	q, err := h.svc.GetQuote(ctx, r.GetPropertyId(), domain.QuoteQuery{
-		RoomID:   r.GetRoomId(),
+		RoomIDs:  []string{r.GetRoomId()},
 		Checkin:  calendarDateToTime(r.GetCheckin()),
 		Checkout: calendarDateToTime(r.GetCheckout()),
 		Adults:   int(r.GetAdults()),
@@ -296,7 +296,9 @@ func (h *Handler) UpdateBooking(
 		Email:     r.GetEmail(),
 		Phone:     r.GetPhone(),
 		Notes:     r.GetNotes(),
-		RoomID:    r.GetRoomId(),
+	}
+	if roomID := r.GetRoomId(); roomID != "" {
+		in.RoomIDs = []string{roomID}
 	}
 	if r.GetCheckin() != nil {
 		t := calendarDateToTime(r.GetCheckin())

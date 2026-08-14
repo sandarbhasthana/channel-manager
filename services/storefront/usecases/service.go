@@ -410,7 +410,12 @@ func (s *Service) heldRooms(ctx context.Context, propertyID string, checkin, che
 	held := make(map[string]bool, len(active))
 	for _, h := range active {
 		if h.Overlaps(checkin, checkout) {
-			held[h.RoomID] = true
+			for _, id := range strings.Split(h.RoomID, ",") {
+				id = strings.TrimSpace(id)
+				if id != "" {
+					held[id] = true
+				}
+			}
 		}
 	}
 	return held, nil
@@ -421,9 +426,9 @@ func (s *Service) getQuote(ctx context.Context, prop property, body map[string]a
 	if err := s.requireBookingEngine(ctx, prop.ID); err != nil {
 		return nil, err
 	}
-	roomID, _ := body["room_id"].(string)
-	if roomID == "" {
-		return nil, errors.New("room_id is required")
+	roomIDs, err := strictStringArray(body["room_ids"])
+	if err != nil {
+		return nil, err
 	}
 	checkin, checkout, err := parseDateRange(body)
 	if err != nil {
@@ -434,12 +439,14 @@ func (s *Service) getQuote(ctx context.Context, prop property, body map[string]a
 	if err != nil {
 		return nil, err
 	}
-	if held[roomID] {
-		return nil, errors.New("room is currently held by another guest")
+	for _, roomID := range roomIDs {
+		if held[roomID] {
+			return nil, errors.New("room is currently held by another guest")
+		}
 	}
 
 	quote, err := s.pms.GetQuote(ctx, prop.ID, pmsdomain.QuoteQuery{
-		RoomID:   roomID,
+		RoomIDs:  roomIDs,
 		Checkin:  checkin,
 		Checkout: checkout,
 		Adults:   intOr(body["adults"], 1),
@@ -448,8 +455,14 @@ func (s *Service) getQuote(ctx context.Context, prop property, body map[string]a
 		return nil, fmt.Errorf("storefront: get quote: %w", err)
 	}
 
+	quoteIDs := quote.RoomIDs
+	if len(quoteIDs) == 0 {
+		quoteIDs = roomIDs
+	}
+
 	out := map[string]any{
-		"room_id":         quote.RoomID,
+		"room_ids":        quoteIDs,
+		"room_count":      len(quoteIDs),
 		"room_name":       quote.RoomName,
 		"room_type":       quote.RoomType,
 		"nights":          quote.Nights,
@@ -466,7 +479,7 @@ func (s *Service) getQuote(ctx context.Context, prop property, body map[string]a
 	hold := domain.Hold{
 		Token:      uuid.NewString(),
 		PropertyID: prop.ID,
-		RoomID:     quote.RoomID,
+		RoomID:     strings.Join(quoteIDs, ","),
 		RoomTypeID: quote.RoomType,
 		Checkin:    checkin,
 		Checkout:   checkout,
@@ -477,7 +490,7 @@ func (s *Service) getQuote(ctx context.Context, prop property, body map[string]a
 	}
 	s.recordAudit(ctx, "storefront.hold.place", "hold", hold.Token, map[string]any{
 		"property_id": prop.ID,
-		"room_id":     hold.RoomID,
+		"room_ids":    quoteIDs,
 		"checkin":     checkin.Format("2006-01-02"),
 		"checkout":    checkout.Format("2006-01-02"),
 		"expires_at":  hold.ExpiresAt.UTC().Format(time.RFC3339),
@@ -732,7 +745,7 @@ func (s *Service) getBooking(ctx context.Context, prop property, body map[string
 		"guest_name":     b.GuestName,
 		"email":          b.Email,
 		"phone":          b.Phone,
-		"room_id":        b.RoomID,
+		"room_ids":       b.RoomIDs,
 		"room_name":      b.RoomName,
 		"room_type":      b.RoomType,
 		"property_name":  b.PropertyName,
@@ -762,7 +775,13 @@ func (s *Service) updateBooking(ctx context.Context, prop property, body map[str
 		Email:        stringOr(body["email"]),
 		Phone:        stringOr(body["phone"]),
 		Notes:        stringOr(body["notes"]),
-		RoomID:       stringOr(body["room_id"]),
+	}
+	if _, ok := body["room_ids"]; ok {
+		roomIDs, err := strictStringArray(body["room_ids"])
+		if err != nil {
+			return nil, err
+		}
+		input.RoomIDs = roomIDs
 	}
 	if checkin := stringOr(body["checkin"]); checkin != "" {
 		t, err := time.Parse("2006-01-02", checkin)
@@ -802,7 +821,7 @@ func (s *Service) updateBooking(ctx context.Context, prop property, body map[str
 		"guest_name":    b.GuestName,
 		"email":         b.Email,
 		"phone":         b.Phone,
-		"room_id":       b.RoomID,
+		"room_ids":      b.RoomIDs,
 		"room_name":     b.RoomName,
 		"room_type":     b.RoomType,
 		"property_name": b.PropertyName,

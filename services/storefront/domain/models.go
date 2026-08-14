@@ -22,6 +22,7 @@ var ErrBookingEngineDisabled = errors.New("storefront: booking engine is disable
 type Hold struct {
 	Token      string    `json:"token"`
 	PropertyID string    `json:"property_id"`
+	// RoomID stores comma-joined physical room ids for this hold. Public APIs emit room_ids.
 	RoomID     string    `json:"room_id"`
 	RoomTypeID string    `json:"room_type_id"`
 	Checkin    time.Time `json:"checkin"`

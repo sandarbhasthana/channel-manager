@@ -100,12 +100,12 @@ These are the **recommended endpoints** for a channel manager / external booking
 ```json
 {
   "action": "get_room_details",
-  "room_id": "string (optional)",
+  "room_ids": ["string (optional)"],
   "room_type_id": "string (optional)"
 }
 ```
 
-**Response:** If neither `room_id` nor `room_type_id` is provided, returns all room types for the property. Otherwise returns details for the specified room or room type including amenities, pricing, images, and occupancy limits.
+**Response:** If neither `room_ids` nor `room_type_id` is provided, returns all room types for the property. Otherwise returns details for the specified rooms or room type including amenities, pricing, images, and occupancy limits.
 
 ### 1.6 Get Quote
 
@@ -126,7 +126,7 @@ These are the **recommended endpoints** for a channel manager / external booking
 }
 ```
 
-**Response:** `{ room_id, room_name, room_type, checkin, checkout, nights, adults, capacity, price_per_night, total_price, currency, is_available }`
+**Response:** `{ room_ids, room_count, room_name, room_type, checkin, checkout, nights, adults, capacity, price_per_night, total_price, currency, is_available }`
 
 ### 1.7 Create Booking
 
@@ -141,7 +141,7 @@ These are the **recommended endpoints** for a channel manager / external booking
 ```json
 {
   "action": "create_booking",
-  "room_id": "string (required)",
+  "room_ids": ["string (required)"],
   "checkin": "YYYY-MM-DD",
   "checkout": "YYYY-MM-DD",
   "guest_name": "string (required)",
@@ -196,7 +196,7 @@ These are the **recommended endpoints** for a channel manager / external booking
 }
 ```
 
-**Response:** `{ booking_id, status, guest_name, email, phone, room_id, room_name, room_type, property_name, checkin, checkout, adults, children, notes, payment_status, source }`
+**Response:** `{ booking_id, status, guest_name, email, phone, room_ids, room_name, room_type, property_name, checkin, checkout, adults, children, notes, payment_status, source }`
 
 ### 1.9 Update Booking
 
@@ -219,7 +219,7 @@ These are the **recommended endpoints** for a channel manager / external booking
   "adults": "number (optional)",
   "children": "number (optional)",
   "notes": "string (optional)",
-  "room_id": "string (optional, to change room)"
+  "room_ids": ["string (optional, exactly one id to change room)"]
 }
 ```
 
