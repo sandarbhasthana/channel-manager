@@ -4,6 +4,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -65,6 +66,90 @@ func (s *Store) UpsertOrg(ctx context.Context, workosID, name string) (string, e
 		return "", fmt.Errorf("identity: upsert org %q: %w", workosID, err)
 	}
 	return id, nil
+}
+
+// EnsureOrgByExternalID resolves the local UUID for a bundled tenant, creating
+// the organization on first sight.
+//
+// Bundled tenants have no WorkOS identity, so nothing mirrors them in the way
+// UpsertOrg mirrors a standalone org at login. The PMS is their system of record,
+// and the first authenticated request it makes on their behalf is what brings the
+// row into existence. That ordering is deliberate: provisioning at signup would
+// fail whenever this service happened to be down, and would miss organizations
+// created by seeds and scripts that bypass the onboarding route entirely.
+//
+// Idempotent by ON CONFLICT rather than by check-then-insert, because concurrent
+// first requests are the normal case — a page that fans out four API calls will
+// race with itself on the very first load.
+//
+// The slug is derived from the name and disambiguated with a short suffix.
+// UpsertOrg's naive slugifier collides on the NOT NULL UNIQUE slug column for two
+// customers with the same hotel name, which is common enough to be a matter of
+// time rather than bad luck. It cannot be fixed there without changing WorkOS
+// behaviour, but it must not be inherited here.
+func (s *Store) EnsureOrgByExternalID(ctx context.Context, externalID, name string) (string, error) {
+	if externalID == "" {
+		return "", fmt.Errorf("identity: external org id is required")
+	}
+	if name == "" {
+		name = externalID
+	}
+
+	var id string
+	err := s.pool.QueryRow(ctx,
+		`SELECT id FROM tenancy.organizations WHERE external_id = $1`,
+		externalID,
+	).Scan(&id)
+	if err == nil {
+		return id, nil
+	}
+	if !errors.Is(err, pgx.ErrNoRows) {
+		return "", fmt.Errorf("identity: resolve org by external id %q: %w", externalID, err)
+	}
+
+	slug := slugify(name, externalID)
+	err = s.pool.QueryRow(ctx,
+		`INSERT INTO tenancy.organizations (external_id, name, slug)
+		 VALUES ($1, $2, $3)
+		 ON CONFLICT (external_id) WHERE external_id IS NOT NULL DO UPDATE
+		     SET name = EXCLUDED.name, updated_at = now()
+		 RETURNING id`,
+		externalID, name, slug,
+	).Scan(&id)
+	if err != nil {
+		return "", fmt.Errorf("identity: create org for external id %q: %w", externalID, err)
+	}
+	return id, nil
+}
+
+// slugify builds a URL-safe slug and appends a short suffix from the caller's
+// stable id, so two organizations with the same display name do not collide on
+// the slug UNIQUE constraint.
+func slugify(name, uniqueSuffixSource string) string {
+	var b strings.Builder
+	lastDash := false
+	for _, r := range strings.ToLower(name) {
+		switch {
+		case (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9'):
+			b.WriteRune(r)
+			lastDash = false
+		case !lastDash && b.Len() > 0:
+			b.WriteByte('-')
+			lastDash = true
+		}
+	}
+	base := strings.Trim(b.String(), "-")
+	if base == "" {
+		base = "org"
+	}
+	if len(base) > 40 {
+		base = strings.Trim(base[:40], "-")
+	}
+	suffix := uniqueSuffixSource
+	if len(suffix) > 8 {
+		suffix = suffix[len(suffix)-8:]
+	}
+	return base + "-" + strings.ToLower(suffix)
 }
 
 // UpsertUser creates or updates the local mirror of a WorkOS user. If

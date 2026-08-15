@@ -90,12 +90,60 @@ func (s *Service) PropertyHealth(ctx context.Context, propertyID string) (map[st
 	}, nil
 }
 
+// defaultPropertySetter is the slice of the property repository needed to elect a
+// default. Declared here, and obtained by type assertion, so the shared
+// PropertyRepository port does not have to grow a method that only provisioning
+// uses.
+type defaultPropertySetter interface {
+	SetDefault(ctx context.Context, id string) error
+	ListListings(ctx context.Context) ([]pmsdomain.PropertyListing, error)
+}
+
+// ensureDefaultProperty elects a default property for the org if none is set.
+//
+// Bundled tenants are created on first contact and have no dashboard to visit,
+// so nothing would ever elect one — and `PUT /admin/default-property`, the only
+// writer, sits behind a WorkOS session they do not have. The booking engine reads
+// this value, so without it a freshly provisioned tenant has properties it cannot
+// sell.
+//
+// Best-effort by design: a failure here must not fail the caller's actual
+// request. Distribution works without a default; only the booking engine cares.
+func (s *Service) ensureDefaultProperty(ctx context.Context) {
+	repo, ok := s.props.(defaultPropertySetter)
+	if !ok {
+		return
+	}
+	listings, err := repo.ListListings(ctx)
+	if err != nil || len(listings) == 0 {
+		return
+	}
+	for _, l := range listings {
+		if l.IsDefault {
+			return
+		}
+	}
+	// ListListings is already ordered and org-scoped by RLS, so the first entry is
+	// a stable choice — the same property every time this runs, rather than one
+	// that changes with row ordering.
+	if err := repo.SetDefault(ctx, listings[0].ID); err != nil {
+		s.log.Warn("could not elect a default property", "property_id", listings[0].ID, "err", err)
+		return
+	}
+	s.log.Info("elected default property for tenant", "property_id", listings[0].ID)
+}
+
 // Dispatch runs a property-scoped action from the POST body.
 func (s *Service) Dispatch(ctx context.Context, propertyID, action string, body map[string]any) (any, error) {
 	prop, err := s.loadProperty(ctx, propertyID)
 	if err != nil {
 		return nil, err
 	}
+	// Deliberately NOT calling ensureDefaultProperty here. Electing a default
+	// costs a tenant-scoped transaction and a property scan, and this runs on
+	// every property-scoped call — overwhelmingly often to discover that a default
+	// already exists. It belongs on the provisioning path (sync_catalog), which is
+	// the one call every tenant makes before it can do anything else.
 	// Use prop.ID (the internal UUID) for all subsequent calls instead of the incoming propertyID
 	switch action {
 	case domain.ActionListChannels:
@@ -141,6 +189,7 @@ func (s *Service) Dispatch(ctx context.Context, propertyID, action string, body 
 func (s *Service) OrgDispatch(ctx context.Context, action string, body map[string]any) (any, error) {
 	switch action {
 	case "sync_catalog":
+		defer s.ensureDefaultProperty(ctx)
 		conns, err := s.pms.ListConnections(ctx)
 		if err != nil {
 			return nil, err
@@ -153,9 +202,16 @@ func (s *Service) OrgDispatch(ctx context.Context, action string, body map[strin
 			}
 			token, _ := body["token"].(string)
 			if token == "" {
-				token = "auto-registered-dummy-token" // Fallback to prevent credential errors
+				// Previously this defaulted to "auto-registered-dummy-token" so
+				// registration would not error. It succeeded and then every
+				// callback into that PMS was rejected — a connection that looks
+				// healthy in every listing and works for nothing. Failing here
+				// costs one clear error instead.
+				return nil, errors.New("token is required when registering a PMS base_url")
 			}
-			s.log.Info("Auto-registering PMS", "base_url", baseURL, "token", token)
+			// Note the token is NOT logged: it is the credential this service will
+			// present when calling back into that PMS.
+			s.log.Info("Auto-registering PMS", "base_url", baseURL)
 			creds := map[string]string{
 				"base_url":     baseURL,
 				"bearer_token": token,

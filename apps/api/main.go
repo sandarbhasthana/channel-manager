@@ -216,11 +216,29 @@ func main() {
 	promoSvc := pricingusecases.NewPromoService(promoRepo, nil)
 	pricingHandler := pricingconnect.NewHandler(pricingSvc, promoSvc)
 
-	// ── PMS outbound integration (REST + API key auth) ─────────────────────────
-	envSecrets, err := platformintegration.LoadEnvSecretsFromJSON(cfg.Integration.SecretsJSON)
+	// ── PMS outbound integration (REST) ────────────────────────────────────────
+	//
+	// Three ways in, in the order the authenticator tries them: an Ed25519
+	// assertion from a bundled tenant's PMS, a `cm_live_…` key issued to a
+	// standalone customer, and — dev only, behind CM_ALLOW_DEV_INTEGRATION_SECRETS
+	// — the static env token map.
+	envSecrets, err := platformintegration.LoadEnvSecrets(cfg.Integration.SecretsJSON)
 	must(err, "load integration secrets")
 	intKeyStore := platformintegration.NewKeyStore(pool)
-	intAuth := platformintegration.NewAuthenticator(envSecrets, intKeyStore)
+	pmsVerifier, err := platformintegration.NewPmsVerifier(platformintegration.PmsVerifierConfig{
+		PublicKeysJSON: cfg.Integration.PmsPublicKeysJSON,
+		Issuer:         cfg.Integration.PmsIssuer,
+		Audience:       cfg.Integration.PmsAudience,
+		Leeway:         cfg.Integration.PmsClockSkew,
+	})
+	must(err, "load PMS assertion keys")
+	if pmsVerifier == nil {
+		slog.Warn("integration: CM_PMS_PUBLIC_KEYS not set — bundled PMS tenants cannot authenticate")
+	}
+	// `store` also backs the WorkOS login path; here it supplies
+	// EnsureOrgByExternalID, which materializes a bundled tenant on first request.
+	intAuth := platformintegration.NewAuthenticator(envSecrets, intKeyStore).
+		WithPmsAssertions(pmsVerifier, store)
 	intSvc := integrationusecases.NewService(pmsPropRepo, chanSvc, syncJobRepo, invSvc, resSvc, pmsSvc, pricingSvc)
 	intHandler := integrationhttp.NewHandler(intSvc)
 	adminKeysHandler := integrationhttp.NewAdminKeysHandler(intKeyStore)

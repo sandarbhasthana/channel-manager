@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"time"
 )
 
 // AppConfig is the top-level configuration for the application.
@@ -18,7 +19,22 @@ type AppConfig struct {
 // IntegrationConfig holds PMS ↔ Channel Manager machine auth settings.
 type IntegrationConfig struct {
 	// SecretsJSON is the raw CM_INTEGRATION_SECRETS env value (org_id → token map).
+	// Development only, and ignored unless CM_ALLOW_DEV_INTEGRATION_SECRETS=true.
 	SecretsJSON string
+	// PmsPublicKeysJSON maps key id → Ed25519 public key (PEM or base64), used to
+	// verify assertions from a bundled tenant's PMS. A map so a new key can be
+	// published here before the PMS starts signing with it, which is what makes
+	// rotation possible without restarting both services at the same instant.
+	PmsPublicKeysJSON string
+	// PmsIssuer and PmsAudience are the expected `iss` and `aud`. Empty disables
+	// the respective check.
+	PmsIssuer   string
+	PmsAudience string
+	// PmsClockSkew tolerates drift between the PMS and this service. Assertions
+	// live ~90s, so with no leeway a few seconds of drift between two containers
+	// rejects valid tokens intermittently — which looks like flaky 401s under
+	// load rather than like a misconfiguration.
+	PmsClockSkew time.Duration
 }
 
 // DBConfig holds PostgreSQL connection settings.
@@ -131,7 +147,11 @@ func Load() (*AppConfig, error) {
 			WorkOSWebhookSecret:  getEnv("WORKOS_WEBHOOK_SECRET", ""),
 		},
 		Integration: IntegrationConfig{
-			SecretsJSON: getEnv("CM_INTEGRATION_SECRETS", ""),
+			SecretsJSON:       getEnv("CM_INTEGRATION_SECRETS", ""),
+			PmsPublicKeysJSON: getEnv("CM_PMS_PUBLIC_KEYS", ""),
+			PmsIssuer:         getEnv("CM_PMS_JWT_ISSUER", "pms"),
+			PmsAudience:       getEnv("CM_PMS_JWT_AUDIENCE", "channel-manager"),
+			PmsClockSkew:      getEnvDuration("CM_PMS_JWT_CLOCK_SKEW", 30*time.Second),
 		},
 		Observability: ObservabilityConfig{
 			ServiceName:  getEnv("OTEL_SERVICE_NAME", "channel-manager"),
@@ -149,4 +169,20 @@ func getEnv(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+// getEnvDuration parses a Go duration string ("30s", "2m"). An unparseable value
+// falls back to the default rather than failing startup: this is a tolerance
+// knob, and refusing to boot over a typo in it would trade a small
+// misconfiguration for a total outage.
+func getEnvDuration(key string, defaultValue time.Duration) time.Duration {
+	raw := os.Getenv(key)
+	if raw == "" {
+		return defaultValue
+	}
+	parsed, err := time.ParseDuration(raw)
+	if err != nil || parsed < 0 {
+		return defaultValue
+	}
+	return parsed
 }
