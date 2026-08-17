@@ -266,9 +266,10 @@ func main() {
 
 	// ── Storefront ingress (guest-facing booking engines, REST + API key auth) ─
 	sfHolds := storefrontredis.NewHoldStore(redisClient)
+	sfOffers := storefrontredis.NewOfferStore(redisClient)
 	sfIdem := storefrontredis.NewIdempotencyStore(redisClient)
 	sfAudit := storefrontaudit.NewRecorder(auditSvc)
-	sfSvc := storefrontusecases.NewService(pmsPropRepo, pmsSvc, resSvc, promoSvc, sfHolds, sfIdem, sfAudit, 0)
+	sfSvc := storefrontusecases.NewService(pmsPropRepo, pmsSvc, resSvc, promoSvc, sfHolds, sfOffers, sfIdem, sfAudit, 0)
 	sfHandler := storefronthttp.NewHandler(sfSvc)
 
 	mux.Handle("GET /api/storefront/v1/health", intAuth.Middleware(http.HandlerFunc(sfHandler.Health)))

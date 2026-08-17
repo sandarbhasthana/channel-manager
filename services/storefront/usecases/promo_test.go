@@ -187,7 +187,7 @@ func TestPromoActions_NilGateway(t *testing.T) {
 	} {
 		t.Run(action, func(t *testing.T) {
 			h := newHarness()
-			h.svc = NewService(h.props, h.pms, h.res, nil, h.holds, h.idem, h.audit, 0)
+			h.svc = NewService(h.props, h.pms, h.res, nil, h.holds, h.offers, h.idem, h.audit, 0)
 
 			if _, err := dispatch(t, h, action, map[string]any{"code": "X"}); err == nil {
 				t.Error("expected an error when promos are not configured")

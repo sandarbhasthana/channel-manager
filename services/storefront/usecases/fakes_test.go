@@ -83,9 +83,10 @@ func (f *fakeProps) ListListings(_ context.Context) ([]pmsdomain.PropertyListing
 // ── PMS gateway ─────────────────────────────────────────────────────────────
 
 type fakePms struct {
-	offers   []pmsdomain.AvailabilityOffer
-	quote    *pmsdomain.Quote
-	flexible *pmsdomain.FlexibleAvailabilityResult
+	offers        []pmsdomain.AvailabilityOffer
+	quote         *pmsdomain.Quote
+	flexible      *pmsdomain.FlexibleAvailabilityResult
+	flexibleQuery pmsdomain.FlexibleAvailabilityQuery
 
 	createErr    error
 	createCalls  int
@@ -101,6 +102,7 @@ func (f *fakePms) SearchAvailability(_ context.Context, _ string, _ pmsdomain.Av
 }
 
 func (f *fakePms) SearchFlexibleAvailability(_ context.Context, _ string, q pmsdomain.FlexibleAvailabilityQuery) (*pmsdomain.FlexibleAvailabilityResult, error) {
+	f.flexibleQuery = q
 	if f.flexible != nil {
 		return f.flexible, nil
 	}
@@ -269,6 +271,23 @@ func (f *fakeHolds) seed(h domain.Hold) {
 	f.holds[h.Token] = h
 }
 
+type fakeOffers struct{ offers map[string]domain.Offer }
+
+func newFakeOffers() *fakeOffers { return &fakeOffers{offers: make(map[string]domain.Offer)} }
+
+func (f *fakeOffers) Put(_ context.Context, offer domain.Offer) error {
+	f.offers[offer.ID] = offer
+	return nil
+}
+
+func (f *fakeOffers) Get(_ context.Context, id string) (domain.Offer, error) {
+	offer, ok := f.offers[id]
+	if !ok || !offer.ExpiresAt.After(time.Now()) {
+		return domain.Offer{}, domain.ErrOfferNotFound
+	}
+	return offer, nil
+}
+
 // ── idempotency store ───────────────────────────────────────────────────────
 
 type fakeIdem struct {
@@ -356,6 +375,7 @@ type harness struct {
 	res    *fakeRes
 	promos *fakePromos
 	holds  *fakeHolds
+	offers *fakeOffers
 	idem   *fakeIdem
 	audit  *fakeAudit
 }
@@ -368,11 +388,12 @@ func newHarness() *harness {
 		promos: &fakePromos{
 			promo: pricingdomain.PromoCode{Code: "SUMMER25", DiscountPct: 25, IsActive: true},
 		},
-		holds: newFakeHolds(),
-		idem:  newFakeIdem(),
-		audit: &fakeAudit{},
+		holds:  newFakeHolds(),
+		offers: newFakeOffers(),
+		idem:   newFakeIdem(),
+		audit:  &fakeAudit{},
 	}
-	h.svc = NewService(h.props, h.pms, h.res, h.promos, h.holds, h.idem, h.audit, 10*time.Minute)
+	h.svc = NewService(h.props, h.pms, h.res, h.promos, h.holds, h.offers, h.idem, h.audit, 10*time.Minute)
 	return h
 }
 

@@ -81,7 +81,7 @@ func b7Server(t *testing.T, pool *platformdb.Pool) *httptest.Server {
 
 	// The promo actions touch only props + promos. Everything else stays nil so
 	// that a test failure cannot be an artefact of a stubbed collaborator.
-	sfSvc := storefrontusecases.NewService(propRepo, nil, nil, promoSvc, nil, nil, nil, 0)
+	sfSvc := storefrontusecases.NewService(propRepo, nil, nil, promoSvc, nil, nil, nil, nil, 0)
 	sfHandler := storefronthttp.NewHandler(sfSvc)
 
 	secrets, err := platformintegration.LoadEnvSecretsFromJSON(

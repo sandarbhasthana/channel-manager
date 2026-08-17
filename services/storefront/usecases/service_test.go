@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"testing"
@@ -366,6 +367,81 @@ func TestSearchFlexibleAvailability_DropsStayWhenAllRoomsHeld(t *testing.T) {
 	}
 }
 
+func TestUnifiedFlexibleSearchReturnsBoundConcreteOffers(t *testing.T) {
+	h := newHarness()
+	h.pms.flexible = &pmsdomain.FlexibleAvailabilityResult{
+		Nights: 3, Adults: 2, RequestedRooms: 1,
+		Stays: []pmsdomain.FlexibleStay{{
+			Checkin: "2026-09-09", Checkout: "2026-09-12", Nights: 3, CanAccommodate: true,
+			Offers: []pmsdomain.AvailabilityOffer{{RoomIDs: []string{"room-102"}, RoomCount: 1, IsAvailable: true, TotalPrice: 420, Currency: "USD"}},
+		}}, TotalMatching: 1, Returned: 1,
+	}
+	out, err := dispatch(t, h, domain.ActionSearchAvailability, map[string]any{
+		"stay": map[string]any{
+			"type": "flexible", "check_in_window": map[string]any{"from": "2026-09-07", "to": "2026-09-13"}, "nights": float64(3),
+		},
+		"guests": map[string]any{"adults": float64(2), "children": float64(0)}, "rooms": float64(1),
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if h.pms.flexibleQuery.LatestCheckout != "2026-09-16" {
+		t.Fatalf("legacy latest checkout = %q", h.pms.flexibleQuery.LatestCheckout)
+	}
+	meta := out["meta"].(map[string]any)
+	if meta["candidate_stays"] != 7 || meta["available_stays"] != 1 {
+		t.Fatalf("meta = %#v", meta)
+	}
+	stays := out["stay_options"].([]map[string]any)
+	if len(stays) != 1 || stays[0]["check_in"] != "2026-09-09" || stays[0]["check_out"] != "2026-09-12" {
+		t.Fatalf("stay_options = %#v", stays)
+	}
+	offers := stays[0]["offers"].([]map[string]any)
+	offerID, _ := offers[0]["offer_id"].(string)
+	if offerID == "" || offers[0]["expires_at"] == "" {
+		t.Fatalf("offer = %#v", offers[0])
+	}
+	stored, err := h.offers.Get(context.Background(), offerID)
+	if err != nil || stored.CheckIn != "2026-09-09" || stored.Adults != 2 || stored.TotalAmount != 420 {
+		t.Fatalf("stored offer = %#v, err = %v", stored, err)
+	}
+}
+
+func TestUnifiedExactSearchReturnsEmptyStayOptionsWhenUnavailable(t *testing.T) {
+	h := newHarness()
+	out, err := dispatch(t, h, domain.ActionSearchAvailability, map[string]any{
+		"stay":   map[string]any{"type": "exact", "check_in": "2026-09-09", "check_out": "2026-09-12"},
+		"guests": map[string]any{"adults": float64(2), "children": float64(0)}, "rooms": float64(1),
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if stays := out["stay_options"].([]map[string]any); len(stays) != 0 {
+		t.Fatalf("stay_options = %#v", stays)
+	}
+}
+
+func TestGetQuoteResolvesAndValidatesOfferID(t *testing.T) {
+	h := newHarness()
+	offer := domain.Offer{
+		ID: "off-1", PropertyID: testPropID, CheckIn: "2026-09-09", CheckOut: "2026-09-12", Nights: 3,
+		Adults: 2, Children: 0, RequestedRooms: 1, RoomIDs: []string{"room-102"}, TotalAmount: 420, Currency: "USD",
+		ExpiresAt: time.Now().Add(time.Minute),
+	}
+	_ = h.offers.Put(context.Background(), offer)
+	h.pms.quote = &pmsdomain.Quote{RoomIDs: []string{"room-102"}, Nights: 3, Adults: 2, TotalPrice: 420, Currency: "USD", IsAvailable: true}
+	out, err := dispatch(t, h, domain.ActionGetQuote, map[string]any{"offer_id": "off-1"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if out["total_price"] != float64(420) || out["hold_token"] == "" {
+		t.Fatalf("quote = %#v", out)
+	}
+	if _, err := dispatch(t, h, domain.ActionGetQuote, map[string]any{"offer_id": "off-1", "checkin": "2026-09-10"}); err == nil {
+		t.Fatal("expected conflicting dates to be rejected")
+	}
+}
+
 // A hold on non-overlapping dates must not suppress the room.
 func TestSearchAvailability_NonOverlappingHoldDoesNotExclude(t *testing.T) {
 	h := newHarness()
@@ -672,7 +748,7 @@ func assertNotAudited(t *testing.T, h *harness, action string) {
 // A nil audit recorder must not panic.
 func TestNilAuditRecorder_DoesNotPanic(t *testing.T) {
 	h := newHarness()
-	h.svc = NewService(h.props, h.pms, h.res, h.promos, h.holds, h.idem, nil, time.Minute)
+	h.svc = NewService(h.props, h.pms, h.res, h.promos, h.holds, h.offers, h.idem, nil, time.Minute)
 	if _, err := dispatch(t, h, domain.ActionCreateBooking, createBody(nil)); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

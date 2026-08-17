@@ -14,10 +14,11 @@ import (
 )
 
 const (
-	holdKeyPrefix = "storefront:hold:"
-	holdIndexKey  = "storefront:holds:"
-	idemKeyPrefix = "storefront:idempotency:"
-	idemKeyTTL    = 24 * time.Hour
+	holdKeyPrefix  = "storefront:hold:"
+	holdIndexKey   = "storefront:holds:"
+	idemKeyPrefix  = "storefront:idempotency:"
+	offerKeyPrefix = "storefront:offer:"
+	idemKeyTTL     = 24 * time.Hour
 )
 
 // HoldStore implements ports.HoldStore using Redis string keys with a TTL,
@@ -28,6 +29,44 @@ const (
 // keeps Place on the hot path down to two commands and avoids a sweeper.
 type HoldStore struct {
 	client *redis.Client
+}
+
+// OfferStore implements expiring offer references using Redis string keys.
+type OfferStore struct{ client *redis.Client }
+
+func NewOfferStore(client *redis.Client) *OfferStore { return &OfferStore{client: client} }
+
+func (s *OfferStore) Put(ctx context.Context, offer domain.Offer) error {
+	ttl := time.Until(offer.ExpiresAt)
+	if ttl <= 0 {
+		return fmt.Errorf("storefront: offer already expired")
+	}
+	raw, err := json.Marshal(offer)
+	if err != nil {
+		return fmt.Errorf("storefront: marshal offer: %w", err)
+	}
+	if err := s.client.Set(ctx, offerKeyPrefix+offer.ID, raw, ttl).Err(); err != nil {
+		return fmt.Errorf("storefront: store offer: %w", err)
+	}
+	return nil
+}
+
+func (s *OfferStore) Get(ctx context.Context, id string) (domain.Offer, error) {
+	raw, err := s.client.Get(ctx, offerKeyPrefix+id).Bytes()
+	if err == redis.Nil {
+		return domain.Offer{}, domain.ErrOfferNotFound
+	}
+	if err != nil {
+		return domain.Offer{}, fmt.Errorf("storefront: get offer: %w", err)
+	}
+	var offer domain.Offer
+	if err := json.Unmarshal(raw, &offer); err != nil {
+		return domain.Offer{}, fmt.Errorf("storefront: decode offer: %w", err)
+	}
+	if !offer.ExpiresAt.After(time.Now()) {
+		return domain.Offer{}, domain.ErrOfferNotFound
+	}
+	return offer, nil
 }
 
 // NewHoldStore creates a hold store backed by the given Redis client.

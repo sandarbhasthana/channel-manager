@@ -25,19 +25,22 @@ import (
 
 // DefaultHoldTTL is how long a soft hold survives without being committed.
 const DefaultHoldTTL = 10 * time.Minute
+const DefaultOfferTTL = 5 * time.Minute
 
 // Service orchestrates guest-facing booking actions against the PMS, canonical
 // reservations, and the soft-hold store.
 type Service struct {
-	props   ports.PropertyLookup
-	pms     ports.PmsGateway
-	res     ports.ReservationWriter
-	promos  ports.PromoGateway
-	holds   ports.HoldStore
-	idem    ports.IdempotencyStore
-	audit   ports.AuditRecorder
-	holdTTL time.Duration
-	log     *slog.Logger
+	props    ports.PropertyLookup
+	pms      ports.PmsGateway
+	res      ports.ReservationWriter
+	promos   ports.PromoGateway
+	holds    ports.HoldStore
+	offers   ports.OfferStore
+	idem     ports.IdempotencyStore
+	audit    ports.AuditRecorder
+	holdTTL  time.Duration
+	offerTTL time.Duration
+	log      *slog.Logger
 }
 
 // NewService creates a storefront service. A zero holdTTL selects DefaultHoldTTL.
@@ -48,6 +51,7 @@ func NewService(
 	res ports.ReservationWriter,
 	promos ports.PromoGateway,
 	holds ports.HoldStore,
+	offers ports.OfferStore,
 	idem ports.IdempotencyStore,
 	audit ports.AuditRecorder,
 	holdTTL time.Duration,
@@ -56,15 +60,17 @@ func NewService(
 		holdTTL = DefaultHoldTTL
 	}
 	return &Service{
-		props:   props,
-		pms:     pms,
-		res:     res,
-		promos:  promos,
-		holds:   holds,
-		idem:    idem,
-		audit:   audit,
-		holdTTL: holdTTL,
-		log:     slog.Default().With("service", "storefront"),
+		props:    props,
+		pms:      pms,
+		res:      res,
+		promos:   promos,
+		holds:    holds,
+		offers:   offers,
+		idem:     idem,
+		audit:    audit,
+		holdTTL:  holdTTL,
+		offerTTL: DefaultOfferTTL,
+		log:      slog.Default().With("service", "storefront"),
 	}
 }
 
@@ -138,7 +144,7 @@ func (s *Service) ListProperties(ctx context.Context) (map[string]any, error) {
 }
 
 type property struct {
-	ID, OrgID, Name, DefaultCurrency, ExternalID string
+	ID, OrgID, Name, DefaultCurrency, ExternalID, Timezone string
 }
 
 // loadProperty resolves either an internal property UUID or the PMS external id.
@@ -156,6 +162,7 @@ func (s *Service) loadProperty(ctx context.Context, propertyID string) (property
 		Name:            prop.Name,
 		DefaultCurrency: prop.DefaultCurrency,
 		ExternalID:      prop.ExternalID,
+		Timezone:        prop.Timezone,
 	}, nil
 }
 
@@ -167,6 +174,9 @@ func (s *Service) Dispatch(ctx context.Context, propertyID, action string, body 
 	}
 	switch action {
 	case domain.ActionSearchAvailability:
+		if _, unified := body["stay"]; unified {
+			return s.searchUnifiedAvailability(ctx, prop, body)
+		}
 		return s.searchAvailability(ctx, prop, body)
 	case domain.ActionSearchFlexibleAvailability:
 		return s.searchFlexibleAvailability(ctx, prop, body)
@@ -357,6 +367,210 @@ func (s *Service) requireBookingEngine(ctx context.Context, propertyID string) e
 		return domain.ErrBookingEngineDisabled
 	}
 	return nil
+}
+
+// searchUnifiedAvailability is the v1 migration boundary for the discriminated
+// stay contract. Provider adapters remain exact/flexible internally while every
+// caller receives concrete stay_options.
+func (s *Service) searchUnifiedAvailability(ctx context.Context, prop property, body map[string]any) (map[string]any, error) {
+	stay, ok := body["stay"].(map[string]any)
+	if !ok {
+		return nil, errors.New("stay must be an object")
+	}
+	guests, ok := body["guests"].(map[string]any)
+	if !ok {
+		return nil, errors.New("guests must be an object")
+	}
+	stayType := strings.ToLower(strings.TrimSpace(stringOr(stay["type"])))
+	adults := intOr(guests["adults"], 0)
+	children := intOr(guests["children"], 0)
+	rooms := intOr(body["rooms"], 0)
+	if adults < 1 {
+		return nil, errors.New("guests.adults must be at least 1")
+	}
+	if children < 0 {
+		return nil, errors.New("guests.children cannot be negative")
+	}
+	if rooms < 1 {
+		return nil, errors.New("rooms must be at least 1")
+	}
+	searchID := "srch_" + uuid.NewString()
+	candidateStays := 0
+	truncated := false
+	var rawStays []map[string]any
+
+	switch stayType {
+	case "exact":
+		_, hasWindow := stay["check_in_window"]
+		_, hasNights := stay["nights"]
+		if hasWindow || hasNights {
+			return nil, errors.New("exact stay must not contain check_in_window or nights")
+		}
+		checkin := strings.TrimSpace(stringOr(stay["check_in"]))
+		checkout := strings.TrimSpace(stringOr(stay["check_out"]))
+		result, err := s.searchAvailability(ctx, prop, map[string]any{
+			"checkin": checkin, "checkout": checkout, "adults": adults,
+			"children": children, "rooms": rooms, "room_type": stringOr(body["room_type"]),
+		})
+		if err != nil {
+			return nil, err
+		}
+		candidateStays = 1
+		offers, _ := result["available_rooms"].([]map[string]any)
+		if len(offers) > 0 {
+			rawStays = append(rawStays, map[string]any{
+				"check_in": checkin, "check_out": checkout,
+				"nights": calendarDays(checkin, checkout), "offers": offers,
+			})
+		}
+	case "flexible":
+		_, hasCheckIn := stay["check_in"]
+		_, hasCheckOut := stay["check_out"]
+		if hasCheckIn || hasCheckOut {
+			return nil, errors.New("flexible stay must not contain check_in or check_out")
+		}
+		window, ok := stay["check_in_window"].(map[string]any)
+		if !ok {
+			return nil, errors.New("stay.check_in_window must be an object")
+		}
+		from, err := time.Parse("2006-01-02", strings.TrimSpace(stringOr(window["from"])))
+		if err != nil {
+			return nil, errors.New("stay.check_in_window.from must use YYYY-MM-DD")
+		}
+		to, err := time.Parse("2006-01-02", strings.TrimSpace(stringOr(window["to"])))
+		if err != nil {
+			return nil, errors.New("stay.check_in_window.to must use YYYY-MM-DD")
+		}
+		if to.Before(from) {
+			return nil, errors.New("stay.check_in_window.to must be on or after from")
+		}
+		candidateStays = int(to.Sub(from).Hours()/24) + 1
+		if candidateStays > 31 {
+			return nil, errors.New("arrival window cannot exceed 31 candidate dates")
+		}
+		nights := intOr(stay["nights"], 0)
+		if nights < 1 || nights > 30 {
+			return nil, errors.New("stay.nights must be between 1 and 30")
+		}
+		// The legacy provider boundary expresses an inclusive checkout ceiling.
+		legacyLatestCheckout := to.AddDate(0, 0, nights).Format("2006-01-02")
+		limit := intOr(body["limit"], 0)
+		result, err := s.searchFlexibleAvailability(ctx, prop, map[string]any{
+			"nights": nights, "adults": adults, "children": children, "rooms": rooms,
+			"room_type": stringOr(body["room_type"]), "earliest_checkin": from.Format("2006-01-02"),
+			"latest_checkout": legacyLatestCheckout, "limit": limit,
+			"sort_by": stringOr(body["sort_by"]),
+		})
+		if err != nil {
+			return nil, err
+		}
+		rawStays, _ = result["stays"].([]map[string]any)
+		truncated = limit > 0 && len(rawStays) == limit && candidateStays > limit
+	default:
+		return nil, errors.New("stay.type must be exact or flexible")
+	}
+
+	stayOptions := make([]map[string]any, 0, len(rawStays))
+	for _, rawStay := range rawStays {
+		checkin := firstString(rawStay, "check_in", "checkin")
+		checkout := firstString(rawStay, "check_out", "checkout")
+		nights := intOr(rawStay["nights"], calendarDays(checkin, checkout))
+		stayID := "stay_" + uuid.NewString()
+		rawOffers, _ := rawStay["offers"].([]map[string]any)
+		if rawOffers == nil {
+			rawOffers, _ = rawStay["available_rooms"].([]map[string]any)
+		}
+		offers := make([]map[string]any, 0, len(rawOffers))
+		for _, rawOffer := range rawOffers {
+			currency := currencyOr(stringOr(rawOffer["currency"]), prop.DefaultCurrency)
+			total := floatOr(rawOffer["total_price"], 0)
+			expiresAt := time.Now().UTC().Add(s.offerTTL)
+			offer := domain.Offer{
+				ID: "off_" + uuid.NewString(), SearchID: searchID, StayID: stayID,
+				PropertyID: prop.ID, CheckIn: checkin, CheckOut: checkout, Nights: nights,
+				Adults: adults, Children: children, RequestedRooms: rooms,
+				RoomIDs: anyStringSlice(rawOffer["room_ids"]), TotalAmount: total,
+				Currency: currency, ExpiresAt: expiresAt,
+			}
+			if s.offers == nil {
+				return nil, errors.New("storefront: offer store is not configured")
+			}
+			if err := s.offers.Put(ctx, offer); err != nil {
+				return nil, err
+			}
+			out := cloneMap(rawOffer)
+			delete(out, "total_price")
+			delete(out, "currency")
+			out["offer_id"] = offer.ID
+			out["total"] = map[string]any{"amount": total, "currency": currency}
+			out["expires_at"] = expiresAt.Format(time.RFC3339)
+			offers = append(offers, out)
+		}
+		if len(offers) == 0 {
+			continue
+		}
+		stayOptions = append(stayOptions, map[string]any{
+			"stay_id": stayID, "check_in": checkin, "check_out": checkout,
+			"nights": nights, "offers": offers,
+		})
+	}
+	return map[string]any{
+		"search_id": searchID, "property_id": publicPropertyID(prop), "stay_options": stayOptions,
+		"meta": map[string]any{
+			"candidate_stays": candidateStays, "available_stays": len(stayOptions),
+			"returned_stays": len(stayOptions), "truncated": truncated,
+		},
+	}, nil
+}
+
+func publicPropertyID(prop property) string {
+	if prop.ExternalID != "" {
+		return prop.ExternalID
+	}
+	return prop.ID
+}
+
+func calendarDays(from, to string) int {
+	start, err1 := time.Parse("2006-01-02", from)
+	end, err2 := time.Parse("2006-01-02", to)
+	if err1 != nil || err2 != nil {
+		return 0
+	}
+	return int(end.Sub(start).Hours() / 24)
+}
+
+func firstString(values map[string]any, keys ...string) string {
+	for _, key := range keys {
+		if value := strings.TrimSpace(stringOr(values[key])); value != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func anyStringSlice(value any) []string {
+	switch values := value.(type) {
+	case []string:
+		return append([]string(nil), values...)
+	case []any:
+		out := make([]string, 0, len(values))
+		for _, value := range values {
+			if text, ok := value.(string); ok {
+				out = append(out, text)
+			}
+		}
+		return out
+	default:
+		return nil
+	}
+}
+
+func cloneMap(input map[string]any) map[string]any {
+	out := make(map[string]any, len(input)+3)
+	for key, value := range input {
+		out[key] = value
+	}
+	return out
 }
 
 func (s *Service) searchAvailability(ctx context.Context, prop property, body map[string]any) (map[string]any, error) {
@@ -603,6 +817,52 @@ func (s *Service) getQuote(ctx context.Context, prop property, body map[string]a
 	if err := s.requireBookingEngine(ctx, prop.ID); err != nil {
 		return nil, err
 	}
+	var selectedOffer *domain.Offer
+	if offerID := strings.TrimSpace(stringOr(body["offer_id"])); offerID != "" {
+		if s.offers == nil {
+			return nil, errors.New("storefront: offer store is not configured")
+		}
+		offer, err := s.offers.Get(ctx, offerID)
+		if err != nil {
+			return nil, err
+		}
+		if offer.PropertyID != prop.ID {
+			return nil, errors.New("offer_id does not belong to this property")
+		}
+		for field, expected := range map[string]string{
+			"checkin": offer.CheckIn, "checkout": offer.CheckOut,
+		} {
+			if supplied := strings.TrimSpace(stringOr(body[field])); supplied != "" && supplied != expected {
+				return nil, fmt.Errorf("%s conflicts with offer_id", field)
+			}
+			body[field] = expected
+		}
+		if supplied := intOr(body["adults"], 0); supplied != 0 && supplied != offer.Adults {
+			return nil, errors.New("adults conflicts with offer_id")
+		}
+		if supplied, exists := body["children"]; exists && intOr(supplied, -1) != offer.Children {
+			return nil, errors.New("children conflicts with offer_id")
+		}
+		if supplied, exists := body["rooms"]; exists && intOr(supplied, 0) != offer.RequestedRooms {
+			return nil, errors.New("rooms conflicts with offer_id")
+		}
+		body["adults"] = offer.Adults
+		roomValues := make([]any, len(offer.RoomIDs))
+		for index, roomID := range offer.RoomIDs {
+			roomValues[index] = roomID
+		}
+		if supplied, exists := body["room_ids"]; exists {
+			ids, err := strictStringArray(supplied)
+			if err != nil {
+				return nil, err
+			}
+			if strings.Join(ids, "\x00") != strings.Join(offer.RoomIDs, "\x00") {
+				return nil, errors.New("room_ids conflicts with offer_id")
+			}
+		}
+		body["room_ids"] = roomValues
+		selectedOffer = &offer
+	}
 	roomIDs, err := strictStringArray(body["room_ids"])
 	if err != nil {
 		return nil, err
@@ -631,6 +891,12 @@ func (s *Service) getQuote(ctx context.Context, prop property, body map[string]a
 	if err != nil {
 		return nil, fmt.Errorf("storefront: get quote: %w", err)
 	}
+	if selectedOffer != nil && quote.IsAvailable {
+		quotedCurrency := currencyOr(quote.Currency, prop.DefaultCurrency)
+		if quote.TotalPrice != selectedOffer.TotalAmount || quotedCurrency != selectedOffer.Currency {
+			return nil, errors.New("offer price changed; search again")
+		}
+	}
 
 	quoteIDs := quote.RoomIDs
 	if len(quoteIDs) == 0 {
@@ -648,6 +914,9 @@ func (s *Service) getQuote(ctx context.Context, prop property, body map[string]a
 		"total_price":     quote.TotalPrice,
 		"currency":        currencyOr(quote.Currency, prop.DefaultCurrency),
 		"is_available":    quote.IsAvailable,
+	}
+	if selectedOffer != nil {
+		out["offer_id"] = selectedOffer.ID
 	}
 	if !quote.IsAvailable {
 		return out, nil

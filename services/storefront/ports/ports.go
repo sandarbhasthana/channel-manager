@@ -81,6 +81,13 @@ type HoldStore interface {
 	ActiveForProperty(ctx context.Context, propertyID string) ([]domain.Hold, error)
 }
 
+// OfferStore persists short-lived search-result references. Offers are price
+// and criteria snapshots only; unlike holds, they do not consume inventory.
+type OfferStore interface {
+	Put(ctx context.Context, offer domain.Offer) error
+	Get(ctx context.Context, id string) (domain.Offer, error)
+}
+
 // IdempotencyRecord stores the original result of a create_booking mutation.
 type IdempotencyRecord struct {
 	RequestHash string          `json:"request_hash"`
