@@ -121,8 +121,14 @@ func (c *Client) GetQuote(ctx context.Context, propertyID string, req GetQuoteRe
 	}
 	// The PMS wraps successful action responses in {"data": {...}} (same as
 	// create_booking). Unwrap it; fall back to a flat body for forward-compat.
+	// The PMS emits room_ids (array) since the multi-room contract; room_id is
+	// the legacy singular. Accepting either keeps the unwrap working — testing
+	// only room_id made every modern quote fall through to the flat decode,
+	// which "succeeds" on the wrapped body with a zero-value Quote and reported
+	// every room as unavailable.
 	var wrapped GetQuoteResponse
-	if err := json.Unmarshal(raw, &wrapped); err == nil && wrapped.Data.RoomID != "" {
+	if err := json.Unmarshal(raw, &wrapped); err == nil &&
+		(len(wrapped.Data.RoomIDs) > 0 || wrapped.Data.RoomID != "" || wrapped.Data.UnavailableReason != "") {
 		return &wrapped.Data, nil
 	}
 	var direct Quote

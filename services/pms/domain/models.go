@@ -222,6 +222,7 @@ type QuoteQuery struct {
 	Checkin  time.Time
 	Checkout time.Time
 	Adults   int
+	Children int
 }
 
 // Quote is a price quote for a stay.
@@ -236,6 +237,14 @@ type Quote struct {
 	TotalPrice    float64
 	Currency      string
 	IsAvailable   bool
+	// Booking-engine payment policy of the quoted room type (FLEXIBLE,
+	// DEPOSIT_FIRST_NIGHT, PREPAID, PARTIAL) and its deposit inputs — the
+	// booking engine sizes the at-booking charge from these.
+	FirstNightPrice float64
+	RatePaymentType string
+	DepositPercent  float64
+	// Why the stay is not available, when IsAvailable is false. Guest-facing.
+	UnavailableReason string
 }
 
 // CreateBookingInput parameters for create_booking.

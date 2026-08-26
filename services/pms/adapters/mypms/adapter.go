@@ -330,6 +330,7 @@ func (a *Adapter) GetQuote(ctx context.Context, externalPropertyID string, q dom
 		Checkin:  q.Checkin.Format("2006-01-02"),
 		Checkout: q.Checkout.Format("2006-01-02"),
 		Adults:   q.Adults,
+		Children: q.Children,
 	})
 	if err != nil {
 		return nil, err
@@ -493,6 +494,11 @@ func quoteToDomain(q *Quote) *domain.Quote {
 		TotalPrice:    q.TotalPrice,
 		Currency:      q.Currency,
 		IsAvailable:   q.IsAvailable,
+
+		FirstNightPrice:   q.FirstNightPrice,
+		RatePaymentType:   q.RatePaymentType,
+		DepositPercent:    q.DepositPercent,
+		UnavailableReason: q.UnavailableReason,
 	}
 }
 

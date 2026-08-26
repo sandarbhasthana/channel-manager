@@ -392,6 +392,7 @@ type GetQuoteRequest struct {
 	Checkin  string   `json:"checkin"`
 	Checkout string   `json:"checkout"`
 	Adults   int      `json:"adults"`
+	Children int      `json:"children"`
 }
 
 // Quote is returned by get_quote.
@@ -410,6 +411,12 @@ type Quote struct {
 	TotalPrice    float64 `json:"total_price"`
 	Currency      string  `json:"currency"`
 	IsAvailable   bool    `json:"is_available"`
+	// Booking-engine payment policy for the quoted room type, plus the inputs
+	// the deposit flow needs. Passed through untouched.
+	FirstNightPrice   float64 `json:"first_night_price"`
+	RatePaymentType   string  `json:"rate_payment_type"`
+	DepositPercent    float64 `json:"deposit_percent"`
+	UnavailableReason string  `json:"unavailable_reason"`
 }
 
 // GetQuoteResponse wraps a quote (the PMS returns {"data": {...}}).

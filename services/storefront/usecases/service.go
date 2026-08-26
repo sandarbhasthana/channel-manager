@@ -794,12 +794,24 @@ func offerTouchesHeldRoom(held map[string]bool, roomIDs []string) bool {
 
 // heldRooms returns the set of room ids soft-held over the requested stay.
 func (s *Service) heldRooms(ctx context.Context, propertyID string, checkin, checkout time.Time) (map[string]bool, error) {
+	return s.heldRoomsExcluding(ctx, propertyID, checkin, checkout, "")
+}
+
+// heldRoomsExcluding is heldRooms minus one hold, identified by token. A
+// re-quote of a stay passes the hold token its previous quote returned, so the
+// guest's own soft hold does not read as "held by another guest" — without the
+// exclusion, applying a promo (or any repeat quote inside the hold TTL)
+// deadlocks the checkout on its own hold.
+func (s *Service) heldRoomsExcluding(ctx context.Context, propertyID string, checkin, checkout time.Time, excludeToken string) (map[string]bool, error) {
 	active, err := s.holds.ActiveForProperty(ctx, propertyID)
 	if err != nil {
 		return nil, fmt.Errorf("storefront: load holds: %w", err)
 	}
 	held := make(map[string]bool, len(active))
 	for _, h := range active {
+		if excludeToken != "" && h.Token == excludeToken {
+			continue
+		}
 		if h.Overlaps(checkin, checkout) {
 			for _, id := range strings.Split(h.RoomID, ",") {
 				id = strings.TrimSpace(id)
@@ -872,7 +884,10 @@ func (s *Service) getQuote(ctx context.Context, prop property, body map[string]a
 		return nil, err
 	}
 
-	held, err := s.heldRooms(ctx, prop.ID, checkin, checkout)
+	// The caller may echo the hold token from its previous quote of this stay;
+	// that hold is the guest's own and must not block their re-quote.
+	priorHoldToken := strings.TrimSpace(stringOr(body["hold_token"]))
+	held, err := s.heldRoomsExcluding(ctx, prop.ID, checkin, checkout, priorHoldToken)
 	if err != nil {
 		return nil, err
 	}
@@ -887,6 +902,7 @@ func (s *Service) getQuote(ctx context.Context, prop property, body map[string]a
 		Checkin:  checkin,
 		Checkout: checkout,
 		Adults:   intOr(body["adults"], 1),
+		Children: intOr(body["children"], 0),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("storefront: get quote: %w", err)
@@ -914,11 +930,19 @@ func (s *Service) getQuote(ctx context.Context, prop property, body map[string]a
 		"total_price":     quote.TotalPrice,
 		"currency":        currencyOr(quote.Currency, prop.DefaultCurrency),
 		"is_available":    quote.IsAvailable,
+		// The room type's payment policy rides through so the booking engine
+		// sizes the at-booking charge identically on both routes.
+		"first_night_price": quote.FirstNightPrice,
+		"rate_payment_type": quote.RatePaymentType,
+		"deposit_percent":   quote.DepositPercent,
 	}
 	if selectedOffer != nil {
 		out["offer_id"] = selectedOffer.ID
 	}
 	if !quote.IsAvailable {
+		if quote.UnavailableReason != "" {
+			out["unavailable_reason"] = quote.UnavailableReason
+		}
 		return out, nil
 	}
 

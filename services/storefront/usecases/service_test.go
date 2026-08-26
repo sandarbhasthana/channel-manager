@@ -595,6 +595,26 @@ func TestGetQuote_AlreadyHeld_Refused(t *testing.T) {
 	}
 }
 
+// Re-quoting the same stay with the hold token from the previous quote is not
+// blocked by that hold — the guest's own hold must never deadlock their
+// checkout (promo re-quotes, page revisits inside the hold TTL).
+func TestGetQuote_OwnHoldToken_NotRefused(t *testing.T) {
+	h := newHarness()
+	h.pms.quote = &pmsdomain.Quote{RoomIDs: []string{testRoomID}, IsAvailable: true, TotalPrice: 450, Currency: "USD"}
+	h.liveHold("tok-mine")
+
+	out, err := dispatch(t, h, domain.ActionGetQuote, map[string]any{
+		"room_ids": []any{testRoomID}, "checkin": "2026-08-01", "checkout": "2026-08-03",
+		"hold_token": "tok-mine",
+	})
+	if err != nil {
+		t.Fatalf("re-quote with own hold token should succeed: %v", err)
+	}
+	if token, _ := out["hold_token"].(string); token == "" {
+		t.Fatal("expected a fresh hold_token on the re-quote")
+	}
+}
+
 // ── cancel_booking ──────────────────────────────────────────────────────────
 
 // Cancelling mirrors into canonical reservations when a reservation id is given.
