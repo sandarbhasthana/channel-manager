@@ -33,3 +33,15 @@ apps/dashboard/.next/
 .gocache/
 .codex-tmp/
 .playwright-cli/
+
+# macOS file-sync conflict copies ("pmsjwt 2.go", "page 3.tsx").
+# In Go these are fatal rather than untidy: every .go file in a directory is
+# compiled, so a duplicate is a redeclaration error for every symbol in it.
+# Ignoring them keeps a sync race from being committed; it does not stop the
+# race, which is what moving this repo out of a synced folder would do.
+* [0-9].go
+* [0-9].sql
+* [0-9].ts
+* [0-9].tsx
+* [0-9].mod
+* [0-9].sum
