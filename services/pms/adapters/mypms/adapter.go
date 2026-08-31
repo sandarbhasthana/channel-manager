@@ -352,6 +352,18 @@ func (a *Adapter) CreateBooking(ctx context.Context, externalPropertyID string, 
 		TotalAmount:    in.TotalAmount,
 		Currency:       in.Currency,
 		IdempotencyKey: in.IdempotencyKey,
+
+		Status:        in.Status,
+		PaymentStatus: in.PaymentStatus,
+		PaidAmount:    in.PaidAmount,
+		Source:        in.Source,
+		ChannelID:     in.ChannelID,
+		RoomTypeID:    in.RoomTypeID,
+		RoomType:      in.RoomType,
+
+		StripeCustomerID:      in.StripeCustomerID,
+		StripePaymentMethodID: in.StripePaymentMethodID,
+		StripePaymentIntentID: in.StripePaymentIntentID,
 	})
 	if err != nil {
 		return nil, err

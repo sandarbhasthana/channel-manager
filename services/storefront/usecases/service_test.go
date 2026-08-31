@@ -581,17 +581,38 @@ func TestGetQuote_Unavailable_PlacesNoHold(t *testing.T) {
 	assertNotAudited(t, h, "storefront.hold.place")
 }
 
-// Quoting a room already held by someone else is refused.
+// Quoting a room held by someone else FOR A DIFFERENT overlapping stay is
+// refused — that hold cannot be the caller's own re-quote.
 func TestGetQuote_AlreadyHeld_Refused(t *testing.T) {
 	h := newHarness()
 	h.pms.quote = &pmsdomain.Quote{RoomIDs: []string{testRoomID}, IsAvailable: true}
-	h.liveHold("tok-other")
+	h.liveHold("tok-other") // holds testRoomID over 2026-08-01..03
 
 	_, err := dispatch(t, h, domain.ActionGetQuote, map[string]any{
-		"room_ids": []any{testRoomID}, "checkin": "2026-08-01", "checkout": "2026-08-03",
+		"room_ids": []any{testRoomID}, "checkin": "2026-08-02", "checkout": "2026-08-04",
 	})
 	if err == nil {
-		t.Fatal("expected refusal when the room is already held")
+		t.Fatal("expected refusal when the room is held for a different overlapping stay")
+	}
+}
+
+// A hold for EXACTLY the requested stay never blocks quoting it, even without
+// a hold token: holds carry no guest identity and create_booking does not
+// consume them, so an identical hold is a re-quote (or its orphan), not a
+// rival — the PMS availability check still arbitrates at booking time.
+func TestGetQuote_IdenticalStayHold_NotRefused(t *testing.T) {
+	h := newHarness()
+	h.pms.quote = &pmsdomain.Quote{RoomIDs: []string{testRoomID}, IsAvailable: true, TotalPrice: 450, Currency: "USD"}
+	h.liveHold("tok-orphan") // same room, same 2026-08-01..03 stay
+
+	out, err := dispatch(t, h, domain.ActionGetQuote, map[string]any{
+		"room_ids": []any{testRoomID}, "checkin": "2026-08-01", "checkout": "2026-08-03",
+	})
+	if err != nil {
+		t.Fatalf("identical-stay hold must not block a re-quote: %v", err)
+	}
+	if token, _ := out["hold_token"].(string); token == "" {
+		t.Fatal("expected a hold_token on the successful quote")
 	}
 }
 

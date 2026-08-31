@@ -887,13 +887,35 @@ func (s *Service) getQuote(ctx context.Context, prop property, body map[string]a
 	// The caller may echo the hold token from its previous quote of this stay;
 	// that hold is the guest's own and must not block their re-quote.
 	priorHoldToken := strings.TrimSpace(stringOr(body["hold_token"]))
-	held, err := s.heldRoomsExcluding(ctx, prop.ID, checkin, checkout, priorHoldToken)
+	requestedStay := strings.Join(roomIDs, ",")
+	activeHolds, err := s.holds.ActiveForProperty(ctx, prop.ID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("storefront: load holds: %w", err)
 	}
-	for _, roomID := range roomIDs {
-		if held[roomID] {
-			return nil, errors.New("room is currently held by another guest")
+	requestedRoomSet := make(map[string]bool, len(roomIDs))
+	for _, id := range roomIDs {
+		requestedRoomSet[id] = true
+	}
+	for _, h := range activeHolds {
+		if priorHoldToken != "" && h.Token == priorHoldToken {
+			continue
+		}
+		// A hold for EXACTLY this stay (same rooms, same dates) never blocks
+		// quoting it. Holds carry no guest identity and create_booking does not
+		// consume them, so an identical hold is overwhelmingly the same guest
+		// re-quoting (promo apply, split toggle, duplicate mount) — often with
+		// an orphan hold whose token the client never saw. A genuine rival for
+		// the stay is still caught by the PMS availability check at booking.
+		if h.RoomID == requestedStay && h.Checkin.Equal(checkin) && h.Checkout.Equal(checkout) {
+			continue
+		}
+		if !h.Overlaps(checkin, checkout) {
+			continue
+		}
+		for _, id := range strings.Split(h.RoomID, ",") {
+			if requestedRoomSet[strings.TrimSpace(id)] {
+				return nil, errors.New("room is currently held by another guest")
+			}
 		}
 	}
 
@@ -946,8 +968,15 @@ func (s *Service) getQuote(ctx context.Context, prop property, body map[string]a
 		return out, nil
 	}
 
+	// Reuse the caller's prior token so a guest's repeated quotes REFRESH one
+	// hold instead of accumulating a trail of orphans that would block their
+	// own later re-quotes once the token rotates.
+	holdToken := priorHoldToken
+	if holdToken == "" {
+		holdToken = uuid.NewString()
+	}
 	hold := domain.Hold{
-		Token:      uuid.NewString(),
+		Token:      holdToken,
 		PropertyID: prop.ID,
 		RoomID:     strings.Join(quoteIDs, ","),
 		RoomTypeID: quote.RoomType,
@@ -1046,6 +1075,23 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 		TotalAmount:    totalAmount,
 		Currency:       currencyOr(stringOr(body["currency"]), prop.DefaultCurrency),
 		IdempotencyKey: idemKey,
+
+		// Forwarded verbatim from the booking engine — an authenticated
+		// server-side caller — so a paid online booking arrives at the PMS as
+		// CONFIRMED/PAID instead of the PMS defaults (CONFIRMATION_PENDING /
+		// UNPAID / source PHONE), which is how paid bookings were showing up
+		// unconfirmed and unpaid in the PMS calendar on the cm route.
+		Status:        stringOr(body["status"]),
+		PaymentStatus: stringOr(body["payment_status"]),
+		PaidAmount:    floatOr(body["paid_amount"], 0),
+		Source:        stringOr(body["source"]),
+		ChannelID:     stringOr(body["channel_id"]),
+		RoomTypeID:    stringOr(body["room_type_id"]),
+		RoomType:      stringOr(body["room_type"]),
+
+		StripeCustomerID:      stringOr(body["stripe_customer_id"]),
+		StripePaymentMethodID: stringOr(body["stripe_payment_method_id"]),
+		StripePaymentIntentID: stringOr(body["stripe_payment_intent_id"]),
 	})
 	if err != nil {
 		s.recordAudit(ctx, "storefront.booking.rejected", "property", prop.ID, map[string]any{

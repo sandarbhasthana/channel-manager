@@ -439,6 +439,22 @@ type CreateBookingRequest struct {
 	TotalAmount    float64  `json:"total_amount"`
 	Currency       string   `json:"currency"`
 	IdempotencyKey string   `json:"idempotency_key,omitempty"`
+
+	// Payment state and attribution recorded by the booking engine at checkout;
+	// omitted fields let the PMS apply its defaults (CONFIRMATION_PENDING /
+	// UNPAID / source PHONE).
+	Status        string  `json:"status,omitempty"`
+	PaymentStatus string  `json:"payment_status,omitempty"`
+	PaidAmount    float64 `json:"paid_amount,omitempty"`
+	Source        string  `json:"source,omitempty"`
+	ChannelID     string  `json:"channel_id,omitempty"`
+	RoomTypeID    string  `json:"room_type_id,omitempty"`
+	RoomType      string  `json:"room_type,omitempty"`
+
+	// Saved card on the property's connected Stripe account (pass-through).
+	StripeCustomerID      string `json:"stripe_customer_id,omitempty"`
+	StripePaymentMethodID string `json:"stripe_payment_method_id,omitempty"`
+	StripePaymentIntentID string `json:"stripe_payment_intent_id,omitempty"`
 }
 
 // BookingGroup is the atomic result returned by create_booking.

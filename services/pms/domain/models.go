@@ -261,6 +261,32 @@ type CreateBookingInput struct {
 	TotalAmount    float64
 	Currency       string
 	IdempotencyKey string
+
+	// Payment state as the booking engine recorded it at checkout. The
+	// storefront is an authenticated server-side caller (org integration key),
+	// so these are trusted and forwarded to the PMS verbatim; when empty the
+	// PMS applies its own defaults (CONFIRMATION_PENDING / UNPAID). Without
+	// them a paid online booking lands in the PMS calendar as unconfirmed and
+	// unpaid.
+	Status        string
+	PaymentStatus string
+	PaidAmount    float64
+
+	// Attribution: where the booking came from (e.g. WEBSITE) and the channel
+	// label the PMS shows (e.g. Booking_Engine). Absent, the PMS defaults the
+	// source to PHONE.
+	Source    string
+	ChannelID string
+
+	// Room type for preference (unassigned) bookings that carry no room ids.
+	RoomTypeID string
+	RoomType   string
+
+	// Saved card on the property's Stripe connected account, so the hotel can
+	// charge the guest off-session later. Pass-through only.
+	StripeCustomerID      string
+	StripePaymentMethodID string
+	StripePaymentIntentID string
 }
 
 // GetBookingInput parameters for get_booking.
