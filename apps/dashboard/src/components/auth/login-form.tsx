@@ -29,8 +29,9 @@ export default function LoginForm() {
           setError((body as { error?: string }).error ?? "Login failed. Please try again.");
           return;
         }
-        // Cookies are set by the API — navigate to the dashboard root.
-        window.location.href = "/";
+        // Cookies are set by the API — go straight to the dashboard (the
+        // root page routes by session, but being explicit avoids the hop).
+        window.location.href = "/dashboard";
       } catch {
         setError("Network error. Please check your connection and try again.");
       } finally {
