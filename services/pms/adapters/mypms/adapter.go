@@ -341,6 +341,7 @@ func (a *Adapter) GetQuote(ctx context.Context, externalPropertyID string, q dom
 func (a *Adapter) CreateBooking(ctx context.Context, externalPropertyID string, in domain.CreateBookingInput) (*domain.PmsBooking, error) {
 	resp, err := a.client.CreateBooking(ctx, externalPropertyID, CreateBookingRequest{
 		RoomIDs:        append([]string(nil), in.RoomIDs...),
+		Rooms:          in.Rooms,
 		Checkin:        in.Checkin.Format("2006-01-02"),
 		Checkout:       in.Checkout.Format("2006-01-02"),
 		GuestName:      in.GuestName,
@@ -368,12 +369,16 @@ func (a *Adapter) CreateBooking(ctx context.Context, externalPropertyID string, 
 	if err != nil {
 		return nil, err
 	}
-	if len(resp.BookingIDs) != 1 || len(resp.RoomIDs) == 0 {
+	// One confirmation number, and at least one reservation ref. Room ids are
+	// optional: a by-type booking is created unassigned.
+	if len(resp.BookingIDs) != 1 || (len(resp.ReservationIDs) == 0 && len(resp.RoomIDs) == 0) {
 		return nil, fmt.Errorf("mypms: create booking must return one confirmation number")
 	}
 	return &domain.PmsBooking{
-		BookingIDs:    append([]string(nil), resp.BookingIDs...),
-		RoomIDs:       append([]string(nil), resp.RoomIDs...),
+		BookingIDs:     append([]string(nil), resp.BookingIDs...),
+		ReservationIDs: append([]string(nil), resp.ReservationIDs...),
+		GroupID:        resp.GroupID,
+		RoomIDs:        append([]string(nil), resp.RoomIDs...),
 		RoomNames:     append([]string(nil), resp.RoomNames...),
 		RoomTypes:     append([]string(nil), resp.RoomTypes...),
 		GroupStatus:   resp.GroupStatus,

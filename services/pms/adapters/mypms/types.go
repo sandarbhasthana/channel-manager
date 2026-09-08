@@ -426,9 +426,11 @@ type GetQuoteResponse struct {
 
 // CreateBookingRequest is the body for action create_booking.
 type CreateBookingRequest struct {
-	Action         string   `json:"action"`
-	RoomIDs        []string `json:"room_ids"`
-	Checkin        string   `json:"checkin"`
+	Action  string   `json:"action"`
+	RoomIDs []string `json:"room_ids"`
+	// Rooms of RoomTypeID to book when RoomIDs is empty (by-type, unassigned).
+	Rooms          int    `json:"rooms,omitempty"`
+	Checkin        string `json:"checkin"`
 	Checkout       string   `json:"checkout"`
 	GuestName      string   `json:"guest_name"`
 	Email          string   `json:"email,omitempty"`
@@ -459,8 +461,12 @@ type CreateBookingRequest struct {
 
 // BookingGroup is the atomic result returned by create_booking.
 type BookingGroup struct {
-	BookingIDs    []string `json:"booking_ids"`
-	RoomIDs       []string `json:"room_ids"`
+	BookingIDs []string `json:"booking_ids"`
+	// Per-reservation public refs, one per room in the stay. Always present;
+	// RoomIDs may be empty for a by-type (unassigned) booking.
+	ReservationIDs []string `json:"reservation_ids"`
+	GroupID        string   `json:"group_id"`
+	RoomIDs        []string `json:"room_ids"`
 	GroupStatus   string   `json:"group_status"`
 	GuestName     string   `json:"guest_name"`
 	RoomNames     []string `json:"room_names"`

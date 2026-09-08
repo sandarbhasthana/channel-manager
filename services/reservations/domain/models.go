@@ -20,5 +20,14 @@ type Reservation struct {
 	TotalAmount           float64         `json:"total_amount"`
 	Currency              string          `json:"currency"`
 	ChannelConfirmationID string          `json:"channel_confirmation_id"`
-	RawPayload            json.RawMessage `json:"raw_payload,omitempty"`
+	// Party size as the channel reported it. Zero means "not reported"; the
+	// webhook publisher then omits it rather than inventing a number.
+	Adults   int `json:"adults,omitempty"`
+	Children int `json:"children,omitempty"`
+	// The channel's own room-type id, kept alongside RoomTypeID so the PMS can
+	// re-map when RoomTypeID is already an internal id (direct bookings) or an
+	// external one (OTA pulls).
+	ChannelRoomTypeID string          `json:"channel_room_type_id,omitempty"`
+	RatePlanID        string          `json:"rate_plan_id,omitempty"`
+	RawPayload        json.RawMessage `json:"raw_payload,omitempty"`
 }

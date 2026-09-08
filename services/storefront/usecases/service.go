@@ -1049,9 +1049,26 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 	if totalAmount <= 0 {
 		return nil, errors.New("total_amount is required and must be greater than zero")
 	}
-	roomIDs, err := strictStringArray(body["room_ids"])
+	// By-type booking (the booking engine's default): room_ids empty, a room
+	// type, and how many of it. Physical ids remain accepted for callers that
+	// explicitly held rooms (group staging).
+	roomIDs, err := optionalStringArray(body["room_ids"])
 	if err != nil {
 		return nil, err
+	}
+	roomTypeID := stringOr(body["room_type_id"])
+	roomTypeName := stringOr(body["room_type"])
+	roomCount := intOr(body["rooms"], 0)
+	if len(roomIDs) == 0 {
+		if roomTypeID == "" && roomTypeName == "" {
+			return nil, errors.New("room_ids or room_type_id is required")
+		}
+		if roomCount < 1 {
+			roomCount = 1
+		}
+		if roomCount > 20 {
+			return nil, errors.New("rooms must be between 1 and 20")
+		}
 	}
 
 	guestName, _ := body["guest_name"].(string)
@@ -1064,6 +1081,7 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 
 	pmsBooking, err := s.pms.CreateBooking(ctx, prop.ID, pmsdomain.CreateBookingInput{
 		RoomIDs:        roomIDs,
+		Rooms:          roomCount,
 		Checkin:        checkin,
 		Checkout:       checkout,
 		GuestName:      guestName,
@@ -1086,8 +1104,8 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 		PaidAmount:    floatOr(body["paid_amount"], 0),
 		Source:        stringOr(body["source"]),
 		ChannelID:     stringOr(body["channel_id"]),
-		RoomTypeID:    stringOr(body["room_type_id"]),
-		RoomType:      stringOr(body["room_type"]),
+		RoomTypeID:    roomTypeID,
+		RoomType:      roomTypeName,
 
 		StripeCustomerID:      stringOr(body["stripe_customer_id"]),
 		StripePaymentMethodID: stringOr(body["stripe_payment_method_id"]),
@@ -1095,25 +1113,35 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 	})
 	if err != nil {
 		s.recordAudit(ctx, "storefront.booking.rejected", "property", prop.ID, map[string]any{
-			"room_ids": roomIDs,
-			"checkin":  checkin.Format("2006-01-02"),
-			"checkout": checkout.Format("2006-01-02"),
-			"reason":   err.Error(),
+			"room_ids":     roomIDs,
+			"room_type_id": roomTypeID,
+			"rooms":        roomCount,
+			"checkin":      checkin.Format("2006-01-02"),
+			"checkout":     checkout.Format("2006-01-02"),
+			"reason":       err.Error(),
 		})
 		return nil, fmt.Errorf("storefront: create booking: %w", err)
 	}
 
-	if len(pmsBooking.BookingIDs) != 1 || len(pmsBooking.RoomIDs) == 0 {
+	// One canonical reservation per PMS reservation. The PMS echoes a public
+	// ref per room (reservation_ids); room_ids is empty for an unassigned stay.
+	stayCount := len(pmsBooking.ReservationIDs)
+	if stayCount == 0 {
+		stayCount = len(pmsBooking.RoomIDs)
+	}
+	if len(pmsBooking.BookingIDs) != 1 || stayCount == 0 {
 		return nil, fmt.Errorf("storefront: create booking must return one confirmation number")
 	}
 
-	reservationIDs := make([]string, 0, len(pmsBooking.RoomIDs))
+	reservationIDs := make([]string, 0, stayCount)
 	reconciliationPending := false
 	confirmationID := pmsBooking.BookingIDs[0]
-	for index, roomID := range pmsBooking.RoomIDs {
+	for index := 0; index < stayCount; index++ {
 		individual := *pmsBooking
 		individual.BookingID = confirmationID
-		individual.RoomID = roomID
+		if index < len(pmsBooking.RoomIDs) {
+			individual.RoomID = pmsBooking.RoomIDs[index]
+		}
 		if index < len(pmsBooking.RoomNames) {
 			individual.RoomName = pmsBooking.RoomNames[index]
 		}
@@ -1121,7 +1149,7 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 			individual.RoomType = pmsBooking.RoomTypes[index]
 		}
 		reservationKey := idemKey
-		if len(pmsBooking.RoomIDs) > 1 && reservationKey != "" {
+		if stayCount > 1 && reservationKey != "" {
 			reservationKey = fmt.Sprintf("%s:%d", reservationKey, index)
 		}
 		reservationID, pending := s.persistReservation(ctx, prop, &individual, domain.Hold{}, body, checkin, checkout, reservationKey)
@@ -1142,10 +1170,14 @@ func (s *Service) createBooking(ctx context.Context, prop property, body map[str
 	})
 
 	out := map[string]any{
-		"booking_id":      pmsBooking.BookingIDs[0],
-		"booking_ids":     pmsBooking.BookingIDs,
-		"room_ids":        pmsBooking.RoomIDs,
-		"reservation_ids": reservationIDs,
+		"booking_id":  pmsBooking.BookingIDs[0],
+		"booking_ids": pmsBooking.BookingIDs,
+		"room_ids":    pmsBooking.RoomIDs,
+		// The PMS's per-room public refs — what Manage Booking addresses. CM's
+		// own canonical ids travel separately so neither side confuses them.
+		"reservation_ids":    pmsBooking.ReservationIDs,
+		"cm_reservation_ids": reservationIDs,
+		"group_id":           pmsBooking.GroupID,
 		"group_status":    pmsBooking.GroupStatus,
 		"room_names":      pmsBooking.RoomNames,
 		"room_types":      pmsBooking.RoomTypes,
@@ -1515,6 +1547,18 @@ func parseDateRange(body map[string]any) (time.Time, time.Time, error) {
 }
 
 var strictRoomIDPattern = regexp.MustCompile(`^[A-Za-z0-9._~-]{1,128}$`)
+
+// optionalStringArray is strictStringArray that accepts an absent or empty
+// list (a by-type booking), while still rejecting malformed ids.
+func optionalStringArray(value any) ([]string, error) {
+	if value == nil {
+		return nil, nil
+	}
+	if values, ok := value.([]any); ok && len(values) == 0 {
+		return nil, nil
+	}
+	return strictStringArray(value)
+}
 
 func strictStringArray(value any) ([]string, error) {
 	values, ok := value.([]any)

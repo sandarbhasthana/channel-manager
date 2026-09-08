@@ -196,7 +196,11 @@ func main() {
 	if webhookUrl == "" {
 		webhookUrl = "http://localhost:4001/api/webhooks/channel-manager"
 	}
-	resPublisher := resevents.NewWebhookPublisher(webhookUrl)
+	// Signed with the same secret the PMS checks (CHANNEL_MANAGER_WEBHOOK_SECRET
+	// on the PMS side). Unsigned when unset, which the PMS only tolerates
+	// outside production.
+	resPublisher := resevents.NewWebhookPublisher(webhookUrl).
+		WithSecret(os.Getenv("PMS_WEBHOOK_SIGNING_SECRET"))
 	resSvc := resusecases.NewReservationService(resRepo, resPublisher)
 
 	// ── Pricing service ────────────────────────────────────────────────────────

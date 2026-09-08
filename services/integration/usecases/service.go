@@ -642,7 +642,16 @@ func (s *Service) fetchChannelReservations(ctx context.Context, propertyID strin
 				PropertyID:            propertyID,
 				ExternalPropertyID:    externalPropertyID,
 				ChannelID:             ch.ConnectionID,
-				RoomTypeID:            f.RoomTypeExternalID, // Maps to cmRoomTypeId in PMS
+				// The OTA's room-type id. The PMS maps it to its own type via
+				// ChannelManagerRoomTypeMapping (the CM mapping service has no
+				// persistence yet, so mapping stays PMS-side); ChannelRoomTypeID
+				// carries the same value explicitly so a future CM-side mapping
+				// can replace RoomTypeID without losing the original.
+				RoomTypeID:            f.RoomTypeExternalID,
+				ChannelRoomTypeID:     f.RoomTypeExternalID,
+				RatePlanID:            f.RatePlanExternalID,
+				Adults:                f.Adults,
+				Children:              f.Children,
 				GuestName:             f.GuestName,
 				CheckIn:               f.CheckIn,
 				CheckOut:              f.CheckOut,

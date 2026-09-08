@@ -55,6 +55,24 @@ message Reservation {
 
   google.protobuf.Timestamp created_at = 16;
   google.protobuf.Timestamp updated_at = 17;
+
+  // Physical-room allocation, as reported by the PMS. Channel Manager never
+  // assigns rooms and carries no room id: a reservation is room-type-level
+  // here, and the PMS's allocation queue / auto-assign owns the room number.
+  // Read-only; populated only when the PMS mirrors it back.
+  AssignmentStatus assignment_status = 18;
+  // Party split, when the channel reported it (num_guests remains the total).
+  int32 adults = 19;
+  int32 children = 20;
+}
+
+// Mirrors the PMS's AssignmentStatus. UNSPECIFIED when the PMS has not
+// reported one (e.g. the stay was recorded before the PMS acknowledged it).
+enum AssignmentStatus {
+  ASSIGNMENT_STATUS_UNSPECIFIED = 0;
+  ASSIGNMENT_STATUS_UNASSIGNED = 1;
+  ASSIGNMENT_STATUS_ASSIGNED = 2;
+  ASSIGNMENT_STATUS_LOCKED = 3;
 }
 
 service ReservationService {

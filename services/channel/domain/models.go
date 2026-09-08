@@ -38,11 +38,14 @@ type FetchedReservation struct {
 	ChannelConfirmationID string    `json:"channel_confirmation_id"`
 	GuestName             string    `json:"guest_name"`
 	RoomTypeExternalID    string    `json:"room_type_external_id"`
+	RatePlanExternalID    string    `json:"rate_plan_external_id,omitempty"`
 	CheckIn               time.Time `json:"check_in"`
 	CheckOut              time.Time `json:"check_out"`
 	Status                string    `json:"status"`
 	TotalAmount           float64   `json:"total_amount"`
 	Currency              string    `json:"currency"`
+	Adults                int       `json:"adults,omitempty"`
+	Children              int       `json:"children,omitempty"`
 }
 
 // Connection represents an org-level credential/account for an OTA provider.

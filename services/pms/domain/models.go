@@ -249,7 +249,10 @@ type Quote struct {
 
 // CreateBookingInput parameters for create_booking.
 type CreateBookingInput struct {
+	// Physical rooms — only when the caller has explicitly held them (group
+	// staging). The booking engine books by type: RoomIDs empty, Rooms ≥ 1.
 	RoomIDs        []string
+	Rooms          int
 	Checkin        time.Time
 	Checkout       time.Time
 	GuestName      string
@@ -339,8 +342,10 @@ type ListBookingsResult struct {
 
 // PmsBooking is a reservation as returned by the PMS booking engine.
 type PmsBooking struct {
-	BookingIDs    []string
-	RoomIDs       []string
+	BookingIDs     []string
+	ReservationIDs []string
+	GroupID        string
+	RoomIDs        []string
 	RoomNames     []string
 	RoomTypes     []string
 	GroupStatus   string
