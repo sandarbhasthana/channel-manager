@@ -303,17 +303,18 @@ type GetBookingInput struct {
 
 // UpdateBookingInput parameters for update_booking.
 type UpdateBookingInput struct {
-	BookingID    string
-	GuestSurname string
-	Checkin      *time.Time
-	Checkout     *time.Time
-	GuestName    string
-	Email        string
-	Phone        string
-	Adults       *int
-	Children     *int
-	Notes        string
-	RoomIDs      []string
+	BookingID      string
+	GuestSurname   string
+	Checkin        *time.Time
+	Checkout       *time.Time
+	GuestName      string
+	Email          string
+	Phone          string
+	Adults         *int
+	Children       *int
+	Notes          string
+	RoomIDs        []string
+	IdempotencyKey string
 }
 
 // CancelBookingInput parameters for cancel_booking.

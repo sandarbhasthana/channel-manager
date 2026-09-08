@@ -423,6 +423,7 @@ func (a *Adapter) UpdateBooking(ctx context.Context, externalPropertyID string, 
 	req.Children = in.Children
 	req.Notes = in.Notes
 	req.RoomIDs = append([]string(nil), in.RoomIDs...)
+	req.IdempotencyKey = in.IdempotencyKey
 	resp, err := a.client.UpdateBooking(ctx, externalPropertyID, req)
 	if err != nil {
 		return nil, err
@@ -522,8 +523,17 @@ func bookingToDomain(b *Booking) *domain.PmsBooking {
 	if len(ids) == 0 && strings.TrimSpace(b.RoomID) != "" {
 		ids = []string{strings.TrimSpace(b.RoomID)}
 	}
+	confirmationIDs := append([]string(nil), b.BookingIDs...)
+	confirmationID := strings.TrimSpace(b.BookingID)
+	if len(confirmationIDs) == 0 && confirmationID != "" {
+		confirmationIDs = []string{confirmationID}
+	}
+	if confirmationID == "" && len(confirmationIDs) == 1 {
+		confirmationID = confirmationIDs[0]
+	}
 	return &domain.PmsBooking{
-		BookingID:     b.BookingID,
+		BookingIDs:    confirmationIDs,
+		BookingID:     confirmationID,
 		Status:        b.Status,
 		GuestName:     b.GuestName,
 		Email:         b.Email,
@@ -531,7 +541,9 @@ func bookingToDomain(b *Booking) *domain.PmsBooking {
 		RoomIDs:       ids,
 		RoomID:        firstNonEmpty(ids...),
 		RoomName:      b.RoomName,
+		RoomNames:     append([]string(nil), b.RoomNames...),
 		RoomType:      b.RoomType,
+		RoomTypes:     append([]string(nil), b.RoomTypes...),
 		PropertyName:  b.PropertyName,
 		Checkin:       b.Checkin,
 		Checkout:      b.Checkout,

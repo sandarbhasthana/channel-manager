@@ -478,15 +478,18 @@ type BookingGroup struct {
 
 // Booking is the canonical booking shape from the PMS.
 type Booking struct {
-	BookingID     string `json:"booking_id"`
-	Status        string `json:"status"`
-	GuestName     string `json:"guest_name"`
-	Email         string `json:"email"`
+	BookingID     string   `json:"booking_id"`
+	BookingIDs    []string `json:"booking_ids"`
+	Status        string   `json:"status"`
+	GuestName     string   `json:"guest_name"`
+	Email         string   `json:"email"`
 	Phone         string   `json:"phone"`
 	RoomIDs       []string `json:"room_ids"`
 	RoomID        string   `json:"room_id"` // legacy inbound decode only
 	RoomName      string   `json:"room_name"`
-	RoomType      string `json:"room_type"`
+	RoomNames     []string `json:"room_names"`
+	RoomType      string   `json:"room_type"`
+	RoomTypes     []string `json:"room_types"`
 	PropertyName  string `json:"property_name"`
 	Checkin       string `json:"checkin"`
 	Checkout      string `json:"checkout"`
@@ -518,18 +521,19 @@ type GetBookingRequest struct {
 
 // UpdateBookingRequest is the body for action update_booking.
 type UpdateBookingRequest struct {
-	Action       string `json:"action"`
-	BookingID    string `json:"booking_id"`
-	GuestSurname string `json:"guest_surname,omitempty"`
-	Checkin      string `json:"checkin,omitempty"`
-	Checkout     string `json:"checkout,omitempty"`
-	GuestName    string `json:"guest_name,omitempty"`
-	Email        string `json:"email,omitempty"`
-	Phone        string `json:"phone,omitempty"`
-	Adults       *int   `json:"adults,omitempty"`
-	Children     *int   `json:"children,omitempty"`
-	Notes        string   `json:"notes,omitempty"`
-	RoomIDs      []string `json:"room_ids,omitempty"`
+	Action         string   `json:"action"`
+	BookingID      string   `json:"booking_id"`
+	GuestSurname   string   `json:"guest_surname,omitempty"`
+	Checkin        string   `json:"checkin,omitempty"`
+	Checkout       string   `json:"checkout,omitempty"`
+	GuestName      string   `json:"guest_name,omitempty"`
+	Email          string   `json:"email,omitempty"`
+	Phone          string   `json:"phone,omitempty"`
+	Adults         *int     `json:"adults,omitempty"`
+	Children       *int     `json:"children,omitempty"`
+	Notes          string   `json:"notes,omitempty"`
+	RoomIDs        []string `json:"room_ids,omitempty"`
+	IdempotencyKey string   `json:"idempotency_key,omitempty"`
 }
 
 // CancelBookingRequest is the body for action cancel_booking.

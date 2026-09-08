@@ -95,6 +95,7 @@ type fakePms struct {
 	cancelResult *pmsdomain.CancelBookingResult
 	cancelErr    error
 	cancelCalls  int
+	updatedInput pmsdomain.UpdateBookingInput
 }
 
 func (f *fakePms) SearchAvailability(_ context.Context, _ string, _ pmsdomain.AvailabilityQuery) ([]pmsdomain.AvailabilityOffer, error) {
@@ -154,6 +155,7 @@ func (f *fakePms) GetBooking(_ context.Context, _ string, in pmsdomain.GetBookin
 }
 
 func (f *fakePms) UpdateBooking(_ context.Context, _ string, in pmsdomain.UpdateBookingInput) (*pmsdomain.PmsBooking, error) {
+	f.updatedInput = in
 	return &pmsdomain.PmsBooking{
 		BookingID: in.BookingID,
 		Status:    "CONFIRMATION_PENDING",

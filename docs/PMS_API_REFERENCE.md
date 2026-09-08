@@ -240,6 +240,7 @@ Use when the guest knows the number of nights but is flexible on dates.
 {
   "action": "update_booking",
   "booking_id": "string (required)",
+  "guest_surname": "string (required)",
   "checkin": "YYYY-MM-DD (optional)",
   "checkout": "YYYY-MM-DD (optional)",
   "guest_name": "string (optional)",
@@ -248,7 +249,8 @@ Use when the guest knows the number of nights but is flexible on dates.
   "adults": "number (optional)",
   "children": "number (optional)",
   "notes": "string (optional)",
-  "room_ids": ["string (optional, exactly one id to change room)"]
+  "room_ids": ["string (optional, exactly one id to change room)"],
+  "idempotency_key": "string (optional, stable per update operation)"
 }
 ```
 

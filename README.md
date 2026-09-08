@@ -244,6 +244,7 @@ Roles: `owner`, `admin`, `member`. Policies are stored in Postgres (`tenancy.cas
 ## Docs
 
 - [Engineering Reference Guide](docs/%23%20Channel%20Manager%20Platform%20%E2%80%94%20Engineering.md) — architecture, conventions, do's and don'ts
+- [Storefront combined search](docs/STOREFRONT_SEARCH.md) — discriminated stay search, `stay_options`, and `offer_id` lifecycle
 - [WorkOS SSO Setup](docs/workos-sso-setup.md) — step-by-step Google, Apple, and email/password configuration
 
 ---

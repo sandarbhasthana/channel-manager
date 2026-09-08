@@ -733,6 +733,37 @@ func TestBookingEngineDisabled_StillAllowsGetBooking(t *testing.T) {
 	}
 }
 
+func TestGetBookingReturnsOneConfirmationNumber(t *testing.T) {
+	h := newHarness()
+	out, err := dispatch(t, h, domain.ActionGetBooking, map[string]any{"booking_id": "clz4f9k2"})
+	if err != nil {
+		t.Fatalf("get_booking error = %v", err)
+	}
+	if out["booking_id"] != "clz4f9k2" {
+		t.Fatalf("booking_id = %#v", out["booking_id"])
+	}
+	ids, ok := out["booking_ids"].([]string)
+	if !ok || len(ids) != 1 || ids[0] != "clz4f9k2" {
+		t.Fatalf("booking_ids = %#v", out["booking_ids"])
+	}
+}
+
+func TestUpdateBookingForwardsIdempotencyKey(t *testing.T) {
+	h := newHarness()
+	_, err := dispatch(t, h, domain.ActionUpdateBooking, map[string]any{
+		"booking_id":      "booking-1",
+		"guest_surname":   "Smith",
+		"checkin":         "2026-08-20",
+		"idempotency_key": "update-op-1",
+	})
+	if err != nil {
+		t.Fatalf("update_booking error = %v", err)
+	}
+	if h.pms.updatedInput.IdempotencyKey != "update-op-1" {
+		t.Fatalf("IdempotencyKey = %q", h.pms.updatedInput.IdempotencyKey)
+	}
+}
+
 func TestParseDateRange_Invalid(t *testing.T) {
 	cases := []struct {
 		name string

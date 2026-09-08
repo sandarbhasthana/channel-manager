@@ -1339,15 +1339,29 @@ func (s *Service) getBooking(ctx context.Context, prop property, body map[string
 	if err != nil {
 		return nil, fmt.Errorf("storefront: get booking: %w", err)
 	}
+	confirmationID := strings.TrimSpace(b.BookingID)
+	confirmationIDs := append([]string(nil), b.BookingIDs...)
+	if len(confirmationIDs) == 0 && confirmationID != "" {
+		confirmationIDs = []string{confirmationID}
+	}
+	if confirmationID == "" && len(confirmationIDs) == 1 {
+		confirmationID = confirmationIDs[0]
+	}
+	if confirmationID == "" || len(confirmationIDs) != 1 {
+		return nil, fmt.Errorf("storefront: get booking must return one confirmation number")
+	}
 	return map[string]any{
-		"booking_id":     b.BookingID,
+		"booking_id":     confirmationID,
+		"booking_ids":    confirmationIDs,
 		"status":         b.Status,
 		"guest_name":     b.GuestName,
 		"email":          b.Email,
 		"phone":          b.Phone,
 		"room_ids":       b.RoomIDs,
 		"room_name":      b.RoomName,
+		"room_names":     b.RoomNames,
 		"room_type":      b.RoomType,
+		"room_types":     b.RoomTypes,
 		"property_name":  b.PropertyName,
 		"checkin":        b.Checkin,
 		"checkout":       b.Checkout,
@@ -1369,12 +1383,13 @@ func (s *Service) updateBooking(ctx context.Context, prop property, body map[str
 		return nil, errors.New("guest_surname is required")
 	}
 	input := pmsdomain.UpdateBookingInput{
-		BookingID:    bookingID,
-		GuestSurname: guestSurname,
-		GuestName:    stringOr(body["guest_name"]),
-		Email:        stringOr(body["email"]),
-		Phone:        stringOr(body["phone"]),
-		Notes:        stringOr(body["notes"]),
+		BookingID:      bookingID,
+		GuestSurname:   guestSurname,
+		GuestName:      stringOr(body["guest_name"]),
+		Email:          stringOr(body["email"]),
+		Phone:          stringOr(body["phone"]),
+		Notes:          stringOr(body["notes"]),
+		IdempotencyKey: strings.TrimSpace(stringOr(body["idempotency_key"])),
 	}
 	if _, ok := body["room_ids"]; ok {
 		roomIDs, err := strictStringArray(body["room_ids"])
