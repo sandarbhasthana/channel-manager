@@ -11,7 +11,8 @@
       "envFile": "${workspaceFolder}/.env",
       "env": {
         "PORT": "8080"
-      }
+      },
+      "output": "${env:LOCALAPPDATA}/PMSBeds-dev/pmsbeds-channel-manager-api.exe"
     },
     {
       "name": "Sync Worker (Go)",

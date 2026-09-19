@@ -1,0 +1,24 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Allow Windows Firewall: PMSBeds-dev Channel Manager API",
+      "type": "shell",
+      "windows": {
+        "command": "powershell.exe",
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "${workspaceFolder}/.vscode/ensure-dev-firewall.ps1",
+          "-DisplayName",
+          "PMSBeds-dev Channel Manager API",
+          "-Program",
+          "${env:LOCALAPPDATA}\\PMSBeds-dev\\pmsbeds-channel-manager-api.exe"
+        ]
+      },
+      "problemMatcher": []
+    }
+  ]
+}
