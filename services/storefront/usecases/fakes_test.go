@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -142,8 +143,21 @@ func (f *fakePms) CreateBooking(_ context.Context, _ string, in pmsdomain.Create
 	if f.booking != nil {
 		return f.booking, nil
 	}
+	roomIDs := append([]string(nil), in.RoomIDs...)
+	rooms := in.Rooms
+	if rooms < 1 {
+		rooms = 1
+	}
+	// By-type bookings have no room_ids; the PMS still echoes one public ref per room.
+	reservationIDs := make([]string, 0, rooms)
+	if len(roomIDs) == 0 {
+		for index := 0; index < rooms; index++ {
+			reservationIDs = append(reservationIDs, fmt.Sprintf("pms-reservation-%d", index+1))
+		}
+	}
 	return &pmsdomain.PmsBooking{
-		BookingIDs: []string{"pms-booking-1"}, RoomIDs: append([]string(nil), in.RoomIDs...),
+		BookingIDs: []string{"pms-booking-1"}, RoomIDs: roomIDs,
+		ReservationIDs: reservationIDs,
 		RoomNames: []string{"101"}, RoomTypes: []string{"Deluxe"},
 		GroupStatus: "CONFIRMED", Status: "CONFIRMED",
 		GuestName: in.GuestName, Adults: in.Adults, Children: in.Children, PaymentStatus: "PAID",

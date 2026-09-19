@@ -74,8 +74,11 @@ func TestCreateBooking_CanonicalWriteFails_ReturnsReconciliationPending(t *testi
 	if out["reconciliation_pending"] != true {
 		t.Error("expected reconciliation_pending=true when canonical write fails")
 	}
-	if got := out["reservation_ids"].([]string); len(got) != 1 || got[0] != "" {
-		t.Errorf("expected one empty reservation id, got %v", got)
+	if got := out["cm_reservation_ids"].([]string); len(got) != 1 || got[0] != "" {
+		t.Errorf("expected one empty canonical reservation id, got %v", got)
+	}
+	if got, ok := out["reservation_ids"].([]string); ok && len(got) != 0 {
+		t.Errorf("expected empty reservation_ids when PMS omits refs (group-level booking), got %v", got)
 	}
 	if h.idem.putCalls != 1 {
 		t.Error("idempotency key must still be marked: the PMS booking is real")
@@ -95,8 +98,11 @@ func TestCreateBooking_Success(t *testing.T) {
 	if _, present := out["reconciliation_pending"]; present {
 		t.Error("reconciliation_pending must be absent on success")
 	}
-	if got := out["reservation_ids"].([]string); len(got) != 1 || got[0] != "reservation-1" {
-		t.Errorf("expected reservation id, got %v", got)
+	if got := out["cm_reservation_ids"].([]string); len(got) != 1 || got[0] != "reservation-1" {
+		t.Errorf("expected canonical reservation id, got %v", got)
+	}
+	if got, ok := out["reservation_ids"].([]string); ok && len(got) != 0 {
+		t.Errorf("expected empty reservation_ids when PMS omits refs (group-level booking), got %v", got)
 	}
 	if h.holds.releaseCalls != 0 {
 		t.Errorf("strict array booking should not consume holds, got %d releases", h.holds.releaseCalls)
@@ -829,16 +835,29 @@ func TestNilAuditRecorder_DoesNotPanic(t *testing.T) {
 // A booking that identifies only a room type (a preference booking: no room
 // number and no hold) is accepted and forwards the room type to the PMS. This
 // is G1 -- the old code hard-rejected it and the guest silently lost the booking.
-func TestCreateBooking_RoomTypeOnly_Rejected(t *testing.T) {
+func TestCreateBooking_RoomTypeOnly_Accepted(t *testing.T) {
 	h := newHarness()
 	body := createBody(map[string]any{"room_type_id": "rt-deluxe"})
 	delete(body, "room_ids")
 
-	if _, err := dispatch(t, h, domain.ActionCreateBooking, body); err == nil {
-		t.Fatal("room-type-only booking must be rejected by the strict room_ids contract")
+	out, err := dispatch(t, h, domain.ActionCreateBooking, body)
+	if err != nil {
+		t.Fatalf("room-type-only booking should be accepted: %v", err)
 	}
-	if h.pms.createCalls != 0 {
-		t.Fatalf("PMS must not be called, got %d calls", h.pms.createCalls)
+	if h.pms.createCalls != 1 {
+		t.Fatalf("PMS must be called once, got %d calls", h.pms.createCalls)
+	}
+	if h.pms.createdInput.RoomTypeID != "rt-deluxe" {
+		t.Errorf("expected room_type_id forwarded to PMS, got %q", h.pms.createdInput.RoomTypeID)
+	}
+	if len(h.pms.createdInput.RoomIDs) != 0 {
+		t.Errorf("expected empty room_ids for by-type booking, got %v", h.pms.createdInput.RoomIDs)
+	}
+	if got := out["booking_ids"].([]string); len(got) != 1 || got[0] != "pms-booking-1" {
+		t.Errorf("expected PMS booking ids in response, got %v", got)
+	}
+	if got := out["reservation_ids"].([]string); len(got) != 1 || got[0] != "pms-reservation-1" {
+		t.Errorf("expected PMS reservation ref in response, got %v", got)
 	}
 }
 
