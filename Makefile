@@ -12,8 +12,15 @@ build:
 	go build -o bin/sync-worker ./apps/sync-worker
 
 # ── Test ─────────────────────────────────────────────────────────────────────
+# go.work lists modules but the repo root has no go.mod; test each workspace
+# module explicitly so `make test` works from the repository root.
+GO_WORK_MODULES := $(shell grep -E '^[[:space:]]+\./' go.work | sed 's/^[[:space:]]*//')
+
 test:
-	go test ./...
+	@set -e; for mod in $(GO_WORK_MODULES); do \
+		echo "==> testing $$mod"; \
+		go test ./$$mod/...; \
+	done
 
 # ── Lint ─────────────────────────────────────────────────────────────────────
 lint:
