@@ -19,25 +19,25 @@ func (a *Adapter) ChannelID() string {
 	return "airbnb"
 }
 
+// Capabilities is empty: this adapter is a placeholder. With no
+// capabilities the channel service answers every push with
+// domain.ErrNotImplemented instead of recording a sync that never reached
+// Airbnb.
 func (a *Adapter) Capabilities() []domain.ChannelCapability {
-	return []domain.ChannelCapability{
-		domain.CapabilityPushAvailability,
-		domain.CapabilityPushRates,
-		domain.CapabilityFetchReservations,
-	}
+	return nil
 }
 
 func (a *Adapter) PushAvailability(ctx context.Context, updates []domain.AvailabilityUpdate) error {
 	// TODO: implement Airbnb availability push
-	return nil
+	return domain.ErrNotImplemented
 }
 
 func (a *Adapter) PushRates(ctx context.Context, updates []domain.RateUpdate) error {
 	// TODO: implement Airbnb rate push
-	return nil
+	return domain.ErrNotImplemented
 }
 
 func (a *Adapter) FetchReservations(ctx context.Context, propertyID string, since time.Time) ([]domain.FetchedReservation, error) {
 	// TODO: implement Airbnb reservation fetch
-	return nil, nil
+	return nil, domain.ErrNotImplemented
 }

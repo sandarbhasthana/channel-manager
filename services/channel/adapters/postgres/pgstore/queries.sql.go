@@ -14,7 +14,7 @@ import (
 )
 
 const createConnection = `-- name: CreateConnection :one
-INSERT INTO connections
+INSERT INTO channel.connections
     (
     id, org_id, provider, name, status, secret_ref, config
     )
@@ -63,7 +63,7 @@ func (q *Queries) CreateConnection(ctx context.Context, arg CreateConnectionPara
 }
 
 const createSyncJob = `-- name: CreateSyncJob :exec
-INSERT INTO sync_jobs
+INSERT INTO channel.sync_jobs
     (
     id, org_id, connection_id, job_type, status, payload, scheduled_at
     )
@@ -97,7 +97,7 @@ func (q *Queries) CreateSyncJob(ctx context.Context, arg CreateSyncJobParams) er
 }
 
 const deleteConnection = `-- name: DeleteConnection :exec
-DELETE FROM connections WHERE id = $1
+DELETE FROM channel.connections WHERE id = $1
 `
 
 func (q *Queries) DeleteConnection(ctx context.Context, id uuid.UUID) error {
@@ -107,7 +107,7 @@ func (q *Queries) DeleteConnection(ctx context.Context, id uuid.UUID) error {
 
 const getConnectionByID = `-- name: GetConnectionByID :one
 SELECT id, org_id, provider, name, status, secret_ref, config, last_sync_at, last_error, created_at, updated_at
-FROM connections
+FROM channel.connections
 WHERE id = $1
 LIMIT 1
 `
@@ -133,7 +133,7 @@ func (q *Queries) GetConnectionByID(ctx context.Context, id uuid.UUID) (Connecti
 
 const getSyncJobByID = `-- name: GetSyncJobByID :one
 SELECT id, org_id, connection_id, job_type, status, payload, result, attempts, last_error, scheduled_at, started_at, finished_at, created_at, updated_at
-FROM sync_jobs
+FROM channel.sync_jobs
 WHERE id = $1
 LIMIT 1
 `
@@ -162,7 +162,7 @@ func (q *Queries) GetSyncJobByID(ctx context.Context, id uuid.UUID) (SyncJob, er
 
 const listConnectionsByOrg = `-- name: ListConnectionsByOrg :many
 SELECT id, org_id, provider, name, status, secret_ref, config, last_sync_at, last_error, created_at, updated_at
-FROM connections
+FROM channel.connections
 WHERE org_id = $1
 ORDER BY created_at
 `
@@ -201,7 +201,7 @@ func (q *Queries) ListConnectionsByOrg(ctx context.Context, orgID uuid.UUID) ([]
 
 const listRecentSyncJobsByConnection = `-- name: ListRecentSyncJobsByConnection :many
 SELECT id, org_id, connection_id, job_type, status, payload, result, attempts, last_error, scheduled_at, started_at, finished_at, created_at, updated_at
-  FROM sync_jobs
+  FROM channel.sync_jobs
  WHERE connection_id = $1
  ORDER BY created_at DESC
  LIMIT $2
@@ -248,7 +248,7 @@ func (q *Queries) ListRecentSyncJobsByConnection(ctx context.Context, arg ListRe
 }
 
 const updateConnectionLastSync = `-- name: UpdateConnectionLastSync :exec
-UPDATE connections
+UPDATE channel.connections
 SET last_sync_at = $2, updated_at = now()
 WHERE id = $1
 `
@@ -264,7 +264,7 @@ func (q *Queries) UpdateConnectionLastSync(ctx context.Context, arg UpdateConnec
 }
 
 const updateConnectionName = `-- name: UpdateConnectionName :exec
-UPDATE connections
+UPDATE channel.connections
 SET name = $2, updated_at = now()
 WHERE id = $1
 `
@@ -280,7 +280,7 @@ func (q *Queries) UpdateConnectionName(ctx context.Context, arg UpdateConnection
 }
 
 const updateConnectionStatus = `-- name: UpdateConnectionStatus :exec
-UPDATE connections
+UPDATE channel.connections
 SET status = $2, last_error = $3, updated_at = now()
 WHERE id = $1
 `
@@ -297,7 +297,7 @@ func (q *Queries) UpdateConnectionStatus(ctx context.Context, arg UpdateConnecti
 }
 
 const updateSyncJobStatus = `-- name: UpdateSyncJobStatus :exec
-UPDATE sync_jobs
+UPDATE channel.sync_jobs
 SET status = $2, result = $3, last_error = $4, finished_at = now(), updated_at = now()
 WHERE id = $1
 `

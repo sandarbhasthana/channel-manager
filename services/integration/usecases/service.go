@@ -14,13 +14,13 @@ import (
 	"github.com/channel-manager/channel-manager/services/integration/domain"
 	invdomain "github.com/channel-manager/channel-manager/services/inventory/domain"
 	invusecases "github.com/channel-manager/channel-manager/services/inventory/usecases"
+	pmsdomain "github.com/channel-manager/channel-manager/services/pms/domain"
 	pmsports "github.com/channel-manager/channel-manager/services/pms/ports"
 	pmsusecases "github.com/channel-manager/channel-manager/services/pms/usecases"
-	pmsdomain "github.com/channel-manager/channel-manager/services/pms/domain"
-	resdomain "github.com/channel-manager/channel-manager/services/reservations/domain"
-	resusecases "github.com/channel-manager/channel-manager/services/reservations/usecases"
 	pricingdomain "github.com/channel-manager/channel-manager/services/pricing/domain"
 	pricingusecases "github.com/channel-manager/channel-manager/services/pricing/usecases"
+	resdomain "github.com/channel-manager/channel-manager/services/reservations/domain"
+	resusecases "github.com/channel-manager/channel-manager/services/reservations/usecases"
 )
 
 // Service orchestrates PMS-facing outbound integration APIs.
@@ -33,6 +33,7 @@ type Service struct {
 	pms      *pmsusecases.PmsService
 	pricing  *pricingusecases.PricingService
 	log      *slog.Logger
+	dash     DashboardStores
 }
 
 // NewService creates an integration service.
@@ -60,10 +61,10 @@ func NewService(
 // OrgHealth returns org-level integration health.
 func (s *Service) OrgHealth(ctx context.Context, orgID string) map[string]any {
 	return map[string]any{
-		"status":             "ok",
-		"service":            "channel-manager-integration",
-		"organization_id":    orgID,
-		"available_actions":  domain.OrgAvailableActions,
+		"status":            "ok",
+		"service":           "channel-manager-integration",
+		"organization_id":   orgID,
+		"available_actions": domain.OrgAvailableActions,
 	}
 }
 
@@ -85,8 +86,8 @@ func (s *Service) PropertyHealth(ctx context.Context, propertyID string) (map[st
 			"name":        prop.Name,
 			"currency":    prop.DefaultCurrency,
 		},
-		"channels_count":     len(channels),
-		"available_actions":  domain.OrgAvailableActions,
+		"channels_count":    len(channels),
+		"available_actions": domain.OrgAvailableActions,
 	}, nil
 }
 
@@ -156,6 +157,12 @@ func (s *Service) Dispatch(ctx context.Context, propertyID, action string, body 
 		return s.listReservations(ctx, prop.ID)
 	case domain.ActionFetchChannelReservations:
 		return s.fetchChannelReservations(ctx, prop.ID, prop.ExternalID, body)
+	case domain.ActionRedeliverReservations:
+		delivered, pending, err := s.res.RedeliverPending(ctx, prop.ID)
+		if err != nil {
+			return nil, err
+		}
+		return map[string]any{"redelivered": delivered, "undelivered": pending}, nil
 	case domain.ActionPushAvailability:
 		return s.pushAvailability(ctx, prop.ID, body)
 	case domain.ActionPushRates:
@@ -181,6 +188,9 @@ func (s *Service) Dispatch(ctx context.Context, propertyID, action string, body 
 	case domain.ActionListRoomTypes:
 		return s.listRoomTypes(ctx, prop.ID)
 	default:
+		if out, ok, err := s.dispatchDashboard(ctx, prop.ID, action, body); ok {
+			return out, err
+		}
 		return nil, fmt.Errorf("unknown action %q", action)
 	}
 }
@@ -280,7 +290,7 @@ func (s *Service) listChannels(ctx context.Context, propertyID string) (map[stri
 			"provider":             ch.Provider,
 			"external_property_id": ch.ExternalPropertyID,
 			"status":               ch.Status,
-			"last_sync_at":         ch.LastSyncAt,
+			"last_sync_at":         utcPtr(ch.LastSyncAt),
 			"last_error":           ch.LastError,
 		})
 	}
@@ -320,21 +330,23 @@ func (s *Service) listConnections(ctx context.Context, propertyID string) (map[s
 			"provider":     c.Provider,
 			"name":         c.Name,
 			"status":       c.Status,
-			"last_sync_at": c.LastSyncAt,
+			"last_sync_at": utcPtr(c.LastSyncAt),
 			"last_error":   c.LastError,
-			"created_at":   c.CreatedAt,
+			"created_at":   c.CreatedAt.UTC(),
 			// has_credentials rather than the secret itself: the PMS only needs
 			// to know whether the connector is configured, and forwarding the
 			// ref would leak a secret handle into a browser for no gain.
 			"has_credentials": c.SecretRef != "",
 			"linked":          false,
+			// live=false: a placeholder adapter that sends nothing yet.
+			"live": domain.ProviderLive(c.Provider),
 		}
 		if ch, ok := byConn[c.ID]; ok {
 			row["linked"] = true
 			row["channel_id"] = ch.ID
 			row["channel_status"] = ch.Status
 			row["external_property_id"] = ch.ExternalPropertyID
-			row["channel_last_sync_at"] = ch.LastSyncAt
+			row["channel_last_sync_at"] = utcPtr(ch.LastSyncAt)
 			row["channel_last_error"] = ch.LastError
 		}
 		out = append(out, row)
@@ -363,7 +375,9 @@ func (s *Service) createConnection(ctx context.Context, propertyID, externalProp
 	}
 	name, _ := body["name"].(string)
 	if name == "" {
-		name = provider
+		// The display name, never the id: the PMS and the dashboard show
+		// this string to people ("Selling paused on Booking.com").
+		name = domain.ProviderName(provider)
 	}
 
 	creds := stringMap(body["credentials"])
@@ -622,16 +636,20 @@ func (s *Service) fetchChannelReservations(ctx context.Context, propertyID strin
 	if err != nil {
 		return nil, err
 	}
-	var ingested int
+	var ingested, seen int
 	var fetchErrors []string
+	var notLive []string
+	only := parseChannelFilter(body)
 	for _, ch := range channels {
-		if ch.Status != "active" {
+		if ch.Status != "active" || !only.allows(ch.ID) {
 			continue
 		}
 		fetched, err := s.channels.FetchReservations(ctx, ch.ConnectionID, ch.ExternalPropertyID, since)
 		if err != nil {
 			if errors.Is(err, chdomain.ErrNotImplemented) {
-				fetchErrors = append(fetchErrors, fmt.Sprintf("%s: OTA adapter not implemented", ch.Provider))
+				// A placeholder adapter (Airbnb, Agoda): nothing to fetch,
+				// not a failed fetch (BUG-065).
+				notLive = append(notLive, ch.Provider)
 				continue
 			}
 			fetchErrors = append(fetchErrors, fmt.Sprintf("%s: %v", ch.Provider, err))
@@ -639,9 +657,11 @@ func (s *Service) fetchChannelReservations(ctx context.Context, propertyID strin
 		}
 		for _, f := range fetched {
 			res := &resdomain.Reservation{
-				PropertyID:            propertyID,
-				ExternalPropertyID:    externalPropertyID,
-				ChannelID:             ch.ConnectionID,
+				PropertyID:         propertyID,
+				ExternalPropertyID: externalPropertyID,
+				ChannelID:          ch.ConnectionID,
+				ChannelProvider:    ch.Provider,
+				ChannelName:        domain.ProviderName(ch.Provider),
 				// The OTA's room-type id. The PMS maps it to its own type via
 				// ChannelManagerRoomTypeMapping (the CM mapping service has no
 				// persistence yet, so mapping stays PMS-side); ChannelRoomTypeID
@@ -663,63 +683,100 @@ func (s *Service) fetchChannelReservations(ctx context.Context, propertyID strin
 			if res.Status == "" {
 				res.Status = "confirmed"
 			}
-			if _, _, err := s.res.IngestReservation(ctx, res, idem+":"+f.ChannelConfirmationID); err != nil {
+			// Only a caller-supplied key is an idempotency key. Keying every
+			// fetch on the booking id alone made the (in-memory) seen-set
+			// swallow the booking on every later sync in the same process,
+			// so a date change on the OTA never reached the PMS. The repo's
+			// external-id match is what dedupes now.
+			key := ""
+			if idem != "" {
+				key = idem + ":" + f.ChannelConfirmationID
+			}
+			_, isNew, err := s.res.IngestReservation(ctx, res, key)
+			if errors.Is(err, resusecases.ErrDuplicateRequest) {
+				seen++
+				continue
+			}
+			if err != nil {
 				s.log.Warn("ingest reservation failed", "err", err)
 				continue
 			}
-			ingested++
+			// Count only bookings the PMS hadn't been sent; a re-read of a
+			// known booking is not a new import.
+			if isNew {
+				ingested++
+			} else {
+				seen++
+			}
 		}
+	}
+	// Bookings the PMS didn't take when first announced (it was down) go
+	// again now; the PMS is evidently up, since it asked for this sync.
+	redelivered, undelivered, err := s.res.RedeliverPending(ctx, propertyID)
+	if err != nil {
+		s.log.Warn("redeliver pending reservations failed", "property_id", propertyID, "err", err)
 	}
 	return map[string]any{
 		"ingested":     ingested,
+		"already_had":  seen,
 		"fetch_errors": fetchErrors,
+		"not_live":     notLive,
+		"redelivered":  redelivered,
+		"undelivered":  undelivered,
 	}, nil
 }
 
+// pushAvailability fans availability out to every active channel of the
+// property. Two request shapes are accepted:
+//
+//   - PMS shape: `inventory: [{room_type_id, days: [...]}]` — the PMS's own
+//     numbers, pushed as sent (bundled product; the PMS owns availability).
+//   - CM shape: `room_type_id` + `checkin`/`checkout` — read from this
+//     service's inventory store.
+//
+// Either may carry `channel_caps`, which clamps one channel's copy per room
+// type (see channelCaps).
 func (s *Service) pushAvailability(ctx context.Context, propertyID string, body map[string]any) (map[string]any, error) {
-	checkin, checkout, err := parseDateRange(body)
-	if err != nil {
-		return nil, err
+	var updates []chdomain.AvailabilityUpdate
+	if inv, ok := body["inventory"].([]any); ok && len(inv) > 0 {
+		parsed, err := parsePMSInventory(propertyID, inv)
+		if err != nil {
+			return nil, err
+		}
+		updates = parsed
+	} else {
+		checkin, checkout, err := parseDateRange(body)
+		if err != nil {
+			return nil, err
+		}
+		roomTypeID, _ := body["room_type_id"].(string)
+		if roomTypeID == "" {
+			return nil, errors.New("room_type_id is required")
+		}
+		days, err := s.inv.GetInventory(ctx, invusecases.GetInventoryInput{
+			RoomTypeID: roomTypeID,
+			From:       checkin,
+			To:         checkout.AddDate(0, 0, -1),
+		})
+		if err != nil {
+			return nil, err
+		}
+		updates = inventoryToChannelUpdates(propertyID, roomTypeID, days)
 	}
-	roomTypeID, _ := body["room_type_id"].(string)
-	if roomTypeID == "" {
-		return nil, errors.New("room_type_id is required")
-	}
-	days, err := s.inv.GetInventory(ctx, invusecases.GetInventoryInput{
-		RoomTypeID: roomTypeID,
-		From:       checkin,
-		To:         checkout.AddDate(0, 0, -1),
-	})
-	if err != nil {
-		return nil, err
-	}
-	updates := inventoryToChannelUpdates(propertyID, roomTypeID, days)
+	caps := parseChannelCaps(body)
 	channels, err := s.channels.ListChannels(ctx, propertyID)
 	if err != nil {
 		return nil, err
 	}
-	var pushed, failed int
-	var errorsOut []string
+	only := parseChannelFilter(body)
+	var out pushOutcome
 	for _, ch := range channels {
-		if ch.Status != "active" {
+		if ch.Status != "active" || !only.allows(ch.ID) {
 			continue
 		}
-		if err := s.channels.PushAvailability(ctx, ch.ConnectionID, updates); err != nil {
-			if errors.Is(err, chdomain.ErrNotImplemented) {
-				errorsOut = append(errorsOut, fmt.Sprintf("%s: OTA push not implemented", ch.Provider))
-			} else {
-				errorsOut = append(errorsOut, fmt.Sprintf("%s: %v", ch.Provider, err))
-			}
-			failed++
-			continue
-		}
-		pushed++
+		out.record(ch, s.channels.PushAvailability(ctx, ch.ConnectionID, applyCaps(updates, caps[ch.ID])))
 	}
-	return map[string]any{
-		"channels_pushed": pushed,
-		"channels_failed": failed,
-		"errors":          errorsOut,
-	}, nil
+	return out.response(), nil
 }
 
 func (s *Service) pushRates(ctx context.Context, propertyID string, body map[string]any) (map[string]any, error) {
@@ -736,28 +793,28 @@ func (s *Service) pushRates(ctx context.Context, propertyID string, body map[str
 		if !ok {
 			continue
 		}
-		
+
 		roomTypeID, _ := rm["room_type_id"].(string)
-		
+
 		daysAny, ok := rm["days"].([]any)
 		if !ok {
 			continue
 		}
-		
+
 		for _, dAny := range daysAny {
 			dm, ok := dAny.(map[string]any)
 			if !ok {
 				continue
 			}
-			
+
 			dateStr, _ := dm["date"].(string)
 			date, err := time.Parse("2006-01-02", dateStr)
 			if err != nil {
 				continue
 			}
-			
+
 			price, _ := dm["price"].(float64)
-			
+
 			// We store this rate internally.
 			//
 			// OrgID is deliberately unset: the repository takes the tenant from
@@ -774,7 +831,7 @@ func (s *Service) pushRates(ctx context.Context, propertyID string, body map[str
 				BaseRate:   price,
 				Currency:   "USD",
 			})
-			
+
 			// We prepare this update for the channel adapters
 			updates = append(updates, chdomain.RateUpdate{
 				PropertyID: propertyID,
@@ -802,35 +859,32 @@ func (s *Service) pushRates(ctx context.Context, propertyID string, body map[str
 		ratesSaved = len(rateDays)
 	}
 
-	// 2. Dispatch PushRates to OTA adapters
+	// 2. Dispatch PushRates to OTA adapters, each with its own markup
+	// (pricing.channel_rate_rules, edited from the PMS or the dashboard). A
+	// rules lookup failure must not stop rates going out at the base price.
+	var rateRules []RateRule
+	if s.dash.RateRules != nil {
+		if rr, err := s.dash.RateRules.List(ctx, propertyID); err != nil {
+			s.log.Warn("push_rates: could not load channel rate rules; sending base prices", "property_id", propertyID, "err", err)
+		} else {
+			rateRules = rr
+		}
+	}
 	channels, err := s.channels.ListChannels(ctx, propertyID)
 	if err != nil {
 		return nil, err
 	}
-	var pushed, failed int
-	var errorsOut []string
+	only := parseChannelFilter(body)
+	var out pushOutcome
 	for _, ch := range channels {
-		if ch.Status != "active" {
+		if ch.Status != "active" || !only.allows(ch.ID) {
 			continue
 		}
-		if err := s.channels.PushRates(ctx, ch.ConnectionID, updates); err != nil {
-			if errors.Is(err, chdomain.ErrNotImplemented) {
-				errorsOut = append(errorsOut, fmt.Sprintf("%s: OTA rate push not implemented", ch.Provider))
-			} else {
-				errorsOut = append(errorsOut, fmt.Sprintf("%s: %v", ch.Provider, err))
-			}
-			failed++
-			continue
-		}
-		pushed++
+		out.record(ch, s.channels.PushRates(ctx, ch.ConnectionID, applyRateRules(updates, ch.ConnectionID, rateRules)))
 	}
-
-	return map[string]any{
-		"channels_pushed": pushed,
-		"channels_failed": failed,
-		"errors":          errorsOut,
-		"rates_saved":     ratesSaved,
-	}, nil
+	resp := out.response()
+	resp["rates_saved"] = ratesSaved
+	return resp, nil
 }
 
 func (s *Service) getSyncJobs(ctx context.Context, propertyID string, body map[string]any) (map[string]any, error) {
@@ -850,14 +904,14 @@ func (s *Service) getSyncJobs(ctx context.Context, propertyID string, body map[s
 		}
 		for _, j := range rows {
 			jobs = append(jobs, map[string]any{
-				"id":              j.ID,
-				"connection_id":   j.ConnectionID,
-				"provider":        ch.Provider,
-				"job_type":        j.JobType,
-				"status":          j.Status,
-				"last_error":      j.LastError,
-				"scheduled_at":    j.ScheduledAt,
-				"finished_at":     j.FinishedAt,
+				"id":            j.ID,
+				"connection_id": j.ConnectionID,
+				"provider":      ch.Provider,
+				"job_type":      j.JobType,
+				"status":        j.Status,
+				"last_error":    j.LastError,
+				"scheduled_at":  j.ScheduledAt.UTC(),
+				"finished_at":   utcPtr(j.FinishedAt),
 			})
 		}
 	}
@@ -889,16 +943,16 @@ func inventoryToChannelUpdates(propertyID, roomTypeID string, days []invdomain.I
 
 func reservationJSON(r resdomain.Reservation) map[string]any {
 	return map[string]any{
-		"id":                        r.ID,
-		"property_id":               r.PropertyID,
-		"channel_connection_id":     r.ChannelID,
-		"guest_name":                r.GuestName,
-		"check_in":                  r.CheckIn.Format("2006-01-02"),
-		"check_out":                 r.CheckOut.Format("2006-01-02"),
-		"status":                    r.Status,
-		"total_amount":              r.TotalAmount,
-		"currency":                  r.Currency,
-		"channel_confirmation_id":   r.ChannelConfirmationID,
+		"id":                      r.ID,
+		"property_id":             r.PropertyID,
+		"channel_connection_id":   r.ChannelID,
+		"guest_name":              r.GuestName,
+		"check_in":                r.CheckIn.Format("2006-01-02"),
+		"check_out":               r.CheckOut.Format("2006-01-02"),
+		"status":                  r.Status,
+		"total_amount":            r.TotalAmount,
+		"currency":                r.Currency,
+		"channel_confirmation_id": r.ChannelConfirmationID,
 	}
 }
 

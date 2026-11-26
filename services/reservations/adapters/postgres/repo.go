@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -78,10 +79,10 @@ func (r *Repository) ListByProperty(ctx context.Context, propertyID string) ([]d
 	return out, nil
 }
 
-func (r *Repository) Save(ctx context.Context, res *domain.Reservation) error {
+func (r *Repository) Save(ctx context.Context, res *domain.Reservation) (domain.SaveResult, error) {
 	tc, err := platformauth.FromContext(ctx)
 	if err != nil {
-		return err
+		return domain.SaveInserted, err
 	}
 	if res.ID == "" {
 		res.ID = uuid.NewString()
@@ -89,7 +90,7 @@ func (r *Repository) Save(ctx context.Context, res *domain.Reservation) error {
 	orgID, _ := uuid.Parse(tc.OrgID)
 	propID, err := uuid.Parse(res.PropertyID)
 	if err != nil {
-		return fmt.Errorf("reservations: invalid property_id: %w", err)
+		return domain.SaveInserted, fmt.Errorf("reservations: invalid property_id: %w", err)
 	}
 	resID, _ := uuid.Parse(res.ID)
 
@@ -109,44 +110,89 @@ func (r *Repository) Save(ctx context.Context, res *domain.Reservation) error {
 		meta = []byte("{}")
 	}
 	amountMinor := int64(res.TotalAmount * 100)
+	// The caller will announce this booking: mark it pending (with a copy to
+	// resend) until the PMS takes it. See domain.Delivery.
+	pendingMeta := func(base []byte) ([]byte, error) {
+		if !res.AwaitPMS {
+			return base, nil
+		}
+		return domain.WithPendingDelivery(base, *res)
+	}
 	currency := res.Currency
 	if currency == "" {
 		currency = "USD"
 	}
 
 	first, last := splitName(res.GuestName)
-	guestID := uuid.New()
 
-	return r.pool.WithTenant(ctx, tc.OrgID, func(ctx context.Context, tx pgx.Tx) error {
+	result := domain.SaveInserted
+	err = r.pool.WithTenant(ctx, tc.OrgID, func(ctx context.Context, tx pgx.Tx) error {
 		q := pgstore.New(tx)
-		_, err := q.InsertGuest(ctx, pgstore.InsertGuestParams{
-			ID:        guestID,
-			OrgID:     orgID,
-			FirstName: strPtr(first),
-			LastName:  strPtr(last),
-		})
-		if err != nil {
-			return err
-		}
 
+		// A booking this connector already sent: update it in place, and
+		// only when something the PMS acts on changed. The guest row is
+		// written for new bookings only; every sync used to add one.
 		if connID.Valid && extPtr != nil {
 			if existing, err := q.GetReservationByExternal(ctx, pgstore.GetReservationByExternalParams{
 				ChannelConnectionID: connID,
 				ExternalID:          extPtr,
 			}); err == nil {
+				res.ID = existing.ID.String()
+				stored := domain.Reservation{
+					Status:      existing.Status,
+					CheckIn:     existing.CheckIn,
+					CheckOut:    existing.CheckOut,
+					TotalAmount: float64(existing.TotalAmountMinor) / 100,
+					Currency:    existing.Currency,
+				}
+				// Never taken by the PMS: announce it again as new, whether or
+				// not it changed (the PMS imports a booking once, by its id).
+				undelivered := domain.DeliveryOf(existing.Metadata).State == domain.DeliveryPending
+				same := stored.SameStay(domain.Reservation{
+					Status: res.Status, CheckIn: res.CheckIn, CheckOut: res.CheckOut,
+					TotalAmount: float64(amountMinor) / 100, Currency: currency,
+				})
+				switch {
+				case same && !undelivered:
+					result = domain.SaveUnchanged
+					return nil
+				case undelivered:
+					result = domain.SaveInserted
+				default:
+					result = domain.SaveUpdated
+				}
+				if meta, err = pendingMeta(existing.Metadata); err != nil {
+					return err
+				}
 				_, err = q.UpdateReservation(ctx, pgstore.UpdateReservationParams{
 					ID:               existing.ID,
 					Status:           res.Status,
 					CheckIn:          res.CheckIn,
 					CheckOut:         res.CheckOut,
-					Adults:           1,
-					Children:         0,
+					Adults:           existing.Adults,
+					Children:         existing.Children,
 					Currency:         currency,
 					TotalAmountMinor: amountMinor,
 					Metadata:         meta,
 				})
 				return err
+			} else if !errors.Is(err, pgx.ErrNoRows) {
+				return err
 			}
+		}
+
+		var err error
+		if meta, err = pendingMeta(meta); err != nil {
+			return err
+		}
+		guestID := uuid.New()
+		if _, err := q.InsertGuest(ctx, pgstore.InsertGuestParams{
+			ID:        guestID,
+			OrgID:     orgID,
+			FirstName: strPtr(first),
+			LastName:  strPtr(last),
+		}); err != nil {
+			return err
 		}
 
 		_, err = q.InsertReservation(ctx, pgstore.InsertReservationParams{
@@ -168,6 +214,81 @@ func (r *Repository) Save(ctx context.Context, res *domain.Reservation) error {
 		})
 		return err
 	})
+	return result, err
+}
+
+// MarkDelivery records whether the PMS took the booking. Delivered drops the
+// copy kept for resending; pending keeps it and the error.
+func (r *Repository) MarkDelivery(ctx context.Context, id string, delivered bool, lastError string) error {
+	tc, err := platformauth.FromContext(ctx)
+	if err != nil {
+		return err
+	}
+	rid, err := uuid.Parse(id)
+	if err != nil {
+		return fmt.Errorf("reservations: invalid id: %w", err)
+	}
+	return r.pool.WithTenant(ctx, tc.OrgID, func(ctx context.Context, tx pgx.Tx) error {
+		_, err := tx.Exec(ctx, `
+UPDATE reservations.reservations
+   SET metadata = jsonb_set(
+         COALESCE(metadata, '{}'::jsonb),
+         '{pms_delivery}',
+         CASE WHEN $2::boolean
+              THEN jsonb_build_object('state', 'delivered',
+                     'attempts', COALESCE((metadata #>> '{pms_delivery,attempts}')::int, 0) + 1)
+              ELSE COALESCE(metadata -> 'pms_delivery', '{}'::jsonb)
+                   || jsonb_build_object('state', 'pending', 'last_error', $3::text,
+                     'attempts', COALESCE((metadata #>> '{pms_delivery,attempts}')::int, 0) + 1)
+         END,
+         true),
+       updated_at = now()
+ WHERE id = $1`, rid, delivered, lastError)
+		return err
+	})
+}
+
+// ListUndelivered returns the bookings of a property the PMS has not taken
+// yet, as they were announced, oldest first.
+func (r *Repository) ListUndelivered(ctx context.Context, propertyID string) ([]domain.Reservation, error) {
+	tc, err := platformauth.FromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	pid, err := uuid.Parse(propertyID)
+	if err != nil {
+		return nil, fmt.Errorf("reservations: invalid property_id: %w", err)
+	}
+	var out []domain.Reservation
+	err = r.pool.WithTenant(ctx, tc.OrgID, func(ctx context.Context, tx pgx.Tx) error {
+		rows, err := tx.Query(ctx, `
+SELECT id, metadata
+  FROM reservations.reservations
+ WHERE property_id = $1
+   AND metadata #>> '{pms_delivery,state}' = 'pending'
+ ORDER BY created_at
+ LIMIT 100`, pid)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var id uuid.UUID
+			var meta []byte
+			if err := rows.Scan(&id, &meta); err != nil {
+				return err
+			}
+			d := domain.DeliveryOf(meta)
+			if d.Booking == nil {
+				continue
+			}
+			b := *d.Booking
+			b.ID = id.String()
+			out = append(out, b)
+		}
+		return rows.Err()
+	})
+	return out, err
 }
 
 func (r *Repository) UpdateStatus(ctx context.Context, id, status string) error {
@@ -176,7 +297,8 @@ func (r *Repository) UpdateStatus(ctx context.Context, id, status string) error 
 		return err
 	}
 	res.Status = status
-	return r.Save(ctx, res)
+	_, err = r.Save(ctx, res)
+	return err
 }
 
 func mapGetRow(row pgstore.GetReservationRow) domain.Reservation {

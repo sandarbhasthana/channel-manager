@@ -1,5 +1,5 @@
 -- name: CreateConnection :one
-INSERT INTO connections
+INSERT INTO channel.connections
     (
     id, org_id, provider, name, status, secret_ref, config
     )
@@ -11,36 +11,36 @@ RETURNING *;
 
 -- name: GetConnectionByID :one
 SELECT *
-FROM connections
+FROM channel.connections
 WHERE id = $1
 LIMIT 1;
 
 -- name: ListConnectionsByOrg :many
 SELECT *
-FROM connections
+FROM channel.connections
 WHERE org_id = $1
 ORDER BY created_at;
 
 -- name: UpdateConnectionStatus :exec
-UPDATE connections
+UPDATE channel.connections
 SET status = $2, last_error = $3, updated_at = now()
 WHERE id = $1;
 
 -- name: UpdateConnectionName :exec
-UPDATE connections
+UPDATE channel.connections
 SET name = $2, updated_at = now()
 WHERE id = $1;
 
 -- name: UpdateConnectionLastSync :exec
-UPDATE connections
+UPDATE channel.connections
 SET last_sync_at = $2, updated_at = now()
 WHERE id = $1;
 
 -- name: DeleteConnection :exec
-DELETE FROM connections WHERE id = $1;
+DELETE FROM channel.connections WHERE id = $1;
 
 -- name: CreateSyncJob :exec
-INSERT INTO sync_jobs
+INSERT INTO channel.sync_jobs
     (
     id, org_id, connection_id, job_type, status, payload, scheduled_at
     )
@@ -51,18 +51,18 @@ VALUES
 
 -- name: GetSyncJobByID :one
 SELECT *
-FROM sync_jobs
+FROM channel.sync_jobs
 WHERE id = $1
 LIMIT 1;
 
 -- name: UpdateSyncJobStatus :exec
-UPDATE sync_jobs
+UPDATE channel.sync_jobs
 SET status = $2, result = $3, last_error = $4, finished_at = now(), updated_at = now()
 WHERE id = $1;
 
 -- name: ListRecentSyncJobsByConnection :many
 SELECT *
-  FROM sync_jobs
+  FROM channel.sync_jobs
  WHERE connection_id = $1
  ORDER BY created_at DESC
  LIMIT $2;

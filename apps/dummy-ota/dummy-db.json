@@ -23,8 +23,4282 @@
       "total_price": 209,
       "currency": "USD",
       "created_at": "2026-06-21T09:03:25.110Z"
+    },
+    {
+      "id": "g2ugv",
+      "provider": "bookingcom",
+      "status": "confirmed",
+      "check_in": "2026-11-25",
+      "check_out": "2026-11-26",
+      "guest_name": "Micheal Kors",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "total_price": 300,
+      "currency": "USD",
+      "created_at": "2026-11-24T14:29:38.013Z"
+    },
+    {
+      "id": "u5jlqb",
+      "provider": "bookingcom",
+      "status": "confirmed",
+      "check_in": "2026-12-10",
+      "check_out": "2026-12-12",
+      "guest_name": "QA Inbound Test",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "total_price": 250,
+      "currency": "USD",
+      "created_at": "2026-11-24T15:45:13.296Z"
+    },
+    {
+      "id": "4a21nm",
+      "provider": "bookingcom",
+      "status": "confirmed",
+      "check_in": "2026-12-14",
+      "check_out": "2026-12-16",
+      "guest_name": "QA Inbound Retest",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "total_price": 250,
+      "currency": "USD",
+      "created_at": "2026-11-24T18:42:08.725Z"
+    },
+    {
+      "id": "yn5hb9",
+      "provider": "bookingcom",
+      "status": "confirmed",
+      "check_in": "2026-12-20",
+      "check_out": "2026-12-21",
+      "guest_name": "QA Unmapped Test",
+      "room_type_id": "qa-unmapped-type",
+      "total_price": 100,
+      "currency": "USD",
+      "created_at": "2026-11-26T16:45:19.493Z"
     }
   ],
-  "inventory": [],
-  "rates": []
+  "inventory": [
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-24T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-25T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-26T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-27T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-28T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-29T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-30T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-01T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-02T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-03T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-04T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-05T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-06T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-07T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-08T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-09T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-10T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-11T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-12T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-13T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-14T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-15T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-16T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-17T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-18T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-19T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-20T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-21T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-22T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-23T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-24T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-24T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-25T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-26T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-27T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-28T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-29T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-30T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-01T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-02T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-03T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-04T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-05T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-06T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-07T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-08T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-09T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-10T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-11T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-12T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-13T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-14T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-15T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-16T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-17T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-18T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-19T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-20T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-21T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-22T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-23T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-24T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-24T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-25T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-26T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-27T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-28T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-29T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-30T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-01T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-02T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-03T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-04T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-05T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-06T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-07T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-08T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-09T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-10T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-11T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-12T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-13T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-14T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-15T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-16T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-17T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-18T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-19T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-20T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-21T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-22T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-23T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-24T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-24T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-25T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-26T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-27T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-28T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-29T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-30T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-01T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-02T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-03T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-04T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-05T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-06T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-07T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-08T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-09T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-10T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-11T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-12T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-13T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-14T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-15T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-16T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-17T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-18T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-19T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-20T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-21T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-22T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-23T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-24T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-24T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-25T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-26T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-27T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-28T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-29T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-30T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-01T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-02T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-03T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-04T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-05T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-06T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-07T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-08T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-09T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-10T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-11T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-12T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-13T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-14T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-15T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-16T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-17T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-18T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-19T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-20T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-21T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-22T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-23T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-24T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-24T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-25T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-26T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-27T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-28T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-29T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-30T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-01T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-02T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-03T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-04T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-05T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-06T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-07T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-08T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-09T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-10T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-11T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-12T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-13T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-14T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-15T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-16T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-17T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-18T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-19T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-20T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-21T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-22T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-23T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-24T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-24T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-25T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-26T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-27T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-28T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-29T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-30T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-01T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-02T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-03T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-04T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-05T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-06T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-07T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-08T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-09T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-10T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-11T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-12T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-13T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-14T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-15T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-16T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-17T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-18T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-19T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-20T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-21T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-22T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-23T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-24T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-24T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-25T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-26T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-27T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-28T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-29T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-30T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-01T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-02T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-03T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-04T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-05T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-06T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-07T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-08T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-09T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-10T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-11T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-12T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-13T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-14T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-15T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-16T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-17T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-18T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-19T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-20T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-21T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-22T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-23T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-24T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-25T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-25T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-25T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-25T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-26T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-26T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-26T00:00:00Z",
+      "available": 1,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-26T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-25T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-26T00:00:00Z",
+      "available": 7,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-25T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-26T00:00:00Z",
+      "available": 4,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-25T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-26T00:00:00Z",
+      "available": 2,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-25T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-26T00:00:00Z",
+      "available": 10,
+      "stop_sell": false,
+      "min_stay": 1,
+      "max_stay": 365
+    }
+  ],
+  "rates": [
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-24T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-25T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-26T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-27T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-28T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-29T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-30T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-01T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-02T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-03T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-04T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-05T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-06T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-07T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-08T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-09T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-10T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-11T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-12T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-13T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-14T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-15T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-16T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-17T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-18T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-19T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-20T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-21T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-22T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-23T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-24T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-24T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-25T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-26T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-27T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-28T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-29T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-30T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-01T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-02T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-03T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-04T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-05T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-06T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-07T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-08T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-09T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-10T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-11T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-12T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-13T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-14T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-15T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-16T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-17T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-18T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-19T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-20T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-21T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-22T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-23T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-24T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-24T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-25T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-26T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-27T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-28T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-29T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-30T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-01T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-02T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-03T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-04T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-05T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-06T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-07T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-08T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-09T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-10T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-11T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-12T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-13T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-14T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-15T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-16T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-17T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-18T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-19T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-20T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-21T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-22T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-23T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-24T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-24T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-25T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-26T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-27T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-28T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-29T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-30T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-01T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-02T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-03T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-04T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-05T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-06T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-07T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-08T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-09T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-10T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-11T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-12T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-13T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-14T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-15T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-16T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-17T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-18T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-19T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-20T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-21T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-22T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-23T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-24T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-24T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-25T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-26T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-27T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-28T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-29T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-11-30T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-01T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-02T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-03T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-04T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-05T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-06T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-07T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-08T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-09T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-10T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-11T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-12T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-13T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-14T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-15T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-16T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-17T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-18T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-19T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-20T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-21T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-22T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-23T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-24T00:00:00Z",
+      "price": 3200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-24T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-25T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-26T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-27T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-28T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-29T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-11-30T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-01T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-02T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-03T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-04T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-05T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-06T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-07T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-08T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-09T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-10T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-11T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-12T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-13T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-14T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-15T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-16T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-17T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-18T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-19T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-20T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-21T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-22T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-23T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-24T00:00:00Z",
+      "price": 5000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-24T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-25T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-26T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-27T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-28T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-29T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-11-30T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-01T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-02T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-03T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-04T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-05T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-06T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-07T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-08T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-09T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-10T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-11T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-12T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-13T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-14T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-15T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-16T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-17T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-18T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-19T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-20T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-21T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-22T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-23T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-24T00:00:00Z",
+      "price": 10000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-24T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-25T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-26T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-27T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-28T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-29T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-11-30T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-01T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-02T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-03T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-04T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-05T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-06T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-07T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-08T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-09T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-10T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-11T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-12T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-13T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-14T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-15T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-16T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-17T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-18T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-19T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-20T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-21T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-22T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-23T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-24T00:00:00Z",
+      "price": 2200,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-25T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-25T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-25T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-25T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-26T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-26T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-26T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "bookingcom",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-26T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-25T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "5ace161a-0aae-487f-bc6e-e5ae9976c056",
+      "date": "2026-12-26T00:00:00Z",
+      "price": 3800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-25T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "b4f858d8-92a6-41ef-bc61-095eae5109f7",
+      "date": "2026-12-26T00:00:00Z",
+      "price": 6000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-25T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "373e4a58-c3e6-4271-ae5a-cb34a6900533",
+      "date": "2026-12-26T00:00:00Z",
+      "price": 15000,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-25T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    },
+    {
+      "provider": "expedia",
+      "room_type_id": "3060e215-25d9-451f-a180-02f5517fba63",
+      "date": "2026-12-26T00:00:00Z",
+      "price": 2800,
+      "currency": "USD"
+    }
+  ]
 }

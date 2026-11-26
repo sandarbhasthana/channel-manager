@@ -1,4 +1,4 @@
-.PHONY: build test lint proto migrate-up migrate-down migrate-version docker-up docker-down dev api seed
+.PHONY: build test lint proto migrate-up migrate-down migrate-version docker-up docker-down dev api worker seed
 
 # Load .env into the environment for any target that needs DB_* / DATABASE_URL.
 ifneq (,$(wildcard .env))
@@ -55,6 +55,11 @@ dev:
 # DB_*, WORKOS_*, and OTEL_* variables are already in the environment.
 api:
 	cd apps/api && go run .
+
+# Runs the sync worker (OTA booking pulls every 5m, redelivery every 1m).
+# Needs SYNC_WORKER_TOKEN in .env, the same value the API runs with.
+worker:
+	cd apps/sync-worker && go run .
 
 # ── Seed ─────────────────────────────────────────────────────────────────────
 seed:

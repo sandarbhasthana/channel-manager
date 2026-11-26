@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -67,9 +68,14 @@ func (p *WebhookPublisher) sendWebhook(ctx context.Context, eventType string, re
 		"rate_plan_id":         res.RatePlanID,
 		"total_price":          res.TotalAmount,
 		"currency":             res.Currency,
-		"ota_reference":        res.ChannelID,
-		"created_at":           time.Now().Format(time.RFC3339),
-		"updated_at":           time.Now().Format(time.RFC3339),
+		// ota_reference stays the channel's readable name, which is what
+		// the PMS files the booking under. The connector id travels on its
+		// own field so the PMS can match the exact connector.
+		"ota_reference":         otaReference(res),
+		"channel_provider":      res.ChannelProvider,
+		"channel_connection_id": res.ChannelID,
+		"created_at":            time.Now().Format(time.RFC3339),
+		"updated_at":            time.Now().Format(time.RFC3339),
 	}
 	// Party size only when the channel reported it. `number_of_guests` is
 	// kept for the PMS's existing decoder; adults/children are the real fields.
@@ -96,13 +102,45 @@ func (p *WebhookPublisher) sendWebhook(ctx context.Context, eventType string, re
 	resp, err := p.client.Do(req)
 	if err != nil {
 		slog.Error("failed to send webhook to PMS", "error", err, "event", eventType)
-		return err
+		return fmt.Errorf("%w: %v", domain.ErrPMSUnavailable, err)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode >= 400 {
-		slog.Error("webhook to PMS returned error", "status", resp.StatusCode)
+	if retryableStatus(resp.StatusCode) {
+		slog.Error("webhook to PMS not taken; will resend", "status", resp.StatusCode, "event", eventType)
+		return fmt.Errorf("%w: status %d", domain.ErrPMSUnavailable, resp.StatusCode)
 	}
-
+	if resp.StatusCode >= 400 {
+		// Taken but refused, e.g. 422: the PMS recorded the booking as one
+		// it couldn't import and imports it itself once that is fixed.
+		slog.Warn("webhook to PMS refused", "status", resp.StatusCode, "event", eventType)
+	}
 	return nil
+}
+
+// retryableStatus: the PMS didn't take the booking and may later — it was
+// down or overloaded (5xx, 408, 429), or not reachable as configured (401,
+// 403, 404 while a deploy or a secret is wrong). Any other 4xx is a decision
+// about the booking itself and is not resent.
+func retryableStatus(code int) bool {
+	switch {
+	case code >= 500:
+		return true
+	case code == 401, code == 403, code == 404, code == 408, code == 429:
+		return true
+	}
+	return false
+}
+
+// otaReference is the channel's display name, falling back to the provider id
+// and, for reservations that carry neither, the connector id (the old value).
+func otaReference(res *domain.Reservation) string {
+	switch {
+	case res.ChannelName != "":
+		return res.ChannelName
+	case res.ChannelProvider != "":
+		return res.ChannelProvider
+	default:
+		return res.ChannelID
+	}
 }

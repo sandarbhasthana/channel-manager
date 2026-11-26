@@ -259,10 +259,27 @@ func main() {
 	// Shared with the booking engine, which reads it off the storefront listing.
 	defaultPropertyHandler := integrationhttp.NewDefaultPropertyHandler(pmsPropRepo)
 
+	// The same four features for bundled tenants, on the PMS endpoint (they
+	// have no WorkOS login to reach the routes above). Same stores, one dataset.
+	intSvc.WithDashboard(integrationusecases.DashboardStores{
+		RateRules:     rateRuleAdapter{repo: channelRateRepo},
+		BookingEngine: bookingEngineAdapter{svc: bookingEngineSvc},
+		Promos:        promoSvc,
+		Properties:    pmsPropRepo,
+	})
+
 	mux.Handle("GET /api/integrations/pms", intAuth.Middleware(http.HandlerFunc(intHandler.OrgHealth)))
 	mux.Handle("POST /api/integrations/pms", intAuth.Middleware(http.HandlerFunc(intHandler.OrgDispatch)))
 	mux.Handle("GET /api/integrations/pms/{propertyId}", intAuth.Middleware(http.HandlerFunc(intHandler.PropertyHealth)))
 	mux.Handle("POST /api/integrations/pms/{propertyId}", intAuth.Middleware(http.HandlerFunc(intHandler.Dispatch)))
+
+	// Background jobs, triggered by apps/sync-worker on its schedule. Closed
+	// unless SYNC_WORKER_TOKEN is set (the worker sends the same value).
+	workerToken := os.Getenv("SYNC_WORKER_TOKEN")
+	if workerToken == "" {
+		slog.Warn("sync worker: SYNC_WORKER_TOKEN not set — background jobs (booking pulls, redelivery) are off")
+	}
+	mux.Handle("POST /internal/worker/jobs/{job}", integrationhttp.NewWorkerHandler(intSvc, orgDirectory{pool: pool}, workerToken))
 
 	// ── Audit service (append-only trail) ─────────────────────────────────────
 	auditRepo := auditpostgres.NewRepository(pool)
